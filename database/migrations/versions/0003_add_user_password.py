@@ -18,8 +18,16 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.add_column("app_user", sa.Column("password_hash", sa.String(length=255), nullable=False, server_default=""))
+    conn = op.get_bind()
+    insp = sa.inspect(conn)
+    cols = [c["name"] for c in insp.get_columns("app_user")]
+    if "password_hash" not in cols:
+        op.add_column("app_user", sa.Column("password_hash", sa.String(length=255), nullable=False, server_default=""))
 
 
 def downgrade() -> None:
-    op.drop_column("app_user", "password_hash")
+    conn = op.get_bind()
+    insp = sa.inspect(conn)
+    cols = [c["name"] for c in insp.get_columns("app_user")]
+    if "password_hash" in cols:
+        op.drop_column("app_user", "password_hash")

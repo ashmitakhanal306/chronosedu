@@ -25,7 +25,9 @@ def upgrade() -> None:
         # Split on non-procedure semicolons or execute via raw connection
         connection = op.get_bind()
         if connection.dialect.name == "postgresql":
-            connection.exec_driver_sql(sql)
+            raw_conn = getattr(connection.connection, "dbapi_connection", connection.connection)
+            with raw_conn.cursor() as cur:
+                cur.execute(sql)
         else:
             from app.db.models import Base
             Base.metadata.create_all(bind=connection)

@@ -19,8 +19,30 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 
-def run_migrations_offline() -> None:
+import re
+
+
+def get_db_url() -> str:
     url = settings.database_url
+    if not url:
+        return url
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql+psycopg://", 1)
+    elif url.startswith("postgresql://"):
+        url = url.replace("postgresql://", "postgresql+psycopg://", 1)
+
+    parts = url.split("://", 1)
+    if len(parts) == 2 and "@" in parts[1]:
+        auth, host_part = parts[1].split("@", 1)
+        if ":" in auth:
+            user, password = auth.split(":", 1)
+            clean_pw = re.sub(r'%(?![0-9a-fA-F]{2})', '%25', password)
+            url = f"{parts[0]}://{user}:{clean_pw}@{host_part}"
+    return url
+
+
+def run_migrations_offline() -> None:
+    url = get_db_url()
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -34,7 +56,7 @@ def run_migrations_offline() -> None:
 
 def run_migrations_online() -> None:
     configuration = config.get_section(config.config_ini_section, {})
-    configuration["sqlalchemy.url"] = settings.database_url
+    configuration["sqlalchemy.url"] = get_db_url()
 
     connectable = engine_from_config(
         configuration,

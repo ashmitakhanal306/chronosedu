@@ -11,7 +11,28 @@ from typing import Generator
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
 
+import re
 from app.core.config import settings
+
+
+def get_db_url() -> str:
+    url = settings.database_url
+    if not url:
+        return url
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql+psycopg://", 1)
+    elif url.startswith("postgresql://"):
+        url = url.replace("postgresql://", "postgresql+psycopg://", 1)
+
+    parts = url.split("://", 1)
+    if len(parts) == 2 and "@" in parts[1]:
+        auth, host_part = parts[1].split("@", 1)
+        if ":" in auth:
+            user, password = auth.split(":", 1)
+            clean_pw = re.sub(r'%(?![0-9a-fA-F]{2})', '%25', password)
+            url = f"{parts[0]}://{user}:{clean_pw}@{host_part}"
+    return url
+
 
 # Engine setup
 connect_args = {}
@@ -19,7 +40,7 @@ if settings.database_url.startswith("sqlite"):
     connect_args["check_same_thread"] = False
 
 engine = create_engine(
-    settings.database_url,
+    get_db_url(),
     pool_pre_ping=True,
     connect_args=connect_args,
 )

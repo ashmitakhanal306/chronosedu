@@ -56,7 +56,9 @@ END $$;
 def upgrade() -> None:
     conn = op.get_bind()
     if conn.dialect.name == "postgresql":
-        conn.exec_driver_sql(SQL_UPGRADE)
+        raw_conn = getattr(conn.connection, "dbapi_connection", conn.connection)
+        with raw_conn.cursor() as cur:
+            cur.execute(SQL_UPGRADE)
 
 
 def downgrade() -> None:
