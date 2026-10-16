@@ -136,3 +136,27 @@ def verify_tenant_access(
             detail=f"Cross-tenant access forbidden: token school '{auth.school_id}' != path school '{school_id}'",
         )
     return auth
+
+
+def verify_platform_token(
+    request: Request,
+    token: str | None = Header(None, alias="X-Chronos-Platform-Token"),
+) -> str:
+    """Verify CHRONOS_PLATFORM_TOKEN header for platform-level management operations (e.g. school creation)."""
+    provided = (
+        token
+        or request.headers.get("CHRONOS_PLATFORM_TOKEN")
+        or request.headers.get("chronos_platform_token")
+        or request.headers.get("chronos-platform-token")
+    )
+    if not provided:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing required platform authorization header: 'X-Chronos-Platform-Token'.",
+        )
+    if settings.platform_token and provided != settings.platform_token:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Invalid platform authorization token.",
+        )
+    return provided

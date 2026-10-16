@@ -287,13 +287,16 @@ def setup_initial_admin(school_id: str, data: UserCreate) -> UserOut:
         raise HTTPException(status_code=400, detail="Administrator password must be at least 8 characters long.")
 
     with tenant_session(str(sid)) as session:
-        user_count = session.scalar(
-            select(func.count(models.AppUser.id)).where(models.AppUser.school_id == sid)
+        admin_count = session.scalar(
+            select(func.count(models.AppUser.id)).where(
+                models.AppUser.school_id == sid,
+                models.AppUser.role == "admin",
+            )
         ) or 0
-        if user_count > 0:
+        if admin_count > 0:
             raise HTTPException(
                 status_code=403,
-                detail="Initial administrator already exists for this school. Use authenticated user management.",
+                detail="Initial administrator already exists for this school. Setup-admin is disabled.",
             )
 
         clean_email = data.email.strip().lower()

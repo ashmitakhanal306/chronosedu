@@ -7,6 +7,8 @@ from httpx import ASGITransport, AsyncClient
 
 os.environ["CHRONOS_DATABASE_URL"] = "sqlite:///./test_chronos.db"
 
+PLATFORM_HEADERS = {"X-Chronos-Platform-Token": "chronos-platform-dev-secret"}
+
 from app.core.auth import create_access_token
 from app.db.models import Base
 from app.db.session import engine
@@ -26,30 +28,38 @@ async def test_cross_tenant_isolation_attack():
     """Prove that school A cannot access or mutate school B resources."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         # Create School A
-        resp_a = await client.post("/api/schools", json={
-            "name": "School Alpha",
-            "subdomain": "alpha",
-            "timezone": "UTC",
-            "term": "Term 1",
-            "working_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-            "max_teacher_periods_per_day": 5,
-            "activity_day": "Friday",
-            "activity_periods": [1, 2],
-        })
+        resp_a = await client.post(
+            "/api/schools",
+            json={
+                "name": "School Alpha",
+                "subdomain": "alpha",
+                "timezone": "UTC",
+                "term": "Term 1",
+                "working_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+                "max_teacher_periods_per_day": 5,
+                "activity_day": "Friday",
+                "activity_periods": [1, 2],
+            },
+            headers=PLATFORM_HEADERS,
+        )
         assert resp_a.status_code == 201
         sid_a = resp_a.json()["id"]
 
         # Create School B
-        resp_b = await client.post("/api/schools", json={
-            "name": "School Beta",
-            "subdomain": "beta",
-            "timezone": "UTC",
-            "term": "Term 1",
-            "working_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-            "max_teacher_periods_per_day": 5,
-            "activity_day": "Friday",
-            "activity_periods": [1, 2],
-        })
+        resp_b = await client.post(
+            "/api/schools",
+            json={
+                "name": "School Beta",
+                "subdomain": "beta",
+                "timezone": "UTC",
+                "term": "Term 1",
+                "working_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+                "max_teacher_periods_per_day": 5,
+                "activity_day": "Friday",
+                "activity_periods": [1, 2],
+            },
+            headers=PLATFORM_HEADERS,
+        )
         assert resp_b.status_code == 201
         sid_b = resp_b.json()["id"]
 
@@ -82,16 +92,21 @@ async def test_role_guards_and_privilege_escalation():
     """Verify that teacher and student tokens cannot access admin actions."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         # Create School
-        resp = await client.post("/api/schools", json={
-            "name": "Greenwood High",
-            "subdomain": "greenwood",
-            "timezone": "UTC",
-            "term": "Term 1",
-            "working_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-            "max_teacher_periods_per_day": 5,
-            "activity_day": "Wednesday",
-            "activity_periods": [1, 2],
-        })
+        resp = await client.post(
+            "/api/schools",
+            json={
+                "name": "Greenwood High",
+                "subdomain": "greenwood",
+                "timezone": "UTC",
+                "term": "Term 1",
+                "working_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+                "max_teacher_periods_per_day": 5,
+                "activity_day": "Wednesday",
+                "activity_periods": [1, 2],
+            },
+            headers=PLATFORM_HEADERS,
+        )
+        assert resp.status_code == 201
         sid = resp.json()["id"]
 
         # Tokens
@@ -137,16 +152,21 @@ async def test_role_guards_and_privilege_escalation():
 async def test_horizontal_role_isolation():
     """Verify students cannot spy on other classes, teachers cannot spy on other teachers."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-        resp = await client.post("/api/schools", json={
-            "name": "Riverdale",
-            "subdomain": "riverdale",
-            "timezone": "UTC",
-            "term": "Term 1",
-            "working_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-            "max_teacher_periods_per_day": 5,
-            "activity_day": "Wednesday",
-            "activity_periods": [1, 2],
-        })
+        resp = await client.post(
+            "/api/schools",
+            json={
+                "name": "Riverdale",
+                "subdomain": "riverdale",
+                "timezone": "UTC",
+                "term": "Term 1",
+                "working_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+                "max_teacher_periods_per_day": 5,
+                "activity_day": "Wednesday",
+                "activity_periods": [1, 2],
+            },
+            headers=PLATFORM_HEADERS,
+        )
+        assert resp.status_code == 201
         sid = resp.json()["id"]
 
         student_token = create_access_token({
@@ -190,18 +210,23 @@ async def test_subdomain_resolution_and_auth_flow():
     """Test subdomain resolution and JWT login endpoint."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         # Create school with unique subdomain and custom admin credentials
-        await client.post("/api/schools", json={
-            "name": "Oxford Prep",
-            "subdomain": "oxford",
-            "timezone": "UTC",
-            "term": "Term 1",
-            "working_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-            "max_teacher_periods_per_day": 5,
-            "activity_day": "Wednesday",
-            "activity_periods": [1, 2],
-            "admin_email": "headmaster@oxford.edu",
-            "admin_password": "OxfordHeadmaster123!",
-        })
+        create_res = await client.post(
+            "/api/schools",
+            json={
+                "name": "Oxford Prep",
+                "subdomain": "oxford",
+                "timezone": "UTC",
+                "term": "Term 1",
+                "working_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+                "max_teacher_periods_per_day": 5,
+                "activity_day": "Wednesday",
+                "activity_periods": [1, 2],
+                "admin_email": "headmaster@oxford.edu",
+                "admin_password": "OxfordHeadmaster123!",
+            },
+            headers=PLATFORM_HEADERS,
+        )
+        assert create_res.status_code == 201
 
         # Resolve subdomain via Host header
         resp = await client.get("/api/auth/resolve-school", headers={"Host": "oxford.chronosedu.com"})
@@ -276,20 +301,28 @@ async def test_register_is_admin_only_and_tenancy_guarded():
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         # Create School A with first admin password
-        res_a = await client.post("/api/schools", json={
-            "name": "School A",
-            "subdomain": "school-a",
-            "admin_email": "admin@school-a.edu",
-            "admin_password": "AdminSecurePassword123!",
-        })
+        res_a = await client.post(
+            "/api/schools",
+            json={
+                "name": "School A",
+                "subdomain": "school-a",
+                "admin_email": "admin@school-a.edu",
+                "admin_password": "AdminSecurePassword123!",
+            },
+            headers=PLATFORM_HEADERS,
+        )
         assert res_a.status_code == 201
         sid_a = res_a.json()["id"]
 
         # Create School B without initial admin
-        res_b = await client.post("/api/schools", json={
-            "name": "School B",
-            "subdomain": "school-b",
-        })
+        res_b = await client.post(
+            "/api/schools",
+            json={
+                "name": "School B",
+                "subdomain": "school-b",
+            },
+            headers=PLATFORM_HEADERS,
+        )
         assert res_b.status_code == 201
         sid_b = res_b.json()["id"]
 
@@ -374,12 +407,17 @@ async def test_login_rate_limiting():
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         # Create School with admin
-        res = await client.post("/api/schools", json={
-            "name": "Rate Limit School",
-            "subdomain": "ratelimit-sch",
-            "admin_email": "admin@ratelimit.edu",
-            "admin_password": "CorrectPassword123!",
-        })
+        res = await client.post(
+            "/api/schools",
+            json={
+                "name": "Rate Limit School",
+                "subdomain": "ratelimit-sch",
+                "admin_email": "admin@ratelimit.edu",
+                "admin_password": "CorrectPassword123!",
+            },
+            headers=PLATFORM_HEADERS,
+        )
+        assert res.status_code == 201
         sid = res.json()["id"]
 
         # 5 failed login attempts
@@ -400,3 +438,37 @@ async def test_login_rate_limiting():
         assert rate_limited_resp.status_code == 429
         assert "Too many failed login attempts" in rate_limited_resp.json()["detail"]
         assert "Retry-After" in rate_limited_resp.headers
+
+
+@pytest.mark.anyio
+async def test_school_creation_requires_platform_token():
+    """Verify that school creation strictly requires a valid CHRONOS_PLATFORM_TOKEN header."""
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        payload = {
+            "name": "Platform Token Test School",
+            "subdomain": "platform-test-sch",
+            "timezone": "UTC",
+        }
+
+        # 1. Missing header -> 401 Unauthorized
+        res_no_header = await client.post("/api/schools", json=payload)
+        assert res_no_header.status_code == 401
+        assert "Missing required platform authorization" in res_no_header.json()["detail"]
+
+        # 2. Invalid header -> 403 Forbidden
+        res_bad_header = await client.post(
+            "/api/schools",
+            json=payload,
+            headers={"X-Chronos-Platform-Token": "invalid-platform-token"},
+        )
+        assert res_bad_header.status_code == 403
+        assert "Invalid platform authorization token" in res_bad_header.json()["detail"]
+
+        # 3. Valid header -> 201 Created
+        res_ok = await client.post(
+            "/api/schools",
+            json=payload,
+            headers=PLATFORM_HEADERS,
+        )
+        assert res_ok.status_code == 201
+        assert res_ok.json()["subdomain"] == "platform-test-sch"

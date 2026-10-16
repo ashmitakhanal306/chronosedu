@@ -43,7 +43,11 @@ async def test_full_timetable_lifecycle_generate_override_publish():
             "activity_day": "Friday",
             "activity_periods": [1, 2],
         }
-        resp = await client.post("/api/schools", json=school_payload)
+        resp = await client.post(
+            "/api/schools",
+            json=school_payload,
+            headers={"X-Chronos-Platform-Token": "chronos-platform-dev-secret"},
+        )
         assert resp.status_code == 201
         school = resp.json()
         sid = school["id"]

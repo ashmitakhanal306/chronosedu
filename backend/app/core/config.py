@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     jwt_secret: str = "chronos-super-secret-jwt-key-for-saas-timetable"
     jwt_algorithm: str = "HS256"
     jwt_expiration_minutes: int = 60 * 24 * 7  # 7 days
+    platform_token: str = "chronos-platform-dev-secret"
 
     model_config = {"env_prefix": "CHRONOS_"}
 

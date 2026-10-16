@@ -50,16 +50,21 @@ async def test_substitution_assign_triggers_background_notification():
     """Verify that assigning a substitute teacher automatically enqueues and dispatches an email notification."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         # Create school
-        resp = await client.post("/api/schools", json={
-            "name": "St. Andrews",
-            "subdomain": "standrews",
-            "timezone": "UTC",
-            "term": "Term 1",
-            "working_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-            "max_teacher_periods_per_day": 5,
-            "activity_day": "Friday",
-            "activity_periods": [1, 2],
-        })
+        resp = await client.post(
+            "/api/schools",
+            json={
+                "name": "St. Andrews",
+                "subdomain": "standrews",
+                "timezone": "UTC",
+                "term": "Term 1",
+                "working_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+                "max_teacher_periods_per_day": 5,
+                "activity_day": "Friday",
+                "activity_periods": [1, 2],
+            },
+            headers={"X-Chronos-Platform-Token": "chronos-platform-dev-secret"},
+        )
+        assert resp.status_code == 201
         sid = resp.json()["id"]
 
         token = create_access_token({"sub": "admin-1", "school_id": sid, "role": "admin"})
@@ -137,16 +142,21 @@ async def test_notification_failure_never_blocks_assignment():
 
     try:
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-            resp = await client.post("/api/schools", json={
-                "name": "Oakridge",
-                "subdomain": "oakridge",
-                "timezone": "UTC",
-                "term": "Term 1",
-                "working_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-                "max_teacher_periods_per_day": 5,
-                "activity_day": "Friday",
-                "activity_periods": [1, 2],
-            })
+            resp = await client.post(
+                "/api/schools",
+                json={
+                    "name": "Oakridge",
+                    "subdomain": "oakridge",
+                    "timezone": "UTC",
+                    "term": "Term 1",
+                    "working_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+                    "max_teacher_periods_per_day": 5,
+                    "activity_day": "Friday",
+                    "activity_periods": [1, 2],
+                },
+                headers={"X-Chronos-Platform-Token": "chronos-platform-dev-secret"},
+            )
+            assert resp.status_code == 201
             sid = resp.json()["id"]
             token = create_access_token({"sub": "admin-1", "school_id": sid, "role": "admin"})
             auth_client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test", headers={"Authorization": f"Bearer {token}"})

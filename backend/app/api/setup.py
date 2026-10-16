@@ -1,7 +1,13 @@
 """API LAYER — School setup CRUD routes."""
 from fastapi import APIRouter, Depends
 
-from app.core.auth import AuthContext, get_auth_context, require_roles, verify_tenant_access
+from app.core.auth import (
+    AuthContext,
+    get_auth_context,
+    require_roles,
+    verify_platform_token,
+    verify_tenant_access,
+)
 from app.schemas.setup import (
     ClassSectionCreate,
     ClassSectionOut,
@@ -26,8 +32,11 @@ router = APIRouter(prefix="/api/schools", tags=["setup"])
 
 
 @router.post("", response_model=SchoolOut, status_code=201)
-def create_school(data: SchoolCreate):
-    """Create a new school organization (public onboarding)."""
+def create_school(
+    data: SchoolCreate,
+    _platform_token: str = Depends(verify_platform_token),
+):
+    """Create a new school organization (platform-gated onboarding). Requires CHRONOS_PLATFORM_TOKEN."""
     return school_service.create_school(data)
 
 
