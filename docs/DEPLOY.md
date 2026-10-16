@@ -52,6 +52,9 @@ Set the application password for `chronos_app`:
 ALTER ROLE chronos_app WITH PASSWORD '<STRONG_SECURE_PASSWORD>';
 ```
 
+> [!TIP]
+> **Supabase Connection Pooler Note**: When connecting through Supabase's transaction pooler (Supavisor on port 5432 or 6543), usernames must include the project reference ID: `<username>.<project_ref>` (for example: `chronos_app.<project-ref>`).
+
 ### 2.3 Run Alembic Migrations
 Apply all schema revisions up to `head`:
 ```bash
