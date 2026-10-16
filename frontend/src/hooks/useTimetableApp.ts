@@ -23,13 +23,42 @@ import { exportTimetableCsv, exportTimetableExcel, exportTimetablePrint } from '
 import { api, type ApiEntryOut } from '../services/api';
 import { useToast } from './useToast';
 
+export interface CurrentUser {
+  userId: string;
+  schoolId: string;
+  role: Role;
+  name: string;
+  email?: string;
+  teacherId?: string;
+  classId?: string;
+}
+
 export function useTimetableApp() {
   const [schools, setSchools] = useState<School[]>(INITIAL_SCHOOLS);
   const [activeSchoolId, setActiveSchoolId] = useState('school-1');
-  const [activeRole, setActiveRole] = useState<Role>('admin');
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<CurrentUser>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('chronos_user');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch {}
+      }
+    }
+    return {
+      userId: 'admin-greenwood',
+      schoolId: 'school-1',
+      role: 'admin',
+      name: 'Administrator (Greenwood High)',
+      email: 'admin@greenwood.edu',
+    };
+  });
+
+  const activeRole = currentUser.role;
   const [adminTab, setAdminTab] = useState<AdminTab>('timetable');
-  const [selectedClassId, setSelectedClassId] = useState('c-4a');
-  const [selectedTeacherId, setSelectedTeacherId] = useState('t-1');
+  const [selectedClassId, setSelectedClassId] = useState(currentUser.classId || 'c-4a');
+  const [selectedTeacherId, setSelectedTeacherId] = useState(currentUser.teacherId || 't-1');
   const [timetableViewMode, setTimetableViewMode] = useState<ViewMode>('class');
   const [editingSlot, setEditingSlot] = useState<EditingSlot | null>(null);
   const [overrideSubjectId, setOverrideSubjectId] = useState('');
@@ -88,14 +117,17 @@ export function useTimetableApp() {
     substituteTeacherName: e.substitute_teacher_name || undefined,
   });
 
-  // Load timetable from backend API on mount / school switch
+  // Load timetable from backend API on mount / school switch / auth change
   useEffect(() => {
     let isCancelled = false;
 
     async function loadFromApi() {
       try {
         setIsSyncing(true);
-        const apiEntries = await api.getTimetable(activeSchool.id);
+        const filterClass = currentUser.role === 'student' ? (currentUser.classId || selectedClassId) : undefined;
+        const filterTeacher = currentUser.role === 'teacher' ? (currentUser.teacherId || selectedTeacherId) : undefined;
+
+        const apiEntries = await api.getTimetable(activeSchool.id, filterClass, filterTeacher);
         if (isCancelled) return;
 
         if (apiEntries && apiEntries.length > 0) {
@@ -108,8 +140,10 @@ export function useTimetableApp() {
             [activeSchool.id]: { entries: entryMap, diagnostics: [] },
           }));
         }
-      } catch {
-        // Backend not yet populated or offline; keep fallback local schedule
+      } catch (err: any) {
+        if (err?.status === 403) {
+          showToast(`Access Restricted: ${err.message}`, 'warning');
+        }
       } finally {
         if (!isCancelled) setIsSyncing(false);
       }
@@ -117,7 +151,58 @@ export function useTimetableApp() {
 
     loadFromApi();
     return () => { isCancelled = true; };
-  }, [activeSchool.id]);
+  }, [activeSchool.id, currentUser]);
+
+  const login = async (
+    role: Role,
+    schoolId: string,
+    options?: { teacherId?: string; classId?: string; email?: string; name?: string }
+  ) => {
+    try {
+      setIsSyncing(true);
+      const res = await api.login({
+        school_id: schoolId,
+        role,
+        teacher_id: options?.teacherId,
+        class_id: options?.classId,
+        email: options?.email,
+      });
+
+      const school = schools.find(s => s.id === schoolId) || activeSchool;
+      const newUser: CurrentUser = {
+        userId: res.user.user_id,
+        schoolId,
+        role,
+        name: options?.name || (role === 'admin' ? `Admin (${school.name})` : role),
+        email: options?.email,
+        teacherId: options?.teacherId,
+        classId: options?.classId,
+      };
+
+      setCurrentUser(newUser);
+      setActiveSchoolId(schoolId);
+      if (options?.teacherId) setSelectedTeacherId(options.teacherId);
+      if (options?.classId) setSelectedClassId(options.classId);
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('chronos_user', JSON.stringify(newUser));
+      }
+      showToast(`Authenticated as ${role.toUpperCase()} (${school.name}) via JWT!`, 'success');
+    } catch (err: any) {
+      showToast(`Authentication failed: ${err.message}`, 'warning');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const logout = () => {
+    api.setAuthToken(null);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('chronos_user');
+    }
+    setIsAuthModalOpen(true);
+    showToast('Signed out of tenant session.', 'info');
+  };
 
   // Keep selections valid when switching tenants
   useEffect(() => {
@@ -325,13 +410,15 @@ export function useTimetableApp() {
 
   return {
     // state
-    schools, activeSchool, activeRole, adminTab, timetableViewMode,
+    schools, activeSchool, activeRole, currentUser, isAuthModalOpen, adminTab, timetableViewMode,
     selectedClass, selectedTeacher, currentSchedule, entries,
     subjectMap, teacherMap, classMap,
     editingSlot, overrideSubjectId, overrideTeacherId, overrideConflicts, toast, showToast, isSyncing,
     // setters
-    setActiveSchoolId, setActiveRole, setAdminTab, setTimetableViewMode,
+    setActiveSchoolId, setAdminTab, setTimetableViewMode, setIsAuthModalOpen,
     setSelectedClassId, setSelectedTeacherId, setEditingSlot, setOverrideSubjectId, setOverrideTeacherId,
+    // auth
+    login, logout,
     // actions
     updateActiveSchool, runSolver, resetDemoData, togglePublish, exportCsv, exportExcel, exportPrintPdf,
     getCandidates, assignSubstitute, autoAssign, addAbsence, removeAbsence, toggleTeacherUnavailable,

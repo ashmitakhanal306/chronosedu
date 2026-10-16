@@ -120,7 +120,7 @@ export interface EditingSlot {
   currentEntry?: TimetableEntry;
 }
 
-export type ToastType = 'success' | 'warning';
+export type ToastType = 'success' | 'warning' | 'info';
 export interface ToastState {
   msg: string;
   type: ToastType;

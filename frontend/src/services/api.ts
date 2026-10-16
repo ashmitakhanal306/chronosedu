@@ -68,7 +68,24 @@ export interface ApiPublishResponse {
   message: string;
 }
 
-class ApiError extends Error {
+let currentToken: string | null = typeof window !== 'undefined' ? localStorage.getItem('chronos_token') : null;
+
+export interface ApiAuthUser {
+  user_id: string;
+  school_id: string;
+  role: 'admin' | 'teacher' | 'student';
+  email?: string | null;
+  teacher_id?: string | null;
+  class_id?: string | null;
+}
+
+export interface ApiTokenResponse {
+  access_token: string;
+  token_type: string;
+  user: ApiAuthUser;
+}
+
+export class ApiError extends Error {
   status: number;
   detail?: string;
 
@@ -82,10 +99,18 @@ class ApiError extends Error {
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const url = path.startsWith('/api') ? path : `/api${path}`;
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  if (currentToken) {
+    headers['Authorization'] = `Bearer ${currentToken}`;
+  }
+
   const response = await fetch(url, {
     ...options,
     headers: {
-      'Content-Type': 'application/json',
+      ...headers,
       ...options?.headers,
     },
   });
@@ -107,6 +132,47 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  /** Set or clear the JWT authentication token */
+  setAuthToken(token: string | null) {
+    currentToken = token;
+    if (token) {
+      localStorage.setItem('chronos_token', token);
+    } else {
+      localStorage.removeItem('chronos_token');
+    }
+  },
+
+  getAuthToken(): string | null {
+    return currentToken;
+  },
+
+  /** Request JWT access token from backend for tenant and role */
+  async login(payload: {
+    school_id: string;
+    role: 'admin' | 'teacher' | 'student';
+    email?: string;
+    teacher_id?: string;
+    class_id?: string;
+  }): Promise<ApiTokenResponse> {
+    const res = await request<ApiTokenResponse>('/auth/token', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    this.setAuthToken(res.access_token);
+    return res;
+  },
+
+  /** Retrieve currently authenticated user profile */
+  async getMe(): Promise<ApiAuthUser> {
+    return request<ApiAuthUser>('/auth/me');
+  },
+
+  /** Resolve school by subdomain */
+  async resolveSchool(subdomain?: string): Promise<{ id: string; name: string; subdomain: string; published: boolean }> {
+    const query = subdomain ? `?subdomain=${encodeURIComponent(subdomain)}` : '';
+    return request(`/auth/resolve-school${query}`);
+  },
+
   /** Fetch timetable entries from backend */
   async getTimetable(schoolId: string, classId?: string, teacherId?: string): Promise<ApiEntryOut[]> {
     const params = new URLSearchParams();

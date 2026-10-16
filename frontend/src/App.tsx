@@ -3,6 +3,7 @@ import { useTimetableApp } from './hooks/useTimetableApp';
 import { Header } from './components/layout/Header';
 import { Toast } from './components/layout/Toast';
 import { OverrideModal } from './components/timetable/OverrideModal';
+import { LoginModal } from './components/layout/LoginModal';
 import { AdminPortal } from './features/admin/AdminPortal';
 import { TeacherPortal } from './features/teacher/TeacherPortal';
 import { StudentPortal } from './features/student/StudentPortal';
@@ -22,6 +23,7 @@ export default function App() {
       </main>
 
       <OverrideModal app={app} />
+      <LoginModal app={app} />
     </div>
   );
 }

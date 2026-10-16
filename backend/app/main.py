@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import health, setup, timetable
+from app.api import auth, health, setup, timetable
 from app.core.config import settings
 from app.db.models import Base
 from app.db.session import engine
@@ -31,6 +31,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth.router)
 app.include_router(health.router)
 app.include_router(setup.router)
 app.include_router(timetable.router)

@@ -1,8 +1,8 @@
-import { Calendar, ShieldCheck, UserCheck, Building2, GraduationCap } from 'lucide-react';
+import { Calendar, ShieldCheck, UserCheck, Building2, GraduationCap, Key } from 'lucide-react';
 import type { TimetableApp } from '../../hooks/useTimetableApp';
 
 export function Header({ app }: { app: TimetableApp }) {
-  const { schools, activeSchool, activeRole, setActiveSchoolId, setActiveRole } = app;
+  const { schools, activeSchool, currentUser, setActiveSchoolId, setIsAuthModalOpen } = app;
   return (
       <header className="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-4">
@@ -45,33 +45,35 @@ export function Header({ app }: { app: TimetableApp }) {
             </div>
           </div>
 
-          {/* Role Portal Switcher */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400 hidden lg:inline mr-1">Switch Role View:</span>
-            <div className="inline-flex rounded-xl bg-slate-800 p-1 border border-slate-700">
-              {[
-                { id: 'admin' as const, label: 'Admin Portal', icon: ShieldCheck },
-                { id: 'teacher' as const, label: 'Teacher Portal', icon: UserCheck },
-                { id: 'student' as const, label: 'Student / Parent', icon: GraduationCap },
-              ].map(role => {
-                const Icon = role.icon;
-                const active = activeRole === role.id;
-                return (
-                  <button
-                    key={role.id}
-                    onClick={() => setActiveRole(role.id)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                      active
-                        ? 'bg-indigo-600 text-white shadow-sm'
-                        : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
-                    }`}
-                  >
-                    <Icon className="w-3.5 h-3.5" />
-                    <span>{role.label}</span>
-                  </button>
-                );
-              })}
+          {/* Authenticated User Identity & Login Switcher */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5 bg-slate-800/90 border border-slate-700/80 rounded-xl px-3 py-1.5">
+              <div className="w-7 h-7 rounded-lg bg-indigo-600/30 border border-indigo-400/30 flex items-center justify-center text-indigo-300">
+                {currentUser.role === 'admin' && <ShieldCheck className="w-4 h-4" />}
+                {currentUser.role === 'teacher' && <UserCheck className="w-4 h-4" />}
+                {currentUser.role === 'student' && <GraduationCap className="w-4 h-4" />}
+              </div>
+              <div className="text-left">
+                <div className="flex items-center gap-1.5 leading-none">
+                  <span className="text-xs font-semibold text-white">{currentUser.name}</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                    {currentUser.role}
+                  </span>
+                </div>
+                <span className="text-[10px] text-slate-400 block mt-0.5 leading-none">
+                  JWT Verified • {activeSchool.name}
+                </span>
+              </div>
             </div>
+
+            <button
+              onClick={() => setIsAuthModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-medium transition cursor-pointer"
+              title="Authenticate as different tenant or role"
+            >
+              <Key className="w-3.5 h-3.5 text-indigo-400" />
+              <span>Switch User / Login</span>
+            </button>
           </div>
         </div>
 
