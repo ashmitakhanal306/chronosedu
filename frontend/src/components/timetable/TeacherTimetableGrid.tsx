@@ -1,0 +1,151 @@
+import type { ClassSection, EntryMap, School, Subject, Teacher, TimetableEntry } from '../../domain/types';
+
+interface Props {
+  school: School;
+  teacher: Teacher;
+  entries: EntryMap;
+  subjectMap: Record<string, Subject>;
+  classMap: Record<string, ClassSection>;
+  teacherMap: Record<string, Teacher>;
+}
+
+export function TeacherTimetableGrid({ school, teacher, entries, subjectMap, classMap, teacherMap }: Props) {
+  // Compute teacher's daily load (including substitutions)
+  const dailyStats: Record<string, { assigned: number; free: number }> = {};
+  school.workingDays.forEach(day => {
+    let count = 0;
+    for (let p = 1; p <= school.rules.seniorEndPeriod; p++) {
+      Object.values(entries).forEach(e => {
+        if (e.day === day && e.period === p) {
+          const subKey = `${day}-${p}-${e.classId}`;
+          const effectiveTeacherId = school.substitutions[subKey] || e.teacherId;
+          if (effectiveTeacherId === teacher.id) count++;
+        }
+      });
+    }
+    dailyStats[day] = {
+      assigned: count,
+      free: school.rules.seniorEndPeriod - count
+    };
+  });
+
+  return (
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+      <div className="px-5 py-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-4 bg-slate-50/60">
+        <div>
+          <h3 className="font-bold text-sm text-slate-900">
+            {teacher.name} — Weekly Schedule & Daily Workload Meter
+          </h3>
+          <p className="text-xs text-slate-500">
+            Qualified Subjects: {teacher.subjects.map(sid => subjectMap[sid]?.name).join(', ')}
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          {school.workingDays.map(day => {
+            const st = dailyStats[day];
+            const overCap = st.assigned > school.rules.maxTeacherPeriodsPerDay;
+            return (
+              <div key={day} className={`px-2.5 py-1 rounded-xl border text-xs ${
+                overCap ? 'bg-rose-50 border-rose-300 text-rose-800' : 'bg-white border-slate-200 text-slate-700'
+              }`}>
+                <span className="font-bold">{day.slice(0, 3)}:</span> {st.assigned}/{school.rules.maxTeacherPeriodsPerDay} periods{' '}
+                <span className="text-emerald-600 font-semibold">({st.free} free)</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse text-left">
+          <thead>
+            <tr className="border-b border-slate-200 bg-slate-50 text-[11px] uppercase tracking-wider text-slate-500">
+              <th className="py-3 px-4 w-36 font-semibold">Period / Time</th>
+              {school.workingDays.map(day => (
+                <th key={day} className="py-3 px-4 font-semibold min-w-[155px]">
+                  {day}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-200 text-xs">
+            {school.periodSlots.filter(s => !s.isBreak).map(slot => {
+              const p = slot.number as number;
+              return (
+                <tr key={slot.label}>
+                  <td className="py-3 px-4 border-r border-slate-200 bg-slate-50/40">
+                    <div className="font-bold text-slate-800">{slot.label}</div>
+                    <div className="text-[11px] text-slate-500">{slot.time}</div>
+                  </td>
+                  {school.workingDays.map(day => {
+                    // Find if teacher is teaching a regular class or substituting
+                    let matchedEntry = null as TimetableEntry | null;
+                    let isSubbing = false;
+                    let coveredBySub = null as Teacher | null;
+
+                    Object.values(entries).forEach(e => {
+                      if (e.day === day && e.period === p) {
+                        const subKey = `${day}-${p}-${e.classId}`;
+                        const subId = school.substitutions[subKey];
+                        if (subId === teacher.id) {
+                          matchedEntry = e;
+                          isSubbing = true;
+                        } else if (e.teacherId === teacher.id) {
+                          matchedEntry = e;
+                          if (subId) coveredBySub = teacherMap[subId];
+                        }
+                      }
+                    });
+
+                    if (!matchedEntry) {
+                      return (
+                        <td key={day} className="p-2.5 border-r border-slate-100">
+                          <div className="h-16 rounded-xl bg-emerald-50/40 border border-dashed border-emerald-200 flex flex-col items-center justify-center text-emerald-700">
+                            <span className="font-semibold text-xs">Free Period</span>
+                            <span className="text-[10px] opacity-75">Available for Sub</span>
+                          </div>
+                        </td>
+                      );
+                    }
+
+                    const cls = classMap[matchedEntry.classId];
+                    const sub = subjectMap[matchedEntry.subjectId];
+
+                    return (
+                      <td key={day} className="p-2.5 border-r border-slate-100">
+                        <div className={`p-2.5 rounded-xl border ${
+                          isSubbing
+                            ? 'bg-amber-100 border-amber-300 text-amber-950'
+                            : coveredBySub
+                            ? 'bg-slate-100 border-slate-300 text-slate-400 line-through'
+                            : sub?.color
+                        }`}>
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-xs">Class {cls?.name}</span>
+                            {isSubbing && (
+                              <span className="px-1.5 py-0.2 rounded bg-amber-700 text-white text-[10px] font-bold">
+                                SUB DUTY
+                              </span>
+                            )}
+                          </div>
+                          <div className="font-medium mt-1">{sub?.name}</div>
+                          <div className="text-[10px] opacity-75 mt-0.5">📍 {matchedEntry.room}</div>
+                          {coveredBySub && (
+                            <div className="text-[10px] text-rose-600 font-semibold no-underline mt-1">
+                              Covered by {coveredBySub.name}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}

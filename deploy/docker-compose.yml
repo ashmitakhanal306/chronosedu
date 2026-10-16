@@ -1,0 +1,21 @@
+# Local dev / MVP deploy (Render/Railway can use the same Dockerfiles).
+services:
+  db:
+    image: postgres:16
+    environment: { POSTGRES_USER: chronos, POSTGRES_PASSWORD: chronos, POSTGRES_DB: chronos }
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ../database/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+    ports: ["5432:5432"]
+  backend:
+    build: { context: .., dockerfile: backend/Dockerfile }
+    environment:
+      CHRONOS_DATABASE_URL: postgresql+psycopg://chronos:chronos@db:5432/chronos
+    depends_on: [db]
+    ports: ["8000:8000"]
+  frontend:
+    build: ../frontend
+    depends_on: [backend]
+    ports: ["8080:80"]
+volumes:
+  pgdata:
