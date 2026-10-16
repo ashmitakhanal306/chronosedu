@@ -228,6 +228,8 @@ class Teacher(Base):
     id: Mapped[uuid.UUID] = mapped_column(GUID, primary_key=True, default=uuid.uuid4)
     school_id: Mapped[uuid.UUID] = mapped_column(GUID, ForeignKey("school.id", ondelete="CASCADE"), nullable=False)
     name: Mapped[str] = mapped_column(String(150), nullable=False)
+    email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    phone: Mapped[str | None] = mapped_column(String(50), nullable=True)
     max_periods_per_day: Mapped[int] = mapped_column(SmallInteger, default=5, nullable=False)
     unavailable_days: Mapped[list[str]] = mapped_column(PortableStringList, default=list, nullable=False)
 

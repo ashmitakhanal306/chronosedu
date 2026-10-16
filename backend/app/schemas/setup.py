@@ -112,6 +112,8 @@ class RequirementOut(BaseModel):
 
 class TeacherCreate(BaseModel):
     name: str
+    email: str | None = None
+    phone: str | None = None
     max_periods_per_day: int = 5
     unavailable_days: list[str] = Field(default_factory=list)
     subject_ids: list[str] = Field(default_factory=list)
@@ -121,6 +123,8 @@ class TeacherOut(BaseModel):
     id: str
     school_id: str
     name: str
+    email: str | None = None
+    phone: str | None = None
     max_periods_per_day: int
     unavailable_days: list[str]
     subject_ids: list[str] = Field(default_factory=list)

@@ -1,5 +1,5 @@
 """API LAYER — HTTP only: parse, authorise, validate, delegate to services. No SQL, no solver logic."""
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 
 from app.core.auth import AuthContext, get_auth_context, require_roles, verify_tenant_access
 from app.schemas.timetable import (
@@ -13,7 +13,7 @@ from app.schemas.timetable import (
     SubstitutionAssignRequest,
     SubstitutionOut,
 )
-from app.services import timetable_service
+from app.services import notifications, timetable_service
 
 router = APIRouter(prefix="/api/schools/{school_id}", tags=["timetable"])
 
@@ -131,8 +131,16 @@ def get_substitute_candidates(
 def assign_substitution(
     school_id: str,
     req: SubstitutionAssignRequest,
+    background_tasks: BackgroundTasks,
     auth: AuthContext = Depends(require_roles(["admin"])),
 ):
-    """Assign a substitute teacher to a slot. Admin only."""
+    """Assign a substitute teacher to a slot. Admin only. Enqueues background notification."""
     verify_tenant_access(school_id, auth)
-    return timetable_service.assign_substitution(school_id, req)
+    result = timetable_service.assign_substitution(school_id, req)
+    background_tasks.add_task(
+        notifications.send_substitution_notification_task,
+        school_id,
+        req.entry_id,
+        req.substitute_teacher_id,
+    )
+    return result

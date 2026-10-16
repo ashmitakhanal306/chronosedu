@@ -196,6 +196,8 @@ def add_teacher(school_id: str, data: TeacherCreate) -> TeacherOut:
             id=uuid.uuid4(),
             school_id=sid,
             name=data.name,
+            email=data.email,
+            phone=data.phone,
             max_periods_per_day=data.max_periods_per_day,
             unavailable_days=data.unavailable_days,
         )
@@ -216,6 +218,8 @@ def add_teacher(school_id: str, data: TeacherCreate) -> TeacherOut:
             id=str(t.id),
             school_id=str(sid),
             name=t.name,
+            email=t.email,
+            phone=t.phone,
             max_periods_per_day=t.max_periods_per_day,
             unavailable_days=t.unavailable_days,
             subject_ids=list(data.subject_ids),
