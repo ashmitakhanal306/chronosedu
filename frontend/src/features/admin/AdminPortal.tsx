@@ -1,4 +1,4 @@
-import { Calendar, AlertTriangle, Sparkles, CheckCircle2, RefreshCw, Download, UserCheck, Lock, Unlock, Sliders } from 'lucide-react';
+import { Calendar, AlertTriangle, Sparkles, CheckCircle2, RefreshCw, Download, UserCheck, Lock, Unlock, Sliders, FileSpreadsheet, Printer } from 'lucide-react';
 import type { TimetableApp } from '../../hooks/useTimetableApp';
 import { TimetableTab } from './TimetableTab';
 import { SubstitutionsTab } from './SubstitutionsTab';
@@ -7,7 +7,8 @@ import { WhatRemainsGuide } from './WhatRemainsGuide';
 
 export function AdminPortal({ app }: { app: TimetableApp }) {
   const {
-    activeSchool, currentSchedule, adminTab, setAdminTab, runSolver, togglePublish, exportCsv, resetDemoData, updateActiveSchool,
+    activeSchool, currentSchedule, adminTab, setAdminTab, runSolver, togglePublish,
+    exportCsv, exportExcel, exportPrintPdf, resetDemoData, updateActiveSchool, isSyncing,
   } = app;
   return (
     <>
@@ -46,10 +47,11 @@ export function AdminPortal({ app }: { app: TimetableApp }) {
               <div className="flex flex-wrap items-center gap-2">
                 <button
                   onClick={runSolver}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold shadow-sm transition cursor-pointer"
+                  disabled={isSyncing}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-xs sm:text-sm font-semibold shadow-sm transition cursor-pointer"
                 >
-                  <RefreshCw className="w-4 h-4" />
-                  <span>Generate Timetable</span>
+                  <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                  <span>{isSyncing ? 'Solving...' : 'Generate Timetable'}</span>
                 </button>
 
                 <button
@@ -64,13 +66,34 @@ export function AdminPortal({ app }: { app: TimetableApp }) {
                   <span>{activeSchool.published ? 'Published' : 'Approve & Publish'}</span>
                 </button>
 
-                <button
-                  onClick={exportCsv}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs sm:text-sm font-medium transition cursor-pointer"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>Export CSV</span>
-                </button>
+                <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl p-0.5">
+                  <button
+                    onClick={exportCsv}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-slate-700 hover:bg-white text-xs font-medium transition cursor-pointer"
+                    title="Export Timetable as CSV"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>CSV</span>
+                  </button>
+
+                  <button
+                    onClick={exportExcel}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-slate-700 hover:bg-white text-xs font-medium transition cursor-pointer"
+                    title="Export Timetable as Excel (.xls)"
+                  >
+                    <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Excel</span>
+                  </button>
+
+                  <button
+                    onClick={exportPrintPdf}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-slate-700 hover:bg-white text-xs font-medium transition cursor-pointer"
+                    title="Print or Save Timetable as PDF"
+                  >
+                    <Printer className="w-3.5 h-3.5 text-indigo-600" />
+                    <span>Print / PDF</span>
+                  </button>
+                </div>
               </div>
             </div>
 

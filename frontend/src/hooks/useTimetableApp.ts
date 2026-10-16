@@ -1,15 +1,26 @@
 // STATE LAYER — one hook owns app state + actions; UI components stay presentational.
-// When the backend exists, swap the setState calls for API calls (services/api.ts) here only.
+// Wires client state to the backend API (src/services/api.ts) with resilient fallback to local demo data.
 import { useEffect, useMemo, useState } from 'react';
 import type {
-  AdminTab, ClassSection, EditingSlot, EntryMap, Role, ScheduleResult, School, Subject, Teacher, ViewMode,
+  AdminTab,
+  ClassSection,
+  EditingSlot,
+  EntryMap,
+  Role,
+  ScheduleResult,
+  School,
+  Subject,
+  Teacher,
+  TimetableEntry,
+  ViewMode,
 } from '../domain/types';
 import { slotKey } from '../domain/types';
 import { INITIAL_SCHOOLS } from '../data/demoSchools';
 import { generateSchoolTimetable } from '../engine/generateTimetable';
 import { autoAssignSubstitutes, getSubstituteCandidatesForSlot } from '../engine/substitutes';
 import { checkManualOverrideConflict } from '../engine/conflicts';
-import { exportTimetableCsv } from '../services/exportCsv';
+import { exportTimetableCsv, exportTimetableExcel, exportTimetablePrint } from '../services/exportFormats';
+import { api, type ApiEntryOut } from '../services/api';
 import { useToast } from './useToast';
 
 export function useTimetableApp() {
@@ -23,6 +34,7 @@ export function useTimetableApp() {
   const [editingSlot, setEditingSlot] = useState<EditingSlot | null>(null);
   const [overrideSubjectId, setOverrideSubjectId] = useState('');
   const [overrideTeacherId, setOverrideTeacherId] = useState('');
+  const [isSyncing, setIsSyncing] = useState(false);
   const { toast, showToast } = useToast();
 
   const [schedulesBySchool, setSchedulesBySchool] = useState<Record<string, ScheduleResult>>(() => {
@@ -35,6 +47,77 @@ export function useTimetableApp() {
     () => schools.find(s => s.id === activeSchoolId) || schools[0],
     [schools, activeSchoolId],
   );
+
+  // ---- lookups
+  const subjectMap = useMemo(() => {
+    const m: Record<string, Subject> = {};
+    activeSchool.subjects.forEach(s => { m[s.id] = s; });
+    return m;
+  }, [activeSchool.subjects]);
+
+  const teacherMap = useMemo(() => {
+    const m: Record<string, Teacher> = {};
+    activeSchool.teachers.forEach(t => { m[t.id] = t; });
+    return m;
+  }, [activeSchool.teachers]);
+
+  const classMap = useMemo(() => {
+    const m: Record<string, ClassSection> = {};
+    activeSchool.classes.forEach(c => { m[c.id] = c; });
+    return m;
+  }, [activeSchool.classes]);
+
+  const selectedClass = classMap[selectedClassId] || activeSchool.classes[0];
+  const selectedTeacher = teacherMap[selectedTeacherId] || activeSchool.teachers[0];
+
+  const updateActiveSchool = (updater: (s: School) => School) =>
+    setSchools(prev => prev.map(s => (s.id === activeSchool.id ? updater(s) : s)));
+
+  // Helper to map backend ApiEntryOut to frontend TimetableEntry
+  const mapApiEntry = (e: ApiEntryOut): TimetableEntry => ({
+    id: e.id,
+    classId: e.class_id,
+    day: e.day,
+    period: e.period,
+    subjectId: e.subject_id,
+    teacherId: e.teacher_id,
+    room: e.room || '',
+    isActivity: subjectMap[e.subject_id]?.type === 'activity',
+    isManualOverride: e.is_manual_override,
+    substituteTeacherId: e.substitute_teacher_id || undefined,
+    substituteTeacherName: e.substitute_teacher_name || undefined,
+  });
+
+  // Load timetable from backend API on mount / school switch
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function loadFromApi() {
+      try {
+        setIsSyncing(true);
+        const apiEntries = await api.getTimetable(activeSchool.id);
+        if (isCancelled) return;
+
+        if (apiEntries && apiEntries.length > 0) {
+          const entryMap: EntryMap = {};
+          apiEntries.forEach(e => {
+            entryMap[slotKey(e.day, e.period, e.class_id)] = mapApiEntry(e);
+          });
+          setSchedulesBySchool(prev => ({
+            ...prev,
+            [activeSchool.id]: { entries: entryMap, diagnostics: [] },
+          }));
+        }
+      } catch {
+        // Backend not yet populated or offline; keep fallback local schedule
+      } finally {
+        if (!isCancelled) setIsSyncing(false);
+      }
+    }
+
+    loadFromApi();
+    return () => { isCancelled = true; };
+  }, [activeSchool.id]);
 
   // Keep selections valid when switching tenants
   useEffect(() => {
@@ -49,36 +132,47 @@ export function useTimetableApp() {
   const currentSchedule: ScheduleResult = schedulesBySchool[activeSchool.id] || { entries: {}, diagnostics: [] };
   const entries: EntryMap = currentSchedule.entries;
 
-  const updateActiveSchool = (updater: (s: School) => School) =>
-    setSchools(prev => prev.map(s => (s.id === activeSchool.id ? updater(s) : s)));
-
-  // ---- lookups
-  const subjectMap = useMemo(() => {
-    const m: Record<string, Subject> = {};
-    activeSchool.subjects.forEach(s => { m[s.id] = s; });
-    return m;
-  }, [activeSchool.subjects]);
-  const teacherMap = useMemo(() => {
-    const m: Record<string, Teacher> = {};
-    activeSchool.teachers.forEach(t => { m[t.id] = t; });
-    return m;
-  }, [activeSchool.teachers]);
-  const classMap = useMemo(() => {
-    const m: Record<string, ClassSection> = {};
-    activeSchool.classes.forEach(c => { m[c.id] = c; });
-    return m;
-  }, [activeSchool.classes]);
-  const selectedClass = classMap[selectedClassId] || activeSchool.classes[0];
-  const selectedTeacher = teacherMap[selectedTeacherId] || activeSchool.teachers[0];
-
   // ---- actions
-  const runSolver = () => {
-    const result = generateSchoolTimetable(activeSchool);
-    setSchedulesBySchool(prev => ({ ...prev, [activeSchool.id]: result }));
-    if (result.diagnostics.length === 0) {
-      showToast(`Conflict-free timetable generated for ${activeSchool.name}!`, 'success');
-    } else {
-      showToast(`Solver finished with ${result.diagnostics.length} constraint alert(s).`, 'warning');
+  const runSolver = async () => {
+    setIsSyncing(true);
+    try {
+      // 1. Try server-side solver first (Phase 2 API)
+      const res = await api.generateTimetable(activeSchool.id);
+      if (res.feasible) {
+        const entryMap: EntryMap = {};
+        res.entries.forEach(e => {
+          entryMap[slotKey(e.day, e.period, e.class_id)] = mapApiEntry(e);
+        });
+        setSchedulesBySchool(prev => ({
+          ...prev,
+          [activeSchool.id]: { entries: entryMap, diagnostics: [] },
+        }));
+        showToast(`Conflict-free timetable generated via OR-Tools CP-SAT server!`, 'success');
+        return;
+      }
+
+      if (res.diagnostics && res.diagnostics.length > 0) {
+        setSchedulesBySchool(prev => ({
+          ...prev,
+          [activeSchool.id]: {
+            entries: {},
+            diagnostics: res.diagnostics.map(d => ({ type: d.severity, title: d.title, detail: d.detail })),
+          },
+        }));
+        showToast(`Server solver detected ${res.diagnostics.length} constraint issue(s).`, 'warning');
+        return;
+      }
+    } catch {
+      // Fallback to client-side engine if server is offline or school not in DB yet
+      const result = generateSchoolTimetable(activeSchool);
+      setSchedulesBySchool(prev => ({ ...prev, [activeSchool.id]: result }));
+      if (result.diagnostics.length === 0) {
+        showToast(`Conflict-free timetable generated for ${activeSchool.name}!`, 'success');
+      } else {
+        showToast(`Solver finished with ${result.diagnostics.length} constraint alert(s).`, 'warning');
+      }
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -90,10 +184,16 @@ export function useTimetableApp() {
     showToast('Reset to balanced conflict-free staffing data!', 'success');
   };
 
-  const togglePublish = () => {
-    updateActiveSchool(s => ({ ...s, published: !s.published }));
+  const togglePublish = async () => {
+    const nextPublished = !activeSchool.published;
+    updateActiveSchool(s => ({ ...s, published: nextPublished }));
+    try {
+      await api.publish(activeSchool.id);
+    } catch {
+      // Ignored for local state fallback
+    }
     showToast(
-      !activeSchool.published ? 'Timetable approved and published to portals!' : 'Timetable reverted to draft.',
+      nextPublished ? 'Timetable approved and published to portals!' : 'Timetable reverted to draft.',
       'success',
     );
   };
@@ -103,11 +203,30 @@ export function useTimetableApp() {
     showToast('Exported timetable to CSV!', 'success');
   };
 
-  const getCandidates = (day: string, period: number, absentTeacherId: string) =>
-    getSubstituteCandidatesForSlot(activeSchool, entries, day, period, absentTeacherId);
+  const exportExcel = () => {
+    exportTimetableExcel(activeSchool, entries);
+    showToast('Exported timetable to Excel (.xls)!', 'success');
+  };
 
-  const assignSubstitute = (subKey: string, teacherId: string) =>
+  const exportPrintPdf = () => {
+    exportTimetablePrint(activeSchool);
+  };
+
+  const getCandidates = (day: string, period: number, absentTeacherId: string, subjectId?: string) =>
+    getSubstituteCandidatesForSlot(activeSchool, entries, day, period, absentTeacherId, subjectId);
+
+  const assignSubstitute = async (subKey: string, teacherId: string) => {
     updateActiveSchool(s => ({ ...s, substitutions: { ...s.substitutions, [subKey]: teacherId } }));
+    const targetEntry = entries[subKey];
+    if (targetEntry && targetEntry.id) {
+      try {
+        await api.assignSubstitution(activeSchool.id, targetEntry.id, teacherId);
+      } catch {
+        // fallback
+      }
+    }
+    showToast('Substitute teacher assigned successfully!', 'success');
+  };
 
   const autoAssign = (absence: { teacherId: string; day: string }) => {
     const { substitutions, assignedCount } = autoAssignSubstitutes(activeSchool, entries, absence);
@@ -115,15 +234,21 @@ export function useTimetableApp() {
     showToast(`Auto-assigned top-ranked substitutes for ${assignedCount} period(s)!`, 'success');
   };
 
-  const addAbsence = (teacherId: string, day: string, reason: string) => {
+  const addAbsence = async (teacherId: string, day: string, reason: string) => {
     if (activeSchool.absences.some(a => a.teacherId === teacherId && a.day === day)) {
       showToast('Teacher is already marked absent on that day.', 'warning');
       return;
     }
+    const newId = `abs-${Date.now()}`;
     updateActiveSchool(s => ({
       ...s,
-      absences: [...s.absences, { id: `abs-${Date.now()}`, teacherId, day, reason }],
+      absences: [...s.absences, { id: newId, teacherId, day, reason }],
     }));
+    try {
+      await api.logAbsence(activeSchool.id, teacherId, day, reason);
+    } catch {
+      // fallback
+    }
     showToast('Absence logged. Review ranked substitutes on the right.', 'success');
   };
 
@@ -155,15 +280,37 @@ export function useTimetableApp() {
     ? checkManualOverrideConflict(activeSchool, entries, editingSlot.day, editingSlot.period, editingSlot.classId, overrideTeacherId)
     : [];
 
-  const saveManualOverride = () => {
+  const saveManualOverride = async () => {
     if (!editingSlot) return;
-    const { day, period, classId } = editingSlot;
+    const { day, period, classId, currentEntry } = editingSlot;
     const sub = subjectMap[overrideSubjectId];
     const cls = classMap[classId];
+
+    // Try backend override with server-side clash verification
+    if (currentEntry?.id) {
+      try {
+        await api.updateEntry(activeSchool.id, currentEntry.id, {
+          day,
+          period,
+          subject_id: overrideSubjectId,
+          teacher_id: overrideTeacherId,
+          room: sub?.room || cls?.room,
+        });
+      } catch (err: any) {
+        if (err.status === 409) {
+          showToast(`Override rejected: ${err.message}`, 'warning');
+          return;
+        }
+      }
+    }
+
     const updated: EntryMap = {
       ...entries,
       [slotKey(day, period, classId)]: {
-        classId, day, period,
+        id: currentEntry?.id,
+        classId,
+        day,
+        period,
         subjectId: overrideSubjectId,
         teacherId: overrideTeacherId,
         room: sub?.room || cls?.room || 'Room TBD',
@@ -181,12 +328,12 @@ export function useTimetableApp() {
     schools, activeSchool, activeRole, adminTab, timetableViewMode,
     selectedClass, selectedTeacher, currentSchedule, entries,
     subjectMap, teacherMap, classMap,
-    editingSlot, overrideSubjectId, overrideTeacherId, overrideConflicts, toast, showToast,
+    editingSlot, overrideSubjectId, overrideTeacherId, overrideConflicts, toast, showToast, isSyncing,
     // setters
     setActiveSchoolId, setActiveRole, setAdminTab, setTimetableViewMode,
     setSelectedClassId, setSelectedTeacherId, setEditingSlot, setOverrideSubjectId, setOverrideTeacherId,
     // actions
-    updateActiveSchool, runSolver, resetDemoData, togglePublish, exportCsv,
+    updateActiveSchool, runSolver, resetDemoData, togglePublish, exportCsv, exportExcel, exportPrintPdf,
     getCandidates, assignSubstitute, autoAssign, addAbsence, removeAbsence, toggleTeacherUnavailable,
     openManualOverride, saveManualOverride,
   };

@@ -1,0 +1,161 @@
+/**
+ * API client wrapper for ChronosEdu FastAPI backend.
+ * Base path '/api' is proxied to http://localhost:8000 via vite.config.ts.
+ */
+
+export interface ApiEntryOut {
+  id?: string;
+  class_id: string;
+  class_name?: string | null;
+  day: string;
+  period: number;
+  subject_id: string;
+  subject_name?: string | null;
+  teacher_id: string;
+  teacher_name?: string | null;
+  room?: string | null;
+  is_manual_override: boolean;
+  substitute_teacher_id?: string | null;
+  substitute_teacher_name?: string | null;
+}
+
+export interface ApiDiagnosticOut {
+  severity: 'error' | 'warning';
+  title: string;
+  detail: string;
+}
+
+export interface ApiGenerateResponse {
+  feasible: boolean;
+  entries: ApiEntryOut[];
+  diagnostics: ApiDiagnosticOut[];
+}
+
+export interface ApiOverrideRequest {
+  day: string;
+  period: number;
+  subject_id: string;
+  teacher_id: string;
+  room?: string | null;
+}
+
+export interface ApiAbsenceOut {
+  id: string;
+  school_id: string;
+  teacher_id: string;
+  teacher_name?: string | null;
+  day: string;
+  reason?: string | null;
+}
+
+export interface ApiCandidateOut {
+  teacher_id: string;
+  name: string;
+  free_periods_today: number;
+  assigned_today: number;
+  is_qualified: boolean;
+}
+
+export interface ApiSubstitutionOut {
+  id: string;
+  entry_id: string;
+  substitute_teacher_id: string;
+  substitute_name?: string | null;
+}
+
+export interface ApiPublishResponse {
+  published: boolean;
+  message: string;
+}
+
+class ApiError extends Error {
+  status: number;
+  detail?: string;
+
+  constructor(status: number, message: string, detail?: string) {
+    super(detail || message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.detail = detail;
+  }
+}
+
+async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  const url = path.startsWith('/api') ? path : `/api${path}`;
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options?.headers,
+    },
+  });
+
+  if (!response.ok) {
+    let errorDetail = response.statusText;
+    try {
+      const errorJson = await response.json();
+      if (errorJson && errorJson.detail) {
+        errorDetail = typeof errorJson.detail === 'string' ? errorJson.detail : JSON.stringify(errorJson.detail);
+      }
+    } catch {
+      // ignore json parse error on error response
+    }
+    throw new ApiError(response.status, `HTTP ${response.status}`, errorDetail);
+  }
+
+  return response.json() as Promise<T>;
+}
+
+export const api = {
+  /** Fetch timetable entries from backend */
+  async getTimetable(schoolId: string, classId?: string, teacherId?: string): Promise<ApiEntryOut[]> {
+    const params = new URLSearchParams();
+    if (classId) params.set('class_id', classId);
+    if (teacherId) params.set('teacher_id', teacherId);
+    const query = params.toString() ? `?${params.toString()}` : '';
+    return request<ApiEntryOut[]>(`/schools/${schoolId}/timetable${query}`);
+  },
+
+  /** Run constraint solver on the backend and persist generated draft */
+  async generateTimetable(schoolId: string): Promise<ApiGenerateResponse> {
+    return request<ApiGenerateResponse>(`/schools/${schoolId}/generate`, {
+      method: 'POST',
+    });
+  },
+
+  /** Manual override for a timetable slot (re-validates H1/H2/H7; returns 409 on clash) */
+  async updateEntry(schoolId: string, entryId: string, override: ApiOverrideRequest): Promise<ApiEntryOut> {
+    return request<ApiEntryOut>(`/schools/${schoolId}/entries/${entryId}`, {
+      method: 'PUT',
+      body: JSON.stringify(override),
+    });
+  },
+
+  /** Publish timetable */
+  async publish(schoolId: string): Promise<ApiPublishResponse> {
+    return request<ApiPublishResponse>(`/schools/${schoolId}/publish`, {
+      method: 'POST',
+    });
+  },
+
+  /** Log teacher absence */
+  async logAbsence(schoolId: string, teacherId: string, day: string, reason: string = ''): Promise<ApiAbsenceOut> {
+    return request<ApiAbsenceOut>(`/schools/${schoolId}/absences`, {
+      method: 'POST',
+      body: JSON.stringify({ teacher_id: teacherId, day, reason }),
+    });
+  },
+
+  /** Get ranked substitute candidates for an absence */
+  async getSubstitutes(schoolId: string, absenceId: string): Promise<ApiCandidateOut[]> {
+    return request<ApiCandidateOut[]>(`/schools/${schoolId}/absences/${absenceId}/substitutes`);
+  },
+
+  /** Assign a substitute teacher to a slot */
+  async assignSubstitution(schoolId: string, entryId: string, substituteTeacherId: string): Promise<ApiSubstitutionOut> {
+    return request<ApiSubstitutionOut>(`/schools/${schoolId}/substitutions`, {
+      method: 'POST',
+      body: JSON.stringify({ entry_id: entryId, substitute_teacher_id: substituteTeacherId }),
+    });
+  },
+};

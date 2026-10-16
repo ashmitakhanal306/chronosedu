@@ -80,6 +80,7 @@ export interface School {
 }
 
 export interface TimetableEntry {
+  id?: string;
   classId: string;
   day: string;
   period: number;
@@ -88,6 +89,8 @@ export interface TimetableEntry {
   room: string;
   isActivity: boolean;
   isManualOverride?: boolean;
+  substituteTeacherId?: string;
+  substituteTeacherName?: string;
 }
 
 export interface Diagnostic {
