@@ -9,6 +9,7 @@ export function getSubstituteCandidatesForSlot(
   day: string,
   period: number,
   absentTeacherId: string,
+  subjectId?: string,
 ): SubstituteCandidate[] {
   const maxCap = school.rules.maxTeacherPeriodsPerDay || 5;
 
@@ -34,6 +35,13 @@ export function getSubstituteCandidatesForSlot(
     return count;
   };
 
+  // Total weekly periods taught across all days (for workload balancing tie-breaker)
+  const weeklyLoad: Record<string, number> = {};
+  Object.values(entries).forEach(e => {
+    const effective = school.substitutions[slotKey(e.day, e.period, e.classId)] || e.teacherId;
+    weeklyLoad[effective] = (weeklyLoad[effective] || 0) + 1;
+  });
+
   const totalDayPeriods = school.rules.seniorEndPeriod;
   const absentToday = new Set(school.absences.filter(a => a.day === day).map(a => a.teacherId));
 
@@ -51,9 +59,25 @@ export function getSubstituteCandidatesForSlot(
       return { ...t, assignedToday, freePeriodsToday: totalDayPeriods - assignedToday };
     });
 
-  // Most free periods first.
-  // NOTE: tie-breaker is an open decision (blueprint section 10); currently stable order.
-  candidates.sort((a, b) => b.freePeriodsToday - a.freePeriodsToday);
+  // Ranking & Tie-breakers (docs/DECISIONS.md):
+  // 1. Most free periods today (highest first)
+  // 2. Same-subject qualification match (qualified teachers first)
+  // 3. Lowest total weekly load (balances load)
+  // 4. Name alphabetically (deterministic)
+  candidates.sort((a, b) => {
+    if (b.freePeriodsToday !== a.freePeriodsToday) {
+      return b.freePeriodsToday - a.freePeriodsToday;
+    }
+    if (subjectId) {
+      const aQual = a.subjects.includes(subjectId) ? 1 : 0;
+      const bQual = b.subjects.includes(subjectId) ? 1 : 0;
+      if (bQual !== aQual) return bQual - aQual;
+    }
+    const aWeekly = weeklyLoad[a.id] || 0;
+    const bWeekly = weeklyLoad[b.id] || 0;
+    if (aWeekly !== bWeekly) return aWeekly - bWeekly;
+    return a.name.localeCompare(b.name);
+  });
   return candidates;
 }
 
@@ -69,7 +93,7 @@ export function autoAssignSubstitutes(
   let assignedCount = 0;
 
   affected.forEach(entry => {
-    const candidates = getSubstituteCandidatesForSlot(school, entries, day, entry.period, teacherId);
+    const candidates = getSubstituteCandidatesForSlot(school, entries, day, entry.period, teacherId, entry.subjectId);
     if (candidates.length > 0) {
       substitutions[slotKey(day, entry.period, entry.classId)] = candidates[0].id;
       assignedCount++;
