@@ -1,0 +1,128 @@
+"""Pydantic schemas for School Setup CRUD endpoints."""
+from __future__ import annotations
+
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class SchoolCreate(BaseModel):
+    name: str
+    subdomain: str
+    timezone: str = "Asia/Kolkata"
+    term: str | None = None
+    working_days: list[str] = Field(default_factory=lambda: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"])
+    max_teacher_periods_per_day: int = 5
+    activity_day: str = "Wednesday"
+    activity_periods: list[int] = Field(default_factory=lambda: [1, 2])
+
+
+class SchoolOut(BaseModel):
+    id: str
+    name: str
+    subdomain: str
+    timezone: str
+    term: str | None = None
+    published: bool
+    working_days: list[str]
+    max_teacher_periods_per_day: int
+    activity_day: str
+    activity_periods: list[int]
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class GradeCreate(BaseModel):
+    name: str
+    tier: str  # 'primary' or 'senior'
+    day_end_time: str = "12:00"
+
+
+class GradeOut(BaseModel):
+    id: str
+    school_id: str
+    name: str
+    tier: str
+    day_end_time: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class RoomCreate(BaseModel):
+    name: str
+    type: str = "classroom"
+
+
+class RoomOut(BaseModel):
+    id: str
+    school_id: str
+    name: str
+    type: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ClassSectionCreate(BaseModel):
+    grade_id: str
+    section: str
+    home_room_id: str | None = None
+
+
+class ClassSectionOut(BaseModel):
+    id: str
+    school_id: str
+    grade_id: str
+    section: str
+    home_room_id: str | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SubjectCreate(BaseModel):
+    name: str
+    code: str
+    type: str = "academic"
+    room_id: str | None = None
+
+
+class SubjectOut(BaseModel):
+    id: str
+    school_id: str
+    name: str
+    code: str
+    type: str
+    room_id: str | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class RequirementCreate(BaseModel):
+    subject_id: str
+    grade_id: str
+    weekly_frequency: int
+
+
+class RequirementOut(BaseModel):
+    id: str
+    school_id: str
+    subject_id: str
+    grade_id: str
+    weekly_frequency: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TeacherCreate(BaseModel):
+    name: str
+    max_periods_per_day: int = 5
+    unavailable_days: list[str] = Field(default_factory=list)
+    subject_ids: list[str] = Field(default_factory=list)
+
+
+class TeacherOut(BaseModel):
+    id: str
+    school_id: str
+    name: str
+    max_periods_per_day: int
+    unavailable_days: list[str]
+    subject_ids: list[str] = Field(default_factory=list)
+
+    model_config = ConfigDict(from_attributes=True)
