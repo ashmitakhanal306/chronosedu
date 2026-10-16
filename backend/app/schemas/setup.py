@@ -13,6 +13,27 @@ class SchoolCreate(BaseModel):
     max_teacher_periods_per_day: int = 5
     activity_day: str = "Wednesday"
     activity_periods: list[int] = Field(default_factory=lambda: [1, 2])
+    admin_email: str | None = None
+    admin_password: str | None = None
+
+
+class UserCreate(BaseModel):
+    email: str
+    password: str
+    role: str  # "admin", "teacher", "student"
+    teacher_id: str | None = None
+    class_id: str | None = None
+
+
+class UserOut(BaseModel):
+    id: str
+    school_id: str
+    email: str
+    role: str
+    teacher_id: str | None = None
+    class_id: str | None = None
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class SchoolOut(BaseModel):

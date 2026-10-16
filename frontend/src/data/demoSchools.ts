@@ -63,10 +63,11 @@ export const INITIAL_SCHOOLS: School[] = [
       { id: 't-6', name: 'Mr. Rohan Joshi', subjects: ['sub-sci', 'sub-cs'], maxPerDay: 5, unavailableDays: [] },
       { id: 't-7', name: 'Ms. Sarah Jenkins', subjects: ['sub-sst'], maxPerDay: 5, unavailableDays: [] },
       { id: 't-8', name: 'Mr. Vikram Singh', subjects: ['sub-sst', 'sub-hin'], maxPerDay: 5, unavailableDays: [] },
-      // Specialist Activity Teachers
+      // Specialist Activity Teachers (4 specialists for 4 simultaneous classes in Wednesday Activity Block)
       { id: 't-9', name: 'Maestro Carlos (Music)', subjects: ['sub-mus'], maxPerDay: 5, unavailableDays: [] },
       { id: 't-10', name: 'Ms. Elena Rostova (Art)', subjects: ['sub-art', 'sub-mus'], maxPerDay: 5, unavailableDays: [] },
       { id: 't-11', name: 'Coach Marcus Vance (Sports)', subjects: ['sub-gam', 'sub-art'], maxPerDay: 5, unavailableDays: [] },
+      { id: 't-12', name: 'Ms. Tara Sharma (Physical Ed & Activity)', subjects: ['sub-gam', 'sub-art', 'sub-mus'], maxPerDay: 5, unavailableDays: [] },
     ],
     absences: [
       // Pre-populated example absence so user can immediately see Substitute Ranking in action

@@ -189,7 +189,7 @@ async def test_unauthenticated_requests_rejected():
 async def test_subdomain_resolution_and_auth_flow():
     """Test subdomain resolution and JWT login endpoint."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-        # Create school with unique subdomain
+        # Create school with unique subdomain and custom admin credentials
         await client.post("/api/schools", json={
             "name": "Oxford Prep",
             "subdomain": "oxford",
@@ -199,6 +199,8 @@ async def test_subdomain_resolution_and_auth_flow():
             "max_teacher_periods_per_day": 5,
             "activity_day": "Wednesday",
             "activity_periods": [1, 2],
+            "admin_email": "headmaster@oxford.edu",
+            "admin_password": "OxfordHeadmaster123!",
         })
 
         # Resolve subdomain via Host header
@@ -209,17 +211,27 @@ async def test_subdomain_resolution_and_auth_flow():
         assert school_info["name"] == "Oxford Prep"
         sid = school_info["id"]
 
-        # Login endpoint to obtain token
+        # Attack: Attempt password-less / incorrect password login -> 401 Unauthorized
+        bad_login = await client.post("/api/auth/token", json={
+            "school_id": sid,
+            "email": "headmaster@oxford.edu",
+            "password": "WrongPassword!",
+        })
+        assert bad_login.status_code == 401
+        assert "Invalid school, email, or password" in bad_login.json()["detail"]
+
+        # Real credentials login -> 200 OK with signed JWT
         login_resp = await client.post("/api/auth/token", json={
             "school_id": sid,
-            "role": "admin",
             "email": "headmaster@oxford.edu",
+            "password": "OxfordHeadmaster123!",
         })
         assert login_resp.status_code == 200
         token_data = login_resp.json()
         assert "access_token" in token_data
         assert token_data["user"]["role"] == "admin"
         assert token_data["user"]["school_id"] == sid
+        assert token_data["user"]["email"] == "headmaster@oxford.edu"
 
         # Call /api/auth/me
         me_resp = await client.get(
@@ -228,3 +240,163 @@ async def test_subdomain_resolution_and_auth_flow():
         )
         assert me_resp.status_code == 200
         assert me_resp.json()["email"] == "headmaster@oxford.edu"
+
+
+@pytest.mark.anyio
+async def test_startup_fails_if_jwt_secret_is_default():
+    """Verify application startup raises RuntimeError immediately if CHRONOS_JWT_SECRET is default or insecure."""
+    from app.core.config import settings
+    from app.main import lifespan
+
+    original_secret = settings.jwt_secret
+    try:
+        # Test with known default
+        settings.jwt_secret = "chronos-super-secret-jwt-key-for-saas-timetable"
+        with pytest.raises(RuntimeError) as exc_info:
+            async with lifespan(app):
+                pass
+        assert "FATAL SECURITY FAILURE" in str(exc_info.value)
+        assert "CHRONOS_JWT_SECRET" in str(exc_info.value)
+
+        # Test with empty secret
+        settings.jwt_secret = ""
+        with pytest.raises(RuntimeError) as exc_info_empty:
+            async with lifespan(app):
+                pass
+        assert "FATAL SECURITY FAILURE" in str(exc_info_empty.value)
+    finally:
+        settings.jwt_secret = original_secret
+
+
+@pytest.mark.anyio
+async def test_register_is_admin_only_and_tenancy_guarded():
+    """Prove that /api/auth/register is strictly admin-only and blocks cross-tenant user creation."""
+    from app.api.auth import reset_login_rate_limits
+    reset_login_rate_limits()
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        # Create School A with first admin password
+        res_a = await client.post("/api/schools", json={
+            "name": "School A",
+            "subdomain": "school-a",
+            "admin_email": "admin@school-a.edu",
+            "admin_password": "AdminSecurePassword123!",
+        })
+        assert res_a.status_code == 201
+        sid_a = res_a.json()["id"]
+
+        # Create School B without initial admin
+        res_b = await client.post("/api/schools", json={
+            "name": "School B",
+            "subdomain": "school-b",
+        })
+        assert res_b.status_code == 201
+        sid_b = res_b.json()["id"]
+
+        # First admin sets password on School B via setup-admin
+        setup_b = await client.post(f"/api/auth/setup-admin?school_id={sid_b}", json={
+            "email": "admin@school-b.edu",
+            "password": "AdminBPassword123!",
+            "role": "admin",
+        })
+        assert setup_b.status_code == 201
+        assert setup_b.json()["email"] == "admin@school-b.edu"
+
+        # Attempting second setup-admin on School B -> 403 Forbidden
+        setup_b_again = await client.post(f"/api/auth/setup-admin?school_id={sid_b}", json={
+            "email": "attacker@school-b.edu",
+            "password": "AttackerPassword123!",
+            "role": "admin",
+        })
+        assert setup_b_again.status_code == 403
+        assert "Initial administrator already exists" in setup_b_again.json()["detail"]
+
+        # Log in as School A Admin
+        login_a = await client.post("/api/auth/token", json={
+            "school_id": sid_a,
+            "email": "admin@school-a.edu",
+            "password": "AdminSecurePassword123!",
+        })
+        assert login_a.status_code == 200
+        token_a = login_a.json()["access_token"]
+        headers_a = {"Authorization": f"Bearer {token_a}"}
+
+        # 1. Unauthenticated request to /api/auth/register -> 401 Unauthorized
+        unauth_reg = await client.post(f"/api/auth/register?school_id={sid_a}", json={
+            "email": "teacher1@school-a.edu",
+            "password": "TeacherPass123!",
+            "role": "teacher",
+        })
+        assert unauth_reg.status_code == 401
+
+        # 2. Cross-tenant registration attempt: School A admin tries to register user into School B -> 403 Forbidden
+        cross_reg = await client.post(
+            f"/api/auth/register?school_id={sid_b}",
+            json={"email": "spy@school-b.edu", "password": "SpyPassword123!", "role": "teacher"},
+            headers=headers_a,
+        )
+        assert cross_reg.status_code == 403
+        assert "Cross-tenant access forbidden" in cross_reg.json()["detail"]
+
+        # 3. Legitimate registration by School A admin -> 201 Created
+        valid_reg = await client.post(
+            f"/api/auth/register?school_id={sid_a}",
+            json={"email": "teacher1@school-a.edu", "password": "TeacherPass123!", "role": "teacher"},
+            headers=headers_a,
+        )
+        assert valid_reg.status_code == 201
+        assert valid_reg.json()["email"] == "teacher1@school-a.edu"
+        assert valid_reg.json()["role"] == "teacher"
+
+        # Log in as newly registered teacher
+        t_login = await client.post("/api/auth/token", json={
+            "school_id": sid_a,
+            "email": "teacher1@school-a.edu",
+            "password": "TeacherPass123!",
+        })
+        assert t_login.status_code == 200
+        t_token = t_login.json()["access_token"]
+
+        # 4. Teacher tries to call /api/auth/register -> 403 Forbidden (Admin only)
+        teacher_reg = await client.post(
+            f"/api/auth/register?school_id={sid_a}",
+            json={"email": "student1@school-a.edu", "password": "StudentPass123!", "role": "student"},
+            headers={"Authorization": f"Bearer {t_token}"},
+        )
+        assert teacher_reg.status_code == 403
+
+
+@pytest.mark.anyio
+async def test_login_rate_limiting():
+    """Verify that exceeding 5 failed login attempts triggers 429 Too Many Requests."""
+    from app.api.auth import reset_login_rate_limits
+    reset_login_rate_limits()
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        # Create School with admin
+        res = await client.post("/api/schools", json={
+            "name": "Rate Limit School",
+            "subdomain": "ratelimit-sch",
+            "admin_email": "admin@ratelimit.edu",
+            "admin_password": "CorrectPassword123!",
+        })
+        sid = res.json()["id"]
+
+        # 5 failed login attempts
+        for i in range(5):
+            bad_resp = await client.post("/api/auth/token", json={
+                "school_id": sid,
+                "email": "admin@ratelimit.edu",
+                "password": f"BadPassword{i}!",
+            })
+            assert bad_resp.status_code == 401
+
+        # 6th attempt should be blocked with 429 Too Many Requests
+        rate_limited_resp = await client.post("/api/auth/token", json={
+            "school_id": sid,
+            "email": "admin@ratelimit.edu",
+            "password": "CorrectPassword123!",
+        })
+        assert rate_limited_resp.status_code == 429
+        assert "Too many failed login attempts" in rate_limited_resp.json()["detail"]
+        assert "Retry-After" in rate_limited_resp.headers

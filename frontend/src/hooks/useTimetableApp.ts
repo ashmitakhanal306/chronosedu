@@ -154,35 +154,35 @@ export function useTimetableApp() {
   }, [activeSchool.id, currentUser]);
 
   const login = async (
-    role: Role,
     schoolId: string,
-    options?: { teacherId?: string; classId?: string; email?: string; name?: string }
+    email: string,
+    password: string,
+    options?: { teacherId?: string; classId?: string; name?: string; role?: Role }
   ) => {
     try {
       setIsSyncing(true);
       const res = await api.login({
         school_id: schoolId,
-        role,
-        teacher_id: options?.teacherId,
-        class_id: options?.classId,
-        email: options?.email,
+        email,
+        password,
       });
 
       const school = schools.find(s => s.id === schoolId) || activeSchool;
+      const role = (res.user.role as Role) || options?.role || 'admin';
       const newUser: CurrentUser = {
         userId: res.user.user_id,
         schoolId,
         role,
-        name: options?.name || (role === 'admin' ? `Admin (${school.name})` : role),
-        email: options?.email,
-        teacherId: options?.teacherId,
-        classId: options?.classId,
+        name: options?.name || res.user.email || (role === 'admin' ? `Admin (${school.name})` : role),
+        email: res.user.email || email,
+        teacherId: res.user.teacher_id || options?.teacherId,
+        classId: res.user.class_id || options?.classId,
       };
 
       setCurrentUser(newUser);
       setActiveSchoolId(schoolId);
-      if (options?.teacherId) setSelectedTeacherId(options.teacherId);
-      if (options?.classId) setSelectedClassId(options.classId);
+      if (newUser.teacherId) setSelectedTeacherId(newUser.teacherId);
+      if (newUser.classId) setSelectedClassId(newUser.classId);
 
       if (typeof window !== 'undefined') {
         localStorage.setItem('chronos_user', JSON.stringify(newUser));
@@ -190,6 +190,7 @@ export function useTimetableApp() {
       showToast(`Authenticated as ${role.toUpperCase()} (${school.name}) via JWT!`, 'success');
     } catch (err: any) {
       showToast(`Authentication failed: ${err.message}`, 'warning');
+      throw err;
     } finally {
       setIsSyncing(false);
     }

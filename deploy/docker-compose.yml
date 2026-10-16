@@ -2,15 +2,21 @@
 services:
   db:
     image: postgres:16
-    environment: { POSTGRES_USER: chronos, POSTGRES_PASSWORD: chronos, POSTGRES_DB: chronos }
+    environment:
+      POSTGRES_USER: chronos
+      POSTGRES_PASSWORD: ${CHRONOS_DB_PASSWORD:-chronos}
+      POSTGRES_DB: chronos
+      CHRONOS_APP_PASSWORD: ${CHRONOS_APP_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ../database/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./init-app-role.sh:/docker-entrypoint-initdb.d/02_init_app_role.sh:ro
     ports: ["5432:5432"]
   backend:
     build: { context: .., dockerfile: backend/Dockerfile }
     environment:
-      CHRONOS_DATABASE_URL: postgresql+psycopg://chronos:chronos@db:5432/chronos
+      CHRONOS_DATABASE_URL: postgresql+psycopg://chronos_app:${CHRONOS_APP_PASSWORD}@db:5432/chronos
+      CHRONOS_JWT_SECRET: ${CHRONOS_JWT_SECRET}
     depends_on: [db]
     ports: ["8000:8000"]
   frontend:

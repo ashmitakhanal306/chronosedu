@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { ShieldCheck, UserCheck, GraduationCap, Building2, Key, Check, AlertCircle, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ShieldCheck, UserCheck, GraduationCap, Building2, Key, Check, AlertCircle, X, Lock } from 'lucide-react';
 import type { TimetableApp } from '../../hooks/useTimetableApp';
 import type { Role } from '../../domain/types';
 
@@ -17,37 +17,51 @@ export function LoginModal({ app }: { app: TimetableApp }) {
   const [selectedRole, setSelectedRole] = useState<Role>(currentUser.role);
   const [selectedTeacherId, setSelectedTeacherId] = useState(activeSchool.teachers[0]?.id || 't-1');
   const [selectedClassId, setSelectedClassId] = useState(activeSchool.classes[0]?.id || 'c-4a');
+  const [email, setEmail] = useState(`admin@${activeSchool.subdomain}.edu`);
+  const [password, setPassword] = useState('AdminPass123!');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isAuthModalOpen) return null;
 
   const currentSchool = schools.find(s => s.id === selectedSchoolId) || activeSchool;
 
-  const handleLogin = async () => {
+  useEffect(() => {
+    const s = schools.find(x => x.id === selectedSchoolId) || activeSchool;
+    if (selectedRole === 'admin') {
+      setEmail(`admin@${s.subdomain}.edu`);
+    } else if (selectedRole === 'teacher') {
+      const teacher = s.teachers.find(t => t.id === selectedTeacherId);
+      setEmail(`${teacher?.name.toLowerCase().replace(/[^a-z]/g, '') || 'teacher'}@${s.subdomain}.edu`);
+    } else {
+      const cls = s.classes.find(c => c.id === selectedClassId);
+      setEmail(`student.${cls?.name.toLowerCase() || 'class'}@${s.subdomain}.edu`);
+    }
+  }, [selectedSchoolId, selectedRole, selectedTeacherId, selectedClassId, schools, activeSchool]);
+
+  const handleLogin = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setIsSubmitting(true);
     try {
       const teacher = currentSchool.teachers.find(t => t.id === selectedTeacherId);
       const cls = currentSchool.classes.find(c => c.id === selectedClassId);
 
       let name = `Admin (${currentSchool.name})`;
-      let email = `admin@${currentSchool.subdomain}.edu`;
-
       if (selectedRole === 'teacher') {
         name = teacher?.name || 'Faculty Teacher';
-        email = `${teacher?.name.toLowerCase().replace(/[^a-z]/g, '') || 'teacher'}@${currentSchool.subdomain}.edu`;
       } else if (selectedRole === 'student') {
         name = `Student (${cls?.name || 'Class'})`;
-        email = `student.${cls?.name.toLowerCase()}@${currentSchool.subdomain}.edu`;
       }
 
-      await login(selectedRole, selectedSchoolId, {
+      await login(selectedSchoolId, email, password, {
+        role: selectedRole,
         teacherId: selectedRole === 'teacher' ? selectedTeacherId : undefined,
         classId: selectedRole === 'student' ? selectedClassId : undefined,
-        email,
         name,
       });
 
       setIsAuthModalOpen(false);
+    } catch {
+      // toast notification handled in hook
     } finally {
       setIsSubmitting(false);
     }
@@ -175,11 +189,45 @@ export function LoginModal({ app }: { app: TimetableApp }) {
             </div>
           )}
 
+          {/* Real Credentials Inputs */}
+          <div className="space-y-3 p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
+                <span>Account Email</span>
+                <span className="text-[10px] text-slate-400 font-normal">Tenant verified (app_user)</span>
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
+                <span className="flex items-center gap-1">
+                  <Lock className="w-3 h-3 text-slate-500" />
+                  <span>Password</span>
+                </span>
+                <span className="text-[10px] text-slate-400 font-normal">PBKDF2-HMAC-SHA256 verified</span>
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="Enter account password"
+                className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+          </div>
+
           {/* Security Notice */}
           <div className="flex items-start gap-2 p-3 rounded-2xl bg-slate-100/80 border border-slate-200 text-xs text-slate-600">
             <AlertCircle className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
             <span>
-              Calls <strong>POST /api/auth/token</strong> to issue a signed JWT containing <code>school_id</code>, <code>role</code>, and identity claims verified by the FastAPI backend middleware.
+              Calls <strong>POST /api/auth/token</strong> with real tenant credentials. Token claims and roles are verified against PostgreSQL <code>app_user</code>, not client-asserted personas.
             </span>
           </div>
         </div>

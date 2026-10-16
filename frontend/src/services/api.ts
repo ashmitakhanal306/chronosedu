@@ -146,13 +146,11 @@ export const api = {
     return currentToken;
   },
 
-  /** Request JWT access token from backend for tenant and role */
+  /** Request JWT access token from backend using real credentials */
   async login(payload: {
     school_id: string;
-    role: 'admin' | 'teacher' | 'student';
-    email?: string;
-    teacher_id?: string;
-    class_id?: string;
+    email: string;
+    password: string;
   }): Promise<ApiTokenResponse> {
     const res = await request<ApiTokenResponse>('/auth/token', {
       method: 'POST',

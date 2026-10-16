@@ -4,13 +4,20 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import auth, health, setup, timetable
-from app.core.config import settings
+from app.core.config import INSECURE_DEFAULT_JWT_SECRETS, settings
 from app.db.models import Base
 from app.db.session import engine
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Security requirement: Fail startup immediately if CHRONOS_JWT_SECRET is default or insecure
+    if not settings.jwt_secret or settings.jwt_secret in INSECURE_DEFAULT_JWT_SECRETS:
+        raise RuntimeError(
+            "FATAL SECURITY FAILURE: CHRONOS_JWT_SECRET is unset or using an insecure default value! "
+            "Server startup aborted. Set CHRONOS_JWT_SECRET in your environment to a secure random string."
+        )
+
     # Ensure tables are created on startup (e.g. for sqlite / local dev)
     Base.metadata.create_all(bind=engine)
     yield

@@ -138,6 +138,7 @@ class AppUser(Base):
     id: Mapped[uuid.UUID] = mapped_column(GUID, primary_key=True, default=uuid.uuid4)
     school_id: Mapped[uuid.UUID] = mapped_column(GUID, ForeignKey("school.id", ondelete="CASCADE"), nullable=False)
     email: Mapped[str] = mapped_column(String(255), nullable=False)
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[str] = mapped_column(String(50), nullable=False)  # 'admin', 'teacher', 'student'
     teacher_id: Mapped[uuid.UUID | None] = mapped_column(GUID, nullable=True)
     class_id: Mapped[uuid.UUID | None] = mapped_column(GUID, nullable=True)

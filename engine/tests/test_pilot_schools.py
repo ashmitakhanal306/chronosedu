@@ -104,6 +104,77 @@ def test_pilot_school_1_greenwood_high_feasible():
     assert len(output.entries) == (20 + 20 + 30 + 30)  # 100 entries
 
 
+def test_greenwood_wednesday_specialist_shortage_detected():
+    """Verify that when Greenwood High only has 3 specialist teachers for 4 classes,
+    the solver pre-check flags the Activity Block Specialist Shortage error and halts with feasible=False.
+    """
+    rules = Rules(
+        working_days=("Monday", "Tuesday", "Wednesday", "Thursday", "Friday"),
+        primary_periods=4,
+        senior_periods=6,
+        max_teacher_periods_per_day=5,
+        activity_day="Wednesday",
+        activity_periods=(1, 2),
+    )
+
+    classes = [
+        ClassSection(id="c-4a", name="4A", tier="primary"),
+        ClassSection(id="c-5b", name="5B", tier="primary"),
+        ClassSection(id="c-9a", name="9A", tier="senior"),
+        ClassSection(id="c-10a", name="10A", tier="senior"),
+    ]
+
+    subjects = [
+        Subject(id="sub-math", name="Mathematics", is_activity=False),
+        Subject(id="sub-eng", name="English Lit", is_activity=False),
+        Subject(id="sub-sci", name="General Science", is_activity=False),
+        Subject(id="sub-sst", name="Social Studies", is_activity=False),
+        Subject(id="sub-cs", name="Computer Sci", is_activity=False),
+        Subject(id="sub-hin", name="Second Language", is_activity=False),
+        Subject(id="sub-mus", name="Dance & Music", is_activity=True),
+        Subject(id="sub-art", name="Art & Craft", is_activity=True),
+        Subject(id="sub-gam", name="Sports & Games", is_activity=True),
+    ]
+
+    weekly_frequency = {
+        ("c-4a", "sub-math"): 5, ("c-4a", "sub-eng"): 5, ("c-4a", "sub-sci"): 4, ("c-4a", "sub-sst"): 4, ("c-4a", "sub-mus"): 1, ("c-4a", "sub-art"): 1,
+        ("c-5b", "sub-math"): 5, ("c-5b", "sub-eng"): 5, ("c-5b", "sub-sci"): 4, ("c-5b", "sub-sst"): 4, ("c-5b", "sub-mus"): 1, ("c-5b", "sub-art"): 1,
+        ("c-9a", "sub-math"): 6, ("c-9a", "sub-eng"): 5, ("c-9a", "sub-sci"): 6, ("c-9a", "sub-sst"): 5, ("c-9a", "sub-cs"): 3, ("c-9a", "sub-hin"): 3, ("c-9a", "sub-mus"): 1, ("c-9a", "sub-gam"): 1,
+        ("c-10a", "sub-math"): 6, ("c-10a", "sub-eng"): 5, ("c-10a", "sub-sci"): 6, ("c-10a", "sub-sst"): 5, ("c-10a", "sub-cs"): 3, ("c-10a", "sub-hin"): 3, ("c-10a", "sub-mus"): 1, ("c-10a", "sub-gam"): 1,
+    }
+
+    # Shortage configuration: only 3 specialist teachers (t-9, t-10, t-11) for 4 simultaneous classes
+    teachers_with_shortage = [
+        Teacher(id="t-1", name="Dr. Thorne", subject_ids=frozenset(["sub-math"])),
+        Teacher(id="t-2", name="Ms. Nair", subject_ids=frozenset(["sub-math", "sub-cs"])),
+        Teacher(id="t-3", name="Mr. Miller", subject_ids=frozenset(["sub-eng"])),
+        Teacher(id="t-4", name="Mrs. Rao", subject_ids=frozenset(["sub-eng", "sub-hin"])),
+        Teacher(id="t-5", name="Dr. Verma", subject_ids=frozenset(["sub-sci"])),
+        Teacher(id="t-6", name="Mr. Joshi", subject_ids=frozenset(["sub-sci", "sub-cs"])),
+        Teacher(id="t-7", name="Ms. Jenkins", subject_ids=frozenset(["sub-sst"])),
+        Teacher(id="t-8", name="Mr. Singh", subject_ids=frozenset(["sub-sst", "sub-hin"])),
+        Teacher(id="t-9", name="Maestro Carlos", subject_ids=frozenset(["sub-mus"])),
+        Teacher(id="t-10", name="Ms. Rostova", subject_ids=frozenset(["sub-art", "sub-mus"])),
+        Teacher(id="t-11", name="Coach Vance", subject_ids=frozenset(["sub-gam", "sub-art"])),
+    ]
+
+    problem = ProblemInput(
+        rules=rules,
+        classes=classes,
+        subjects=subjects,
+        teachers=teachers_with_shortage,
+        weekly_frequency=weekly_frequency,
+    )
+
+    output = solve(problem, time_limit_s=10.0)
+    assert output.feasible is False
+    assert len(output.entries) == 0
+    shortage_diag = [d for d in output.diagnostics if d.title == "Activity Block Specialist Shortage"]
+    assert len(shortage_diag) == 1
+    assert "4 classes require simultaneous activity" in shortage_diag[0].detail
+    assert "only 3 specialist activity teachers are available" in shortage_diag[0].detail
+
+
 def test_pilot_school_2_st_xaviers_feasible():
     """Verify St. Xavier's International solves feasibly with Friday activity block."""
     rules = Rules(

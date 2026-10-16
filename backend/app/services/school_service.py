@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import uuid
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import joinedload
 
 from app.db import models
@@ -23,7 +23,10 @@ from app.schemas.setup import (
     SubjectOut,
     TeacherCreate,
     TeacherOut,
+    UserCreate,
+    UserOut,
 )
+from app.core.security import hash_password
 
 
 def create_school(data: SchoolCreate) -> SchoolOut:
@@ -47,6 +50,21 @@ def create_school(data: SchoolCreate) -> SchoolOut:
             published=False,
         )
         session.add(school)
+
+        # If explicit admin credentials were provided upon creation, set initial administrator
+        if data.admin_password:
+            if len(data.admin_password) < 8:
+                raise HTTPException(status_code=400, detail="Administrator password must be at least 8 characters long.")
+            admin_email = (data.admin_email or f"admin@{data.subdomain}.edu").strip().lower()
+            admin_user = models.AppUser(
+                id=uuid.uuid4(),
+                school_id=new_id,
+                email=admin_email,
+                password_hash=hash_password(data.admin_password),
+                role="admin",
+            )
+            session.add(admin_user)
+
         session.flush()
 
         return SchoolOut(
@@ -223,4 +241,77 @@ def add_teacher(school_id: str, data: TeacherCreate) -> TeacherOut:
             max_periods_per_day=t.max_periods_per_day,
             unavailable_days=t.unavailable_days,
             subject_ids=list(data.subject_ids),
+        )
+
+
+def create_user(school_id: str, data: UserCreate) -> UserOut:
+    """Register an authenticated user for a school tenant."""
+    sid = uuid.UUID(school_id)
+    with tenant_session(str(sid)) as session:
+        clean_email = data.email.strip().lower()
+        existing = session.scalar(
+            select(models.AppUser).where(
+                models.AppUser.school_id == sid,
+                models.AppUser.email == clean_email,
+            )
+        )
+        if existing:
+            raise HTTPException(status_code=409, detail=f"User with email '{clean_email}' already exists in this school.")
+
+        user = models.AppUser(
+            id=uuid.uuid4(),
+            school_id=sid,
+            email=clean_email,
+            password_hash=hash_password(data.password),
+            role=data.role,
+            teacher_id=uuid.UUID(data.teacher_id) if data.teacher_id else None,
+            class_id=uuid.UUID(data.class_id) if data.class_id else None,
+        )
+        session.add(user)
+        session.flush()
+
+        return UserOut(
+            id=str(user.id),
+            school_id=str(user.school_id),
+            email=user.email,
+            role=user.role,
+            teacher_id=str(user.teacher_id) if user.teacher_id else None,
+            class_id=str(user.class_id) if user.class_id else None,
+        )
+
+
+def setup_initial_admin(school_id: str, data: UserCreate) -> UserOut:
+    """Set the initial administrator account for a newly created school when 0 users exist."""
+    sid = uuid.UUID(school_id)
+    if len(data.password) < 8:
+        raise HTTPException(status_code=400, detail="Administrator password must be at least 8 characters long.")
+
+    with tenant_session(str(sid)) as session:
+        user_count = session.scalar(
+            select(func.count(models.AppUser.id)).where(models.AppUser.school_id == sid)
+        ) or 0
+        if user_count > 0:
+            raise HTTPException(
+                status_code=403,
+                detail="Initial administrator already exists for this school. Use authenticated user management.",
+            )
+
+        clean_email = data.email.strip().lower()
+        admin_user = models.AppUser(
+            id=uuid.uuid4(),
+            school_id=sid,
+            email=clean_email,
+            password_hash=hash_password(data.password),
+            role="admin",
+        )
+        session.add(admin_user)
+        session.flush()
+
+        return UserOut(
+            id=str(admin_user.id),
+            school_id=str(admin_user.school_id),
+            email=admin_user.email,
+            role="admin",
+            teacher_id=None,
+            class_id=None,
         )

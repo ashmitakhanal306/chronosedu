@@ -17,6 +17,8 @@ from app.schemas.setup import (
     SubjectOut,
     TeacherCreate,
     TeacherOut,
+    UserCreate,
+    UserOut,
 )
 from app.services import school_service
 
@@ -103,3 +105,14 @@ def add_teacher(
     """Add a teacher with qualified subjects and unavailability. Admin only."""
     verify_tenant_access(school_id, auth)
     return school_service.add_teacher(school_id, data)
+
+
+@router.post("/{school_id}/users", response_model=UserOut, status_code=201)
+def add_user(
+    school_id: str,
+    data: UserCreate,
+    auth: AuthContext = Depends(require_roles(["admin"])),
+):
+    """Register an authenticated user for a school tenant. Admin only."""
+    verify_tenant_access(school_id, auth)
+    return school_service.create_user(school_id, data)

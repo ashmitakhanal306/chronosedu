@@ -28,12 +28,13 @@ CREATE TABLE school (
 );
 
 CREATE TABLE app_user (
-  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  school_id  uuid NOT NULL REFERENCES school(id) ON DELETE CASCADE,
-  email      text NOT NULL,
-  role       user_role_t NOT NULL,
-  teacher_id uuid,          -- set when role = teacher
-  class_id   uuid,          -- set when role = student
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  school_id     uuid NOT NULL REFERENCES school(id) ON DELETE CASCADE,
+  email         text NOT NULL,
+  password_hash text NOT NULL,
+  role          user_role_t NOT NULL,
+  teacher_id    uuid,          -- set when role = teacher
+  class_id      uuid,          -- set when role = student
   UNIQUE (school_id, email)
 );
 
@@ -162,7 +163,25 @@ BEGIN
     EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', t);
     EXECUTE format('ALTER TABLE %I FORCE ROW LEVEL SECURITY', t);
     EXECUTE format(
-      'CREATE POLICY tenant_isolation ON %I USING (school_id = current_setting(''app.current_school_id'', true)::uuid)
-       WITH CHECK (school_id = current_setting(''app.current_school_id'', true)::uuid)', t);
+      'CREATE POLICY tenant_isolation ON %I USING (school_id = NULLIF(current_setting(''app.current_school_id'', true), '''')::uuid)
+       WITH CHECK (school_id = NULLIF(current_setting(''app.current_school_id'', true), '''')::uuid)', t);
   END LOOP;
 END $$;
+
+-- ---------------------------------------------------------------- non-superuser app role for RLS enforcement
+-- In PostgreSQL, superusers (and table owners without FORCE RLS) bypass RLS.
+-- The API application connects as chronos_app (NOSUPERUSER, NOBYPASSRLS) to guarantee physical RLS enforcement.
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'chronos_app') THEN
+    -- Dedicated application role with NOBYPASSRLS for kernel-level tenant isolation.
+    -- Password is not hardcoded here; set via environment / init script (ALTER ROLE chronos_app WITH PASSWORD '...').
+    CREATE ROLE chronos_app WITH LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS;
+  END IF;
+END $$;
+
+GRANT USAGE ON SCHEMA public TO chronos_app;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO chronos_app;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO chronos_app;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO chronos_app;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO chronos_app;
