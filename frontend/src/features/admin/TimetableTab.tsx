@@ -3,6 +3,7 @@ import { Edit3, Search, X } from 'lucide-react';
 import type { TimetableApp } from '../../hooks/useTimetableApp';
 import { ClassTimetableGrid } from '../../components/timetable/ClassTimetableGrid';
 import { TeacherTimetableGrid } from '../../components/timetable/TeacherTimetableGrid';
+import { FacultyWorkloadHeatmap } from '../../components/timetable/FacultyWorkloadHeatmap';
 
 export function TimetableTab({ app }: { app: TimetableApp }) {
   const {
@@ -142,6 +143,18 @@ export function TimetableTab({ app }: { app: TimetableApp }) {
                     )}
                   </div>
                 </div>
+
+                {/* Faculty Workload Heatmap Matrix */}
+                <FacultyWorkloadHeatmap
+                  school={activeSchool}
+                  entries={currentSchedule.entries}
+                  subjectMap={subjectMap}
+                  teacherMap={teacherMap}
+                  onSelectTeacher={(teacherId) => {
+                    setTimetableViewMode('teacher');
+                    setSelectedTeacherId(teacherId);
+                  }}
+                />
 
                 {/* TIMETABLE GRID */}
                 {timetableViewMode === 'class' && selectedClass && (
