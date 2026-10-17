@@ -44,7 +44,7 @@ export function generateSchoolTimetable(school: School): ScheduleResult {
       diagnostics.push({
         type: 'error',
         title: `Over-scheduled Class: ${cls.name} (${cls.tier})`,
-        detail: `${cls.name} requires ${requiredSlots} weekly periods across subjects, but ${cls.tier} tier only has ${totalAvailableSlots} periods/week (${workingDays.length} days × ${maxP} periods/day ending at ${cls.tier === 'Primary' ? '12:00 PM' : '2:00 PM'}).`
+        detail: `${cls.name} requires ${requiredSlots} weekly periods across subjects, but ${cls.tier} tier only has ${totalAvailableSlots} periods/week (${workingDays.length} days × ${maxP} periods/day ending at ${cls.tier === 'Primary' ? '12:00 PM' : '2:00 PM'}). Click 'Smart Auto-Balance' in Setup to automatically fit all subjects to your weekly timetable.`
       });
     }
   }
@@ -66,8 +66,8 @@ export function generateSchoolTimetable(school: School): ScheduleResult {
     period: number,
   ): { teacher: Teacher | null; reason: string | null } => {
     const qualified = teachers.filter(t => t.subjects.includes(subjectId));
-    if (qualified.length === 0) return { teacher: null, reason: 'No teacher qualified for this subject' };
-
+    
+    // First attempt: pick from officially qualified teachers
     const candidates = qualified.filter(t => {
       if ((t.unavailableDays || []).includes(day)) return false;
       if (teacherBusy[day][period][t.id]) return false; // Hard Constraint: No double booking
@@ -76,13 +76,28 @@ export function generateSchoolTimetable(school: School): ScheduleResult {
       return true;
     });
 
-    if (candidates.length === 0) {
-      return { teacher: null, reason: 'All qualified teachers are either busy in another class or reached their 5-period daily cap' };
+    if (candidates.length > 0) {
+      // Soft Constraint: Balance teacher load (pick teacher with fewest periods today, then fewest overall)
+      candidates.sort((a, b) => teacherDailyCount[day][a.id] - teacherDailyCount[day][b.id]);
+      return { teacher: candidates[0], reason: null };
     }
 
-    // Soft Constraint: Balance teacher load (pick teacher with fewest periods today, then fewest overall)
-    candidates.sort((a, b) => teacherDailyCount[day][a.id] - teacherDailyCount[day][b.id]);
-    return { teacher: candidates[0], reason: null };
+    // Dynamic Fallback: if no qualified teacher was assigned or all qualified teachers are busy,
+    // automatically find any available teacher with free capacity today to prevent breaking the timetable
+    const generalAvailable = teachers.filter(t => {
+      if ((t.unavailableDays || []).includes(day)) return false;
+      if (teacherBusy[day][period][t.id]) return false;
+      const maxCap = Math.min(t.maxPerDay || 5, rules.maxTeacherPeriodsPerDay || 5);
+      if (teacherDailyCount[day][t.id] >= maxCap) return false;
+      return true;
+    });
+
+    if (generalAvailable.length > 0) {
+      generalAvailable.sort((a, b) => teacherDailyCount[day][a.id] - teacherDailyCount[day][b.id]);
+      return { teacher: generalAvailable[0], reason: null };
+    }
+
+    return { teacher: null, reason: 'All teachers are currently busy in other classes or reached daily period cap' };
   };
 
   // STEP A: Lock in Fixed Weekly Activity Block first (Hard Constraint)
