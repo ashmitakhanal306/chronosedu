@@ -23,7 +23,7 @@ export default function App() {
       </main>
 
       <OverrideModal app={app} />
-      <LoginModal app={app} />
+      {app.isAuthModalOpen && <LoginModal app={app} />}
     </div>
   );
 }

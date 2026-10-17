@@ -17,33 +17,37 @@ export function LoginModal({ app }: { app: TimetableApp }) {
   const [selectedRole, setSelectedRole] = useState<Role>(currentUser.role);
   const [selectedTeacherId, setSelectedTeacherId] = useState(activeSchool.teachers[0]?.id || 't-1');
   const [selectedClassId, setSelectedClassId] = useState(activeSchool.classes[0]?.id || 'c-4a');
-  const [email, setEmail] = useState(`admin@${activeSchool.subdomain}.edu`);
+  const [email, setEmail] = useState(`admin@${activeSchool.subdomain.replace(/\.chronos\.edu$/, '')}.edu`);
   const [password, setPassword] = useState('AdminPass123!');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  if (!isAuthModalOpen) return null;
-
   const currentSchool = schools.find(s => s.id === selectedSchoolId) || activeSchool;
 
+  // React Hook rules: ALL hooks must run before any return statement!
   useEffect(() => {
     const s = schools.find(x => x.id === selectedSchoolId) || activeSchool;
+    const sub = s.subdomain?.replace(/\.chronos\.edu$/, '') || 'school';
     if (selectedRole === 'admin') {
-      setEmail(`admin@${s.subdomain}.edu`);
+      setEmail(`admin@${sub}.edu`);
     } else if (selectedRole === 'teacher') {
-      const teacher = s.teachers.find(t => t.id === selectedTeacherId);
-      setEmail(`${teacher?.name.toLowerCase().replace(/[^a-z]/g, '') || 'teacher'}@${s.subdomain}.edu`);
+      const teacher = s.teachers?.find(t => t.id === selectedTeacherId);
+      const cleanName = teacher?.name?.toLowerCase().replace(/[^a-z]/g, '') || 'teacher';
+      setEmail(`${cleanName}@${sub}.edu`);
     } else {
-      const cls = s.classes.find(c => c.id === selectedClassId);
-      setEmail(`student.${cls?.name.toLowerCase() || 'class'}@${s.subdomain}.edu`);
+      const cls = s.classes?.find(c => c.id === selectedClassId);
+      const cleanClass = cls?.name?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'class';
+      setEmail(`student.${cleanClass}@${sub}.edu`);
     }
   }, [selectedSchoolId, selectedRole, selectedTeacherId, selectedClassId, schools, activeSchool]);
+
+  if (!isAuthModalOpen) return null;
 
   const handleLogin = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setIsSubmitting(true);
     try {
-      const teacher = currentSchool.teachers.find(t => t.id === selectedTeacherId);
-      const cls = currentSchool.classes.find(c => c.id === selectedClassId);
+      const teacher = currentSchool.teachers?.find(t => t.id === selectedTeacherId);
+      const cls = currentSchool.classes?.find(c => c.id === selectedClassId);
 
       let name = `Admin (${currentSchool.name})`;
       if (selectedRole === 'teacher') {
@@ -159,7 +163,7 @@ export function LoginModal({ app }: { app: TimetableApp }) {
                 onChange={(e) => setSelectedTeacherId(e.target.value)}
                 className="w-full px-3 py-2 rounded-xl border border-indigo-200 bg-white text-sm font-medium text-slate-800"
               >
-                {currentSchool.teachers.map(t => (
+                {currentSchool.teachers?.map(t => (
                   <option key={t.id} value={t.id}>{t.name}</option>
                 ))}
               </select>
@@ -179,7 +183,7 @@ export function LoginModal({ app }: { app: TimetableApp }) {
                 onChange={(e) => setSelectedClassId(e.target.value)}
                 className="w-full px-3 py-2 rounded-xl border border-emerald-200 bg-white text-sm font-medium text-slate-800"
               >
-                {currentSchool.classes.map(c => (
+                {currentSchool.classes?.map(c => (
                   <option key={c.id} value={c.id}>{c.name} ({c.grade} • {c.tier})</option>
                 ))}
               </select>
