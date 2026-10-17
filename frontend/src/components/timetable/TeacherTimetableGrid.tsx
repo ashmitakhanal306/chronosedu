@@ -7,9 +7,20 @@ interface Props {
   subjectMap: Record<string, Subject>;
   classMap: Record<string, ClassSection>;
   teacherMap: Record<string, Teacher>;
+  searchQuery?: string;
+  filterType?: 'all' | 'substitutions' | 'activity' | 'academic';
 }
 
-export function TeacherTimetableGrid({ school, teacher, entries, subjectMap, classMap, teacherMap }: Props) {
+export function TeacherTimetableGrid({
+  school,
+  teacher,
+  entries,
+  subjectMap,
+  classMap,
+  teacherMap,
+  searchQuery = '',
+  filterType = 'all',
+}: Props) {
   // Compute teacher's daily load (including substitutions)
   const dailyStats: Record<string, { assigned: number; free: number }> = {};
   school.workingDays.forEach(day => {
@@ -98,10 +109,50 @@ export function TeacherTimetableGrid({ school, teacher, entries, subjectMap, cla
                       }
                     });
 
+                    // Search & Filter matching for teacher grid
+                    const hasSearch = Boolean(searchQuery && searchQuery.trim().length > 0);
+                    const q = searchQuery ? searchQuery.trim().toLowerCase() : '';
+
+                    let matchesSearch = true;
+                    if (hasSearch) {
+                      if (matchedEntry) {
+                        const mSub = subjectMap[matchedEntry.subjectId];
+                        const mCls = classMap[matchedEntry.classId];
+                        matchesSearch = Boolean(
+                          mSub?.name.toLowerCase().includes(q) ||
+                          mSub?.code.toLowerCase().includes(q) ||
+                          teacher.name.toLowerCase().includes(q) ||
+                          mCls?.name.toLowerCase().includes(q) ||
+                          matchedEntry.room.toLowerCase().includes(q)
+                        );
+                      } else {
+                        matchesSearch = false;
+                      }
+                    }
+
+                    let matchesFilter = true;
+                    if (filterType === 'substitutions') {
+                      matchesFilter = isSubbing || Boolean(coveredBySub);
+                    } else if (filterType === 'activity') {
+                      const mSub = matchedEntry ? subjectMap[matchedEntry.subjectId] : null;
+                      matchesFilter = Boolean(matchedEntry?.isActivity || mSub?.type === 'activity');
+                    } else if (filterType === 'academic') {
+                      const mSub = matchedEntry ? subjectMap[matchedEntry.subjectId] : null;
+                      matchesFilter = Boolean(mSub?.type === 'academic');
+                    }
+
+                    const isFilterActive = hasSearch || filterType !== 'all';
+                    const isHighlighted = isFilterActive && matchesSearch && matchesFilter && Boolean(matchedEntry);
+                    const isDimmed = isFilterActive && (!matchesSearch || !matchesFilter);
+
                     if (!matchedEntry) {
                       return (
                         <td key={day} className="p-2.5 border-r border-slate-100">
-                          <div className="h-16 rounded-xl bg-emerald-50/40 border border-dashed border-emerald-200 flex flex-col items-center justify-center text-emerald-700">
+                          <div
+                            className={`h-16 rounded-xl bg-emerald-50/40 border border-dashed border-emerald-200 flex flex-col items-center justify-center text-emerald-700 transition-opacity ${
+                              isFilterActive ? 'opacity-20' : ''
+                            }`}
+                          >
                             <span className="font-semibold text-xs">Free Period</span>
                             <span className="text-[10px] opacity-75">Available for Sub</span>
                           </div>
@@ -114,13 +165,19 @@ export function TeacherTimetableGrid({ school, teacher, entries, subjectMap, cla
 
                     return (
                       <td key={day} className="p-2.5 border-r border-slate-100">
-                        <div className={`p-2.5 rounded-xl border ${
-                          isSubbing
-                            ? 'bg-amber-100 border-amber-300 text-amber-950'
-                            : coveredBySub
-                            ? 'bg-slate-100 border-slate-300 text-slate-400 line-through'
-                            : sub?.color
-                        }`}>
+                        <div
+                          className={`p-2.5 rounded-xl border transition-all duration-200 ${
+                            isSubbing
+                              ? 'bg-amber-100 border-amber-300 text-amber-950'
+                              : coveredBySub
+                              ? 'bg-slate-100 border-slate-300 text-slate-400 line-through'
+                              : sub?.color
+                          } ${
+                            isHighlighted
+                              ? 'ring-2 ring-indigo-600 shadow-md scale-[1.02] z-10 bg-white/95'
+                              : ''
+                          } ${isDimmed ? 'opacity-20 grayscale-[30%]' : ''}`}
+                        >
                           <div className="flex items-center justify-between">
                             <span className="font-bold text-xs">Class {cls?.name}</span>
                             {isSubbing && (

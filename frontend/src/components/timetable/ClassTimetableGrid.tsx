@@ -8,9 +8,21 @@ interface Props {
   teacherMap: Record<string, Teacher>;
   isAdmin: boolean;
   onSlotClick: (day: string, period: number, classId: string) => void;
+  searchQuery?: string;
+  filterType?: 'all' | 'substitutions' | 'activity' | 'academic';
 }
 
-export function ClassTimetableGrid({ school, cls, entries, subjectMap, teacherMap, isAdmin, onSlotClick }: Props) {
+export function ClassTimetableGrid({
+  school,
+  cls,
+  entries,
+  subjectMap,
+  teacherMap,
+  isAdmin,
+  onSlotClick,
+  searchQuery = '',
+  filterType = 'all',
+}: Props) {
   const maxPeriod = cls.tier === 'Primary' ? school.rules.primaryEndPeriod : school.rules.seniorEndPeriod;
 
   return (
@@ -118,6 +130,33 @@ export function ClassTimetableGrid({ school, cls, entries, subjectMap, teacherMa
                     const isAbsent = school.absences.some(a => a.day === day && a.teacherId === entry?.teacherId);
                     const isActivitySlot = day === school.rules.activityDay && school.rules.activityPeriods.includes(periodNum);
 
+                    // Search & Filter matching
+                    const hasSearch = Boolean(searchQuery && searchQuery.trim().length > 0);
+                    const q = searchQuery ? searchQuery.trim().toLowerCase() : '';
+
+                    let matchesSearch = true;
+                    if (hasSearch) {
+                      const matchesSub = sub ? (sub.name.toLowerCase().includes(q) || sub.code.toLowerCase().includes(q)) : false;
+                      const matchesTeacher = teacher ? teacher.name.toLowerCase().includes(q) : false;
+                      const matchesSubTeacher = subTeacher ? subTeacher.name.toLowerCase().includes(q) : false;
+                      const matchesRoom = entry ? entry.room.toLowerCase().includes(q) : false;
+                      const matchesClass = cls.name.toLowerCase().includes(q);
+                      matchesSearch = Boolean(matchesSub || matchesTeacher || matchesSubTeacher || matchesRoom || matchesClass);
+                    }
+
+                    let matchesFilter = true;
+                    if (filterType === 'substitutions') {
+                      matchesFilter = Boolean(subTeacherId);
+                    } else if (filterType === 'activity') {
+                      matchesFilter = Boolean(entry?.isActivity || sub?.type === 'activity' || isActivitySlot);
+                    } else if (filterType === 'academic') {
+                      matchesFilter = Boolean(sub?.type === 'academic');
+                    }
+
+                    const isFilterActive = hasSearch || filterType !== 'all';
+                    const isHighlighted = isFilterActive && matchesSearch && matchesFilter && Boolean(entry && sub);
+                    const isDimmed = isFilterActive && (!matchesSearch || !matchesFilter || !entry);
+
                     return (
                       <td
                         key={day}
@@ -127,7 +166,13 @@ export function ClassTimetableGrid({ school, cls, entries, subjectMap, teacherMa
                         } ${isActivitySlot ? 'bg-purple-50/30' : ''}`}
                       >
                         {entry && sub ? (
-                          <div className={`p-2.5 rounded-xl border ${sub.color} relative space-y-1.5 shadow-2xs`}>
+                          <div
+                            className={`p-2.5 rounded-xl border ${sub.color} relative space-y-1.5 shadow-2xs transition-all duration-200 ${
+                              isHighlighted
+                                ? 'ring-2 ring-indigo-600 shadow-md scale-[1.02] z-10 bg-white/95'
+                                : ''
+                            } ${isDimmed ? 'opacity-20 grayscale-[30%]' : ''}`}
+                          >
                             <div className="flex items-start justify-between gap-1">
                               <span className="font-bold text-xs leading-tight">{sub.name}</span>
                               {entry.isActivity && (
@@ -157,7 +202,11 @@ export function ClassTimetableGrid({ school, cls, entries, subjectMap, teacherMa
                             </div>
                           </div>
                         ) : (
-                          <div className="h-16 rounded-xl border border-dashed border-slate-200 flex items-center justify-center text-slate-400 text-[11px]">
+                          <div
+                            className={`h-16 rounded-xl border border-dashed border-slate-200 flex items-center justify-center text-slate-400 text-[11px] transition-opacity ${
+                              isFilterActive ? 'opacity-20' : ''
+                            }`}
+                          >
                             Unassigned
                           </div>
                         )}
