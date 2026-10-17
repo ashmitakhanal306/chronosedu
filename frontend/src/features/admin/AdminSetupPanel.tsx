@@ -1,6 +1,7 @@
-import { BookOpen, Layers, Sliders } from 'lucide-react';
+import { BookOpen, Layers, Sliders, Upload, FileSpreadsheet } from 'lucide-react';
 import { useState } from 'react';
 import type { School, Tier } from '../../domain/types';
+import { BulkImportModal } from './BulkImportModal';
 
 interface Props {
   school: School;
@@ -12,9 +13,48 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver }: Props) {
   const [newClassName, setNewClassName] = useState('');
   const [newClassGrade, setNewClassGrade] = useState('Grade 6');
   const [newClassTier, setNewClassTier] = useState<Tier>('Primary');
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="space-y-6">
+      {/* Fast-Track Onboarding Banner */}
+      <div className="bg-gradient-to-r from-indigo-900 to-slate-900 text-white rounded-2xl p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4 shadow-sm">
+        <div className="flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+            <Upload className="w-5 h-5 text-indigo-300" />
+          </div>
+          <div>
+            <h3 className="font-bold text-sm sm:text-base flex items-center gap-2">
+              <span>Fast-Track School Onboarding</span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] bg-indigo-500/30 text-indigo-200 border border-indigo-400/30">
+                CSV Bulk Ingestion
+              </span>
+            </h3>
+            <p className="text-xs text-slate-300 mt-0.5">
+              Upload or paste whole class grade sections and faculty rosters in seconds with automated duplicate validation.
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setIsBulkModalOpen(true)}
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md transition cursor-pointer"
+        >
+          <FileSpreadsheet className="w-4 h-4" />
+          <span>Launch Bulk CSV Importer</span>
+        </button>
+      </div>
+
+      <BulkImportModal
+        isOpen={isBulkModalOpen}
+        onClose={() => setIsBulkModalOpen(false)}
+        school={school}
+        updateSchool={updateSchool}
+        onRunSolver={onRunSolver}
+      />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Column 1: School Rules & Activity Block */}
       <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4">
         <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
@@ -179,6 +219,7 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver }: Props) {
           ))}
         </div>
       </div>
+    </div>
     </div>
   );
 }
