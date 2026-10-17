@@ -113,7 +113,7 @@ export function LoginModal({ app }: { app: TimetableApp }) {
             >
               {schools.map(s => (
                 <option key={s.id} value={s.id}>
-                  {s.name} ({s.subdomain}.chronosedu.com)
+                  {s.name} ({s.subdomain})
                 </option>
               ))}
             </select>
