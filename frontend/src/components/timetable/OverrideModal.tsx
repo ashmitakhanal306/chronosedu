@@ -9,7 +9,7 @@ export function OverrideModal({ app }: { app: TimetableApp }) {
   if (!editingSlot) return null;
   return (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 space-y-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-bold text-base text-slate-900">Manual Slot Override</h3>
