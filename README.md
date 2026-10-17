@@ -105,3 +105,5 @@ cd frontend && npm run build
 
 ## 📄 License
 Proprietary & Confidential — ChronosEdu Platform.
+
+<!-- Access verified by skjha08 on 2026-10-17 19:48 -->
