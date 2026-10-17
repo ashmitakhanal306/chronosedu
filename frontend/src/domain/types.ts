@@ -4,7 +4,7 @@
 export type Tier = 'Primary' | 'Senior';
 export type Role = 'admin' | 'teacher' | 'student';
 export type SubjectType = 'academic' | 'activity';
-export type AdminTab = 'timetable' | 'substitutions' | 'setup' | 'roadmap';
+export type AdminTab = 'timetable' | 'substitutions' | 'setup';
 export type ViewMode = 'class' | 'teacher';
 
 export interface SchoolRules {

@@ -1,9 +1,8 @@
-import { Calendar, AlertTriangle, Sparkles, CheckCircle2, RefreshCw, Download, UserCheck, Lock, Unlock, Sliders, FileSpreadsheet, Printer } from 'lucide-react';
+import { Calendar, AlertTriangle, CheckCircle2, RefreshCw, Download, UserCheck, Lock, Unlock, Sliders, FileSpreadsheet, Printer } from 'lucide-react';
 import type { TimetableApp } from '../../hooks/useTimetableApp';
 import { TimetableTab } from './TimetableTab';
 import { SubstitutionsTab } from './SubstitutionsTab';
 import { AdminSetupPanel } from './AdminSetupPanel';
-import { WhatRemainsGuide } from './WhatRemainsGuide';
 
 export function AdminPortal({ app }: { app: TimetableApp }) {
   const {
@@ -18,7 +17,6 @@ export function AdminPortal({ app }: { app: TimetableApp }) {
                   { id: 'timetable' as const, label: 'Master Timetable & Solver', icon: Calendar },
                   { id: 'substitutions' as const, label: 'Substitutions & Absences', icon: UserCheck, badge: activeSchool.absences.length },
                   { id: 'setup' as const, label: 'School Rules, Classes & Staff Setup', icon: Sliders },
-                  { id: 'roadmap' as const, label: 'What Remains for You (Production Guide)', icon: Sparkles },
                 ].map(tab => {
                   const Icon = tab.icon;
                   const active = adminTab === tab.id;
@@ -138,7 +136,6 @@ export function AdminPortal({ app }: { app: TimetableApp }) {
         {adminTab === 'setup' && (
           <AdminSetupPanel school={activeSchool} updateSchool={updateActiveSchool} onRunSolver={runSolver} />
         )}
-        {adminTab === 'roadmap' && <WhatRemainsGuide />}
     </>
   );
 }
