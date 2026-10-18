@@ -1,1 +1,59 @@
 @import "tailwindcss";
+
+@media print {
+  /* Hide navigation, toolbars, buttons, banners, modals, and toasts */
+  header,
+  nav,
+  button,
+  select,
+  input,
+  .no-print,
+  [role="dialog"],
+  .toast-container {
+    display: none !important;
+  }
+
+  /* Reset body and background for crisp printing */
+  body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-size: 10pt !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Landscape orientation for wide timetable grids */
+  @page {
+    size: landscape;
+    margin: 12mm;
+  }
+
+  /* Printable timetable card formatting */
+  .printable-timetable {
+    box-shadow: none !important;
+    border: 1px solid #94a3b8 !important;
+    border-radius: 8px !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  .printable-timetable table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    table-layout: fixed;
+  }
+
+  .printable-timetable th,
+  .printable-timetable td {
+    border: 1px solid #cbd5e1 !important;
+    padding: 6px 8px !important;
+  }
+
+  /* High fidelity print colors */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

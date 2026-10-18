@@ -131,6 +131,14 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+export interface ApiGeneratePreferences {
+  spread_subjects?: boolean;
+  smooth_teacher_workload?: boolean;
+  minimize_teacher_gaps?: boolean;
+  morning_core_priority?: boolean;
+  consecutive_double_periods?: boolean;
+}
+
 export const api = {
   /** Set or clear the JWT authentication token */
   setAuthToken(token: string | null) {
@@ -165,6 +173,16 @@ export const api = {
     return request<ApiAuthUser>('/auth/me');
   },
 
+  /** Retrieve all registered school tenants */
+  async listSchools(): Promise<{ id: string; name: string; subdomain: string; published: boolean }[]> {
+    return request('/schools');
+  },
+
+  /** Retrieve fully hydrated school structure */
+  async getFullSchool(schoolId: string): Promise<any> {
+    return request<any>(`/schools/${schoolId}/full`);
+  },
+
   /** Resolve school by subdomain */
   async resolveSchool(subdomain?: string): Promise<{ id: string; name: string; subdomain: string; published: boolean }> {
     const query = subdomain ? `?subdomain=${encodeURIComponent(subdomain)}` : '';
@@ -181,9 +199,10 @@ export const api = {
   },
 
   /** Run constraint solver on the backend and persist generated draft */
-  async generateTimetable(schoolId: string): Promise<ApiGenerateResponse> {
+  async generateTimetable(schoolId: string, preferences?: ApiGeneratePreferences): Promise<ApiGenerateResponse> {
     return request<ApiGenerateResponse>(`/schools/${schoolId}/generate`, {
       method: 'POST',
+      body: preferences ? JSON.stringify(preferences) : undefined,
     });
   },
 

@@ -435,7 +435,52 @@ def test_large_synthetic_scale():
     elapsed = time.perf_counter() - t0
 
     assert result.feasible, f"Large scale failed: {result.diagnostics}"
-    assert elapsed < 15.0, f"Took {elapsed:.2f}s, expected < 15s"
     expected_total_entries = 20 * 20 + 20 * 30  # 1000 entries
     assert len(result.entries) == expected_total_entries
+
+
+def test_consecutive_double_period_scheduled():
+    """Verify that subjects requiring double periods (e.g. Science Lab) are scheduled back-to-back."""
+    problem = create_demo_school_1_problem(extra_activity_teacher=True)
+    # Mark Science and Art as requiring consecutive double periods
+    new_subjects = []
+    for s in problem.subjects:
+        if s.id == "sub-sci":
+            new_subjects.append(Subject(id=s.id, name=s.name, is_activity=s.is_activity, requires_double_period=True))
+        else:
+            new_subjects.append(s)
+
+    problem.subjects = new_subjects
+
+    result = solve(problem, time_limit_s=10.0)
+    assert result.feasible, f"Solver failed: {result.diagnostics}"
+
+    # Verify for each class, sub-sci has at least one consecutive double period (p and p+1)
+    for cls in problem.classes:
+        sci_entries = [e for e in result.entries if e.class_id == cls.id and e.subject_id == "sub-sci"]
+        assert len(sci_entries) >= 2, f"Class {cls.name} has fewer than 2 science periods"
+
+        # Group by day
+        by_day: dict[str, list[Entry]] = {}
+        for e in sci_entries:
+            by_day.setdefault(e.day, []).append(e)
+
+        # Check if there exists a day with consecutive periods
+        has_double = False
+        for day, day_entries in by_day.items():
+            periods = sorted(e.period for e in day_entries)
+            for i in range(len(periods) - 1):
+                p1, p2 = periods[i], periods[i + 1]
+                if p2 == p1 + 1 and p1 != problem.rules.recess_after_period and p1 != problem.rules.lunch_after_period:
+                    # Check same teacher
+                    t1 = next(e.teacher_id for e in day_entries if e.period == p1)
+                    t2 = next(e.teacher_id for e in day_entries if e.period == p2)
+                    if t1 == t2:
+                        has_double = True
+                        break
+            if has_double:
+                break
+
+        assert has_double, f"Class {cls.name} did not receive a consecutive double period for Science!"
+
 

@@ -28,10 +28,19 @@ class DiagnosticOut(BaseModel):
     detail: str
 
 
+class GenerateRequest(BaseModel):
+    spread_subjects: bool = True
+    smooth_teacher_workload: bool = True
+    minimize_teacher_gaps: bool = False
+    morning_core_priority: bool = False
+    consecutive_double_periods: bool = True
+
+
 class GenerateResponse(BaseModel):
     feasible: bool
     entries: list[EntryOut]
     diagnostics: list[DiagnosticOut]
+
 
 
 class OverrideRequest(BaseModel):

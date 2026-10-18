@@ -14,10 +14,10 @@ INSECURE_DEFAULT_JWT_SECRETS: set[str] = {
 
 
 class Settings(BaseSettings):
-    database_url: str = "postgresql+psycopg://chronos_app@localhost:5432/chronos"
-    cors_origins: Union[list[str], str] = ["http://localhost:5173"]
+    database_url: str = "sqlite:///chronos_dev.db"
+    cors_origins: Union[list[str], str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
     solver_time_limit_s: float = 30.0
-    jwt_secret: str = "chronos-super-secret-jwt-key-for-saas-timetable"
+    jwt_secret: str = "chronos-secure-development-jwt-key-32chars-min"
     jwt_algorithm: str = "HS256"
     jwt_expiration_minutes: int = 60 * 24 * 7  # 7 days
     platform_token: str = "chronos-platform-dev-secret"

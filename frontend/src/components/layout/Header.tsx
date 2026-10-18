@@ -1,9 +1,14 @@
-import { Calendar, ShieldCheck, UserCheck, Building2, GraduationCap, Key } from 'lucide-react';
+import { Calendar, ShieldCheck, UserCheck, Building2, GraduationCap, Key, Plus } from 'lucide-react';
+import { useState } from 'react';
 import type { TimetableApp } from '../../hooks/useTimetableApp';
+import { NewSchoolModal } from './NewSchoolModal';
 
 export function Header({ app }: { app: TimetableApp }) {
   const { schools, activeSchool, currentUser, setActiveSchoolId, setIsAuthModalOpen } = app;
+  const [isNewSchoolOpen, setIsNewSchoolOpen] = useState(false);
+
   return (
+    <>
       <header className="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-4">
           {/* Brand & Tenant Switcher */}
@@ -25,23 +30,35 @@ export function Header({ app }: { app: TimetableApp }) {
 
             <div className="h-6 w-px bg-slate-800 hidden md:block" />
 
-            {/* Tenant Selector */}
-            <div className="flex items-center gap-2 bg-slate-800/90 border border-slate-700 rounded-lg px-2.5 py-1.5">
-              <Building2 className="w-4 h-4 text-indigo-400 shrink-0" />
-              <div className="text-xs">
-                <span className="text-slate-400 block text-[10px] leading-none">Active Tenant (School)</span>
-                <select
-                  value={activeSchool.id}
-                  onChange={(e) => setActiveSchoolId(e.target.value)}
-                  className="bg-transparent text-white font-semibold focus:outline-none cursor-pointer pr-2"
-                >
-                  {schools.map(s => (
-                    <option key={s.id} value={s.id} className="bg-slate-900 text-white">
-                      {s.name}
-                    </option>
-                  ))}
-                </select>
+            {/* Tenant Selector & New School button */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 bg-slate-800/90 border border-slate-700 rounded-lg px-2.5 py-1.5">
+                <Building2 className="w-4 h-4 text-indigo-400 shrink-0" />
+                <div className="text-xs">
+                  <span className="text-slate-400 block text-[10px] leading-none">Active Tenant (School)</span>
+                  <select
+                    value={activeSchool.id}
+                    onChange={(e) => setActiveSchoolId(e.target.value)}
+                    className="bg-transparent text-white font-semibold focus:outline-none cursor-pointer pr-2"
+                  >
+                    {schools.map(s => (
+                      <option key={s.id} value={s.id} className="bg-slate-900 text-white">
+                        {s.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
+
+              <button
+                type="button"
+                onClick={() => setIsNewSchoolOpen(true)}
+                className="inline-flex items-center gap-1.5 px-2.5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-xs transition cursor-pointer"
+                title="Create a new school tenant"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">New School</span>
+              </button>
             </div>
           </div>
 
@@ -83,9 +100,11 @@ export function Header({ app }: { app: TimetableApp }) {
             <div className="flex flex-wrap items-center gap-4">
               <span>Tenant Domain: <strong className="text-slate-200">{activeSchool.subdomain}</strong></span>
               <span>•</span>
-              <span>Primary Cutoff: <strong className="text-emerald-400">12:00 PM (Period {activeSchool.rules.primaryEndPeriod})</strong></span>
+              <span>Days: <strong className="text-slate-200">{activeSchool.workingDays.length} Days ({activeSchool.workingDays.map(d => d.slice(0, 3)).join(', ')})</strong></span>
               <span>•</span>
-              <span>Senior Cutoff: <strong className="text-sky-400">02:00 PM (Period {activeSchool.rules.seniorEndPeriod})</strong></span>
+              <span>Primary Cutoff: <strong className="text-emerald-400">{activeSchool.periodSlots.find(s => s.number === activeSchool.rules.primaryEndPeriod)?.time.split('-')[1]?.trim() || '12:00 PM'} (P{activeSchool.rules.primaryEndPeriod})</strong></span>
+              <span>•</span>
+              <span>Senior Cutoff: <strong className="text-sky-400">{activeSchool.periodSlots.find(s => s.number === activeSchool.rules.seniorEndPeriod)?.time.split('-')[1]?.trim() || '02:00 PM'} (P{activeSchool.rules.seniorEndPeriod})</strong></span>
               <span>•</span>
               <span>Activity Block: <strong className="text-purple-400">{activeSchool.rules.activityDay} (P{activeSchool.rules.activityPeriods.join(', P')})</strong></span>
             </div>
@@ -102,5 +121,7 @@ export function Header({ app }: { app: TimetableApp }) {
           </div>
         </div>
       </header>
+      <NewSchoolModal app={app} isOpen={isNewSchoolOpen} onClose={() => setIsNewSchoolOpen(false)} />
+    </>
   );
 }

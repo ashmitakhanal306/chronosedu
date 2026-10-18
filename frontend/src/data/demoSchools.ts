@@ -1,12 +1,14 @@
 // DATA LAYER — demo tenants. In production this is replaced by API calls (services/api.ts).
 import type { School } from '../domain/types';
 
+export const DEMO_SCHOOL_ID = 'a0000000-0000-0000-0000-000000000001';
+
 // ==========================================
 // INITIAL MULTI-TENANT DEMO DATA
 // ==========================================
 export const INITIAL_SCHOOLS: School[] = [
   {
-    id: 'school-1',
+    id: DEMO_SCHOOL_ID,
     name: 'Greenwood High School',
     subdomain: 'greenwood.chronos.edu',
     timezone: 'IST (UTC+5:30)',
@@ -21,6 +23,20 @@ export const INITIAL_SCHOOLS: School[] = [
       activityPeriods: [1, 2], // P1 & P2 locked for Activity subjects
       zeroPeriodLabel: 'Zero Period (Homeroom / Assembly)',
       lunchAfterPeriod: 4, // After P4 (12:00 PM) Primary goes home, Senior has Lunch
+    },
+    timingConfig: {
+      startTime: '08:00',
+      periodDurationMinutes: 45,
+      hasZeroPeriod: true,
+      zeroPeriodDurationMinutes: 30,
+      zeroPeriodLabel: 'Zero Period (Homeroom / Assembly)',
+      recessAfterPeriod: 2,
+      recessDurationMinutes: 15,
+      recessLabel: 'Short Break',
+      lunchAfterPeriod: 4,
+      lunchDurationMinutes: 30,
+      lunchLabel: 'Lunch Break',
+      lunchSeniorOnly: false,
     },
     periodSlots: [
       { number: 0, label: 'Zero Period', time: '08:00 - 08:30', isBreak: true, type: 'zero' },
@@ -45,7 +61,7 @@ export const INITIAL_SCHOOLS: School[] = [
       // Academic Subjects
       { id: 'sub-math', name: 'Mathematics', code: 'MATH', type: 'academic', color: 'bg-blue-50 text-blue-700 border-blue-200', freqPrimary: 5, freqSenior: 6 },
       { id: 'sub-eng', name: 'English Lit', code: 'ENG', type: 'academic', color: 'bg-indigo-50 text-indigo-700 border-indigo-200', freqPrimary: 5, freqSenior: 5 },
-      { id: 'sub-sci', name: 'General Science', code: 'SCI', type: 'academic', color: 'bg-emerald-50 text-emerald-700 border-emerald-200', freqPrimary: 4, freqSenior: 6 },
+      { id: 'sub-sci', name: 'General Science', code: 'SCI', type: 'academic', color: 'bg-emerald-50 text-emerald-700 border-emerald-200', freqPrimary: 4, freqSenior: 6, requiresDoublePeriod: true },
       { id: 'sub-sst', name: 'Social Studies', code: 'SST', type: 'academic', color: 'bg-amber-50 text-amber-700 border-amber-200', freqPrimary: 4, freqSenior: 5 },
       { id: 'sub-cs', name: 'Computer Sci', code: 'CS', type: 'academic', color: 'bg-cyan-50 text-cyan-700 border-cyan-200', freqPrimary: 0, freqSenior: 3 },
       { id: 'sub-hin', name: 'Second Language', code: 'LANG', type: 'academic', color: 'bg-rose-50 text-rose-700 border-rose-200', freqPrimary: 0, freqSenior: 3 },
@@ -91,6 +107,20 @@ export const INITIAL_SCHOOLS: School[] = [
       activityPeriods: [1, 2],
       zeroPeriodLabel: 'Morning Prayer & Homeroom',
       lunchAfterPeriod: 4,
+    },
+    timingConfig: {
+      startTime: '08:00',
+      periodDurationMinutes: 45,
+      hasZeroPeriod: true,
+      zeroPeriodDurationMinutes: 30,
+      zeroPeriodLabel: 'Morning Prayer & Homeroom',
+      recessAfterPeriod: 2,
+      recessDurationMinutes: 15,
+      recessLabel: 'Recess',
+      lunchAfterPeriod: 4,
+      lunchDurationMinutes: 30,
+      lunchLabel: 'Lunch Break',
+      lunchSeniorOnly: false,
     },
     periodSlots: [
       { number: 0, label: 'Zero Period', time: '08:00 - 08:30', isBreak: true, type: 'zero' },

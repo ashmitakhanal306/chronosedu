@@ -1,6 +1,8 @@
 """Pydantic schemas for School Setup CRUD endpoints."""
 from __future__ import annotations
 
+from typing import Any
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -151,3 +153,22 @@ class TeacherOut(BaseModel):
     subject_ids: list[str] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class FullSchoolOut(BaseModel):
+    id: str
+    name: str
+    subdomain: str
+    timezone: str
+    term: str | None = None
+    published: bool
+    workingDays: list[str]
+    rules: dict[str, Any]
+    timingConfig: dict[str, Any] | None = None
+    periodSlots: list[dict[str, Any]] = Field(default_factory=list)
+    classes: list[dict[str, Any]] = Field(default_factory=list)
+    subjects: list[dict[str, Any]] = Field(default_factory=list)
+    teachers: list[dict[str, Any]] = Field(default_factory=list)
+    absences: list[dict[str, Any]] = Field(default_factory=list)
+    substitutions: dict[str, str] = Field(default_factory=dict)
+

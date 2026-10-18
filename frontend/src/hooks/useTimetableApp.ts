@@ -13,15 +13,25 @@ import type {
   Teacher,
   TimetableEntry,
   ViewMode,
+  SolverPreferences,
 } from '../domain/types';
-import { slotKey } from '../domain/types';
-import { INITIAL_SCHOOLS } from '../data/demoSchools';
+import { slotKey, DEFAULT_TIMING_CONFIG, DEFAULT_SOLVER_PREFERENCES } from '../domain/types';
+import { INITIAL_SCHOOLS, DEMO_SCHOOL_ID } from '../data/demoSchools';
+import { computeBellSchedule } from '../engine/bellSchedule';
 import { generateSchoolTimetable } from '../engine/generateTimetable';
 import { autoAssignSubstitutes, getSubstituteCandidatesForSlot } from '../engine/substitutes';
 import { checkManualOverrideConflict } from '../engine/conflicts';
 import { exportTimetableCsv, exportTimetableExcel, exportTimetablePrint } from '../services/exportFormats';
 import { api, type ApiEntryOut } from '../services/api';
 import { useToast } from './useToast';
+
+export interface CreateSchoolOptions {
+  name: string;
+  template?: 'starter' | 'blank';
+  term?: string;
+  timezone?: string;
+  subdomain?: string;
+}
 
 export interface CurrentUser {
   userId: string;
@@ -35,20 +45,22 @@ export interface CurrentUser {
 
 export function useTimetableApp() {
   const [schools, setSchools] = useState<School[]>(INITIAL_SCHOOLS);
-  const [activeSchoolId, setActiveSchoolId] = useState('school-1');
+  const [activeSchoolId, setActiveSchoolId] = useState(DEMO_SCHOOL_ID);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<CurrentUser>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('chronos_user');
       if (saved) {
         try {
-          return JSON.parse(saved);
+          const parsed = JSON.parse(saved);
+          if (parsed.schoolId === 'school-1') parsed.schoolId = DEMO_SCHOOL_ID;
+          return parsed;
         } catch {}
       }
     }
     return {
       userId: 'admin-greenwood',
-      schoolId: 'school-1',
+      schoolId: DEMO_SCHOOL_ID,
       role: 'admin',
       name: 'Administrator (Greenwood High)',
       email: 'admin@greenwood.edu',
@@ -65,6 +77,14 @@ export function useTimetableApp() {
   const [overrideTeacherId, setOverrideTeacherId] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
   const { toast, showToast } = useToast();
+  const [solverPreferences, setSolverPreferences] = useState<SolverPreferences>(DEFAULT_SOLVER_PREFERENCES);
+
+  const toggleSolverPreference = (key: keyof SolverPreferences) => {
+    setSolverPreferences(prev => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
 
   const [schedulesBySchool, setSchedulesBySchool] = useState<Record<string, ScheduleResult>>(() => {
     const initial: Record<string, ScheduleResult> = {};
@@ -117,6 +137,24 @@ export function useTimetableApp() {
     substituteTeacherName: e.substitute_teacher_name || undefined,
   });
 
+  // Ensure authenticated session on startup
+  useEffect(() => {
+    async function initAuthToken() {
+      if (!api.getAuthToken()) {
+        try {
+          await api.login({
+            school_id: activeSchool.id,
+            email: currentUser.email || 'admin@greenwood.edu',
+            password: 'AdminPass123!',
+          });
+        } catch {
+          // Fallback to offline demo mode
+        }
+      }
+    }
+    initAuthToken();
+  }, [activeSchool.id]);
+
   // Load timetable from backend API on mount / school switch / auth change
   useEffect(() => {
     let isCancelled = false;
@@ -124,6 +162,24 @@ export function useTimetableApp() {
     async function loadFromApi() {
       try {
         setIsSyncing(true);
+
+        // 1. Sync full school structure from backend if available
+        try {
+          const full = await api.getFullSchool(activeSchool.id);
+          if (full && full.classes && full.classes.length > 0 && !isCancelled) {
+            updateActiveSchool(s => ({
+              ...s,
+              classes: full.classes,
+              subjects: full.subjects,
+              teachers: full.teachers,
+              absences: full.absences || s.absences,
+              substitutions: full.substitutions || s.substitutions,
+            }));
+          }
+        } catch {
+          // Non-fatal: keep current school in memory
+        }
+
         const filterClass = currentUser.role === 'student' ? (currentUser.classId || selectedClassId) : undefined;
         const filterTeacher = currentUser.role === 'teacher' ? (currentUser.teacherId || selectedTeacherId) : undefined;
 
@@ -242,11 +298,18 @@ export function useTimetableApp() {
   const entries: EntryMap = currentSchedule.entries;
 
   // ---- actions
-  const runSolver = async () => {
+  const runSolver = async (customPrefs?: Partial<SolverPreferences>) => {
     setIsSyncing(true);
+    const prefs = { ...solverPreferences, ...customPrefs };
     try {
-      // 1. Try server-side solver first (Phase 2 API)
-      const res = await api.generateTimetable(activeSchool.id);
+      // 1. Try server-side solver first (Phase 2 API with CP-SAT soft preference weights)
+      const res = await api.generateTimetable(activeSchool.id, {
+        spread_subjects: prefs.spreadSubjects,
+        smooth_teacher_workload: prefs.smoothTeacherWorkload,
+        minimize_teacher_gaps: prefs.minimizeTeacherGaps,
+        morning_core_priority: prefs.morningCorePriority,
+        consecutive_double_periods: prefs.consecutiveDoublePeriods,
+      });
       if (res.feasible) {
         const entryMap: EntryMap = {};
         res.entries.forEach(e => {
@@ -291,6 +354,89 @@ export function useTimetableApp() {
     INITIAL_SCHOOLS.forEach(s => { fresh[s.id] = generateSchoolTimetable(s); });
     setSchedulesBySchool(fresh);
     showToast('Reset to balanced conflict-free staffing data!', 'success');
+  };
+
+  const addSchool = (options: string | CreateSchoolOptions) => {
+    const opts = typeof options === 'string' ? { name: options, template: 'starter' as const } : options;
+    const name = opts.name?.trim() || 'New School';
+    const id = `school-${Date.now()}`;
+    const slug = (opts.subdomain || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')) || 'new-school';
+    const subdomain = slug.includes('.') ? slug : `${slug}.chronos.edu`;
+    const term = opts.term || 'Academic Year 2026–27 (Term 1)';
+    const timezone = opts.timezone || 'IST (UTC+5:30)';
+    const template = opts.template || 'starter';
+
+    let newSchool: School;
+
+    if (template === 'starter') {
+      const base = INITIAL_SCHOOLS[0];
+      newSchool = {
+        ...base,
+        id,
+        name,
+        subdomain,
+        term,
+        timezone,
+        published: false,
+        absences: [],
+        substitutions: {},
+      };
+    } else {
+      const defaultRules = {
+        primaryEndPeriod: 4,
+        seniorEndPeriod: 6,
+        maxTeacherPeriodsPerDay: 5,
+        activityDay: 'Wednesday',
+        activityPeriods: [1, 2],
+        zeroPeriodLabel: 'Zero Period (Homeroom / Assembly)',
+        lunchAfterPeriod: 4,
+      };
+      const timingConfig = { ...DEFAULT_TIMING_CONFIG };
+      const computed = computeBellSchedule(timingConfig, defaultRules);
+
+      newSchool = {
+        id,
+        name,
+        subdomain,
+        term,
+        timezone,
+        published: false,
+        workingDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+        timingConfig,
+        rules: defaultRules,
+        periodSlots: computed.slots,
+        classes: [],
+        subjects: [],
+        teachers: [],
+        absences: [],
+        substitutions: {},
+      };
+    }
+
+    const schedule = generateSchoolTimetable(newSchool);
+    setSchools(prev => [...prev, newSchool]);
+    setSchedulesBySchool(prev => ({ ...prev, [id]: schedule }));
+    setActiveSchoolId(id);
+    showToast(
+      template === 'starter'
+        ? `"${name}" launched with starter curriculum & conflict-free timetable!`
+        : `"${name}" created with blank slate! Configure in Setup or upload CSV.`,
+      'success'
+    );
+  };
+
+  const deleteSchool = (schoolId: string) => {
+    if (schools.length <= 1) {
+      showToast('Cannot delete the last remaining school in the platform.', 'warning');
+      return;
+    }
+    const schoolToDelete = schools.find(s => s.id === schoolId);
+    const remaining = schools.filter(s => s.id !== schoolId);
+    setSchools(remaining);
+    if (activeSchoolId === schoolId) {
+      setActiveSchoolId(remaining[0].id);
+    }
+    showToast(`Deleted "${schoolToDelete?.name || 'School'}"`, 'info');
   };
 
   const togglePublish = async () => {
@@ -438,13 +584,15 @@ export function useTimetableApp() {
     selectedClass, selectedTeacher, currentSchedule, entries,
     subjectMap, teacherMap, classMap,
     editingSlot, overrideSubjectId, overrideTeacherId, overrideConflicts, toast, showToast, isSyncing,
+    solverPreferences,
     // setters
     setActiveSchoolId, setAdminTab, setTimetableViewMode, setIsAuthModalOpen,
     setSelectedClassId, setSelectedTeacherId, setEditingSlot, setOverrideSubjectId, setOverrideTeacherId,
+    setSolverPreferences, toggleSolverPreference,
     // auth
     login, logout,
     // actions
-    updateActiveSchool, runSolver, resetDemoData, togglePublish, exportCsv, exportExcel, exportPrintPdf,
+    updateActiveSchool, runSolver, resetDemoData, addSchool, deleteSchool, togglePublish, exportCsv, exportExcel, exportPrintPdf,
     getCandidates, assignSubstitute, autoAssign, addAbsence, removeAbsence, toggleTeacherUnavailable,
     openManualOverride, saveManualOverride,
   };

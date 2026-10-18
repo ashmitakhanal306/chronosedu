@@ -23,6 +23,7 @@ from app.schemas.timetable import (
     CandidateOut,
     DiagnosticOut,
     EntryOut,
+    GenerateRequest,
     GenerateResponse,
     OverrideRequest,
     PublishResponse,
@@ -31,7 +32,7 @@ from app.schemas.timetable import (
 )
 
 
-def generate(school_id: str) -> GenerateResponse:
+def generate(school_id: str, req: GenerateRequest | None = None) -> GenerateResponse:
     """Generate a conflict-free timetable for the school using chronos_engine."""
     sid = uuid.UUID(school_id) if isinstance(school_id, str) else school_id
 
@@ -69,6 +70,11 @@ def generate(school_id: str) -> GenerateResponse:
             max_teacher_periods_per_day=school.max_teacher_periods_per_day,
             activity_day=school.activity_day,
             activity_periods=tuple(school.activity_periods),
+            spread_subjects=req.spread_subjects if req and req.spread_subjects is not None else True,
+            smooth_teacher_workload=req.smooth_teacher_workload if req and req.smooth_teacher_workload is not None else True,
+            minimize_teacher_gaps=req.minimize_teacher_gaps if req and req.minimize_teacher_gaps is not None else False,
+            morning_core_priority=req.morning_core_priority if req and req.morning_core_priority is not None else False,
+            consecutive_double_periods=True,
         )
 
         engine_classes = [
@@ -87,6 +93,7 @@ def generate(school_id: str) -> GenerateResponse:
                 name=s.name,
                 is_activity=(s.type == "activity"),
                 room=s.room.name if s.room else None,
+                requires_double_period=getattr(s, "requires_double_period", False),
             )
             for s in subjects
         ]

@@ -110,6 +110,37 @@ async def get_auth_context(
     )
 
 
+async def get_optional_auth_context(
+    request: Request,
+    authorization: str | None = Header(None),
+) -> AuthContext | None:
+    """Extract AuthContext if valid Bearer token provided, else None without raising 401."""
+    token: str | None = None
+    if authorization and authorization.startswith("Bearer "):
+        token = authorization.split(" ", 1)[1].strip()
+    if not token:
+        token = request.query_params.get("token")
+    if not token:
+        return None
+    try:
+        payload = decode_access_token(token)
+        user_id = payload.get("sub") or payload.get("user_id")
+        school_id = payload.get("school_id")
+        role = payload.get("role")
+        if not school_id or not role or not user_id:
+            return None
+        return AuthContext(
+            user_id=user_id,
+            school_id=school_id,
+            role=role,
+            email=payload.get("email"),
+            teacher_id=payload.get("teacher_id"),
+            class_id=payload.get("class_id"),
+        )
+    except Exception:
+        return None
+
+
 def require_roles(allowed_roles: list[str]):
     """Role-guard dependency factory ensuring the caller has one of the allowed roles."""
     async def role_checker(auth: AuthContext = Depends(get_auth_context)) -> AuthContext:

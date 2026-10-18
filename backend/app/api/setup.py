@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends
 from app.core.auth import (
     AuthContext,
     get_auth_context,
+    get_optional_auth_context,
     require_roles,
     verify_platform_token,
     verify_tenant_access,
@@ -11,6 +12,7 @@ from app.core.auth import (
 from app.schemas.setup import (
     ClassSectionCreate,
     ClassSectionOut,
+    FullSchoolOut,
     GradeCreate,
     GradeOut,
     RequirementCreate,
@@ -31,6 +33,12 @@ from app.services import school_service
 router = APIRouter(prefix="/api/schools", tags=["setup"])
 
 
+@router.get("", response_model=list[SchoolOut])
+def list_schools():
+    """Retrieve all school organizations registered on the platform."""
+    return school_service.list_schools()
+
+
 @router.post("", response_model=SchoolOut, status_code=201)
 def create_school(
     data: SchoolCreate,
@@ -48,6 +56,17 @@ def get_school(
     """Retrieve school metadata and configuration."""
     verify_tenant_access(school_id, auth)
     return school_service.get_school(school_id)
+
+
+@router.get("/{school_id}/full", response_model=FullSchoolOut)
+def get_full_school(
+    school_id: str,
+    auth: AuthContext | None = Depends(get_optional_auth_context),
+):
+    """Retrieve fully hydrated school hierarchy matching frontend School domain model."""
+    if auth:
+        verify_tenant_access(school_id, auth)
+    return school_service.get_full_school(school_id)
 
 
 @router.post("/{school_id}/grades", response_model=GradeOut, status_code=201)

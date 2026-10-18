@@ -25,6 +25,7 @@ class Subject:
     name: str
     is_activity: bool = False
     room: str | None = None
+    requires_double_period: bool = False
 
 
 @dataclass(frozen=True)
@@ -44,6 +45,15 @@ class Rules:
     max_teacher_periods_per_day: int = 5
     activity_day: str = "Wednesday"
     activity_periods: tuple[int, ...] = (1, 2)
+    recess_after_period: int = 2
+    lunch_after_period: int = 4
+    # Optimization & Soft Constraint Preferences (S1 & S2 on by default; S3 & S4 opt-in; S5 double periods)
+    spread_subjects: bool = True
+    smooth_teacher_workload: bool = True
+    minimize_teacher_gaps: bool = False
+    morning_core_priority: bool = False
+    consecutive_double_periods: bool = True
+
 
 
 @dataclass

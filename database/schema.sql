@@ -24,6 +24,7 @@ CREATE TABLE school (
   max_teacher_periods_per_day smallint NOT NULL DEFAULT 5 CHECK (max_teacher_periods_per_day BETWEEN 1 AND 5),
   activity_day   text NOT NULL DEFAULT 'Wednesday',
   activity_periods smallint[] NOT NULL DEFAULT '{1,2}',
+  timing_config  jsonb DEFAULT NULL,
   created_at     timestamptz NOT NULL DEFAULT now()
 );
 

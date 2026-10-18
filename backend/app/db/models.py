@@ -199,6 +199,7 @@ class Subject(Base):
     code: Mapped[str] = mapped_column(String(50), nullable=False)
     type: Mapped[str] = mapped_column(String(50), default="academic", nullable=False)  # 'academic', 'activity'
     room_id: Mapped[uuid.UUID | None] = mapped_column(GUID, ForeignKey("room.id"), nullable=True)
+    requires_double_period: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     __table_args__ = (UniqueConstraint("school_id", "code"),)
     school: Mapped[School] = relationship("School", back_populates="subjects")

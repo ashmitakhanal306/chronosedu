@@ -1,15 +1,20 @@
-import { BookOpen, Layers, Sliders, Upload, FileSpreadsheet, Trash2, Plus, Minus, Users, DoorOpen, Sparkles, Check, AlertCircle } from 'lucide-react';
+import { BookOpen, Layers, Sliders, Upload, FileSpreadsheet, Trash2, Plus, Minus, Users, DoorOpen, Sparkles, Check, AlertCircle, Clock, Calendar, Coffee, Utensils, Sun, Building2, Globe, Pencil, ChevronDown, Palette, FlaskConical } from 'lucide-react';
 import { useState } from 'react';
-import type { School, Tier } from '../../domain/types';
+import { DEFAULT_TIMING_CONFIG, DEFAULT_SOLVER_PREFERENCES, SUBJECT_PALETTE, type School, type SchoolRules, type Tier, type TimingConfig } from '../../domain/types';
+import { computeBellSchedule } from '../../engine/bellSchedule';
 import { BulkImportModal } from './BulkImportModal';
+import { NewSchoolModal } from '../../components/layout/NewSchoolModal';
+import { SolverPreferencesCard } from './SolverPreferencesCard';
+import type { TimetableApp } from '../../hooks/useTimetableApp';
 
 interface Props {
   school: School;
   updateSchool: (updater: (s: School) => School) => void;
   onRunSolver: () => void;
+  app?: TimetableApp;
 }
 
-export function AdminSetupPanel({ school, updateSchool, onRunSolver }: Props) {
+export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Props) {
   // Class creation state
   const [newClassName, setNewClassName] = useState('');
   const [newClassGrade, setNewClassGrade] = useState('Grade 6');
@@ -29,12 +34,60 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver }: Props) {
   const [newSubFreqSenior, setNewSubFreqSenior] = useState<number>(2);
   const [newSubRoom, setNewSubRoom] = useState('');
   const [newSubTeacherId, setNewSubTeacherId] = useState<string>('auto');
+  const [newSubDoublePeriod, setNewSubDoublePeriod] = useState(false);
 
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+  const [isNewSchoolOpen, setIsNewSchoolOpen] = useState(false);
+  const [newSubColor, setNewSubColor] = useState<string>(SUBJECT_PALETTE[0].color);
+  const [colorPickerSubId, setColorPickerSubId] = useState<string | null>(null);
+
+  const handleChangeSubjectColor = (subId: string, colorClass: string) => {
+    updateSchool(s => ({
+      ...s,
+      subjects: s.subjects.map(sub => (sub.id === subId ? { ...sub, color: colorClass } : sub)),
+    }));
+    setColorPickerSubId(null);
+  };
+
+  // Dynamic timing and bell schedule state
+  const timing = school.timingConfig || DEFAULT_TIMING_CONFIG;
+  const computedSchedule = computeBellSchedule(timing, school.rules);
+
+  const handleUpdateTiming = (newTiming: TimingConfig, newRules?: Partial<SchoolRules>, newDays?: string[]) => {
+    const updatedRules = { ...school.rules, ...(newRules || {}) };
+    const computed = computeBellSchedule(newTiming, updatedRules);
+    const updatedDays = newDays || school.workingDays;
+
+    updateSchool(s => ({
+      ...s,
+      workingDays: updatedDays,
+      rules: updatedRules,
+      timingConfig: newTiming,
+      periodSlots: computed.slots,
+    }));
+    setTimeout(() => onRunSolver(), 150);
+  };
+
+  const handleToggleDay = (day: string) => {
+    const isPresent = school.workingDays.includes(day);
+    let nextDays: string[];
+    if (isPresent) {
+      if (school.workingDays.length <= 1) return;
+      nextDays = school.workingDays.filter(d => d !== day);
+    } else {
+      const ALL_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      nextDays = ALL_DAYS.filter(d => school.workingDays.includes(d) || d === day);
+    }
+    handleUpdateTiming(timing, undefined, nextDays);
+  };
+
+  const handleUpdateDays = (days: string[]) => {
+    handleUpdateTiming(timing, undefined, days);
+  };
 
   // Weekly period capacity calculations
-  const primaryCap = school.workingDays.length * school.rules.primaryEndPeriod; // e.g. 5 * 4 = 20
-  const seniorCap = school.workingDays.length * school.rules.seniorEndPeriod;   // e.g. 5 * 6 = 30
+  const primaryCap = school.workingDays.length * school.rules.primaryEndPeriod; // e.g. 5 * 4 = 20 or 6 * 4 = 24
+  const seniorCap = school.workingDays.length * school.rules.seniorEndPeriod;   // e.g. 5 * 6 = 30 or 6 * 6 = 36
 
   const totalPrimaryFreq = school.subjects.reduce((sum, s) => sum + (s.freqPrimary || 0), 0);
   const totalSeniorFreq = school.subjects.reduce((sum, s) => sum + (s.freqSenior || 0), 0);
@@ -119,19 +172,9 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver }: Props) {
     if (!newSubName.trim()) return;
     const subId = `sub-${Date.now().toString(36)}`;
     const code = newSubCode.trim().toUpperCase() || newSubName.trim().slice(0, 4).toUpperCase();
-    const PALETTE = [
-      'bg-teal-50 text-teal-700 border-teal-200',
-      'bg-violet-50 text-violet-700 border-violet-200',
-      'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200',
-      'bg-amber-50 text-amber-700 border-amber-200',
-      'bg-sky-50 text-sky-700 border-sky-200',
-      'bg-rose-50 text-rose-700 border-rose-200',
-      'bg-emerald-50 text-emerald-700 border-emerald-200',
-      'bg-indigo-50 text-indigo-700 border-indigo-200',
-    ];
     const color = newSubType === 'activity'
       ? 'bg-purple-100 text-purple-800 border-purple-300'
-      : PALETTE[school.subjects.length % PALETTE.length];
+      : (newSubColor || SUBJECT_PALETTE[school.subjects.length % SUBJECT_PALETTE.length].color);
 
     updateSchool(s => {
       let updatedTeachers = [...s.teachers];
@@ -163,6 +206,7 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver }: Props) {
             freqPrimary: Number(newSubFreqPrimary) || 0,
             freqSenior: Number(newSubFreqSenior) || 0,
             room: newSubRoom.trim() || undefined,
+            requiresDoublePeriod: newSubDoublePeriod,
           },
         ],
         teachers: updatedTeachers,
@@ -172,6 +216,7 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver }: Props) {
     setNewSubName('');
     setNewSubCode('');
     setNewSubRoom('');
+    setNewSubDoublePeriod(false);
     setTimeout(() => onRunSolver(), 150);
   };
 
@@ -320,73 +365,654 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver }: Props) {
         onRunSolver={onRunSolver}
       />
 
-      {/* 2x2 Grid of School Architecture */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Card 1: School-Wide Scheduling Rules */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4">
-          <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
-            <Sliders className="w-4 h-4 text-indigo-600" />
-            <span>1. School-Wide Scheduling Rules</span>
-          </h3>
-
-          <div className="space-y-3 text-xs">
-            <div>
-              <label className="block font-semibold text-slate-700 mb-1">Weekly Activity Block Day</label>
-              <select
-                value={school.rules.activityDay}
-                onChange={(e) => {
-                  updateSchool(s => ({
-                    ...s,
-                    rules: { ...s.rules, activityDay: e.target.value }
-                  }));
-                }}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 font-semibold"
-              >
-                {school.workingDays.map(d => (
-                  <option key={d} value={d}>{d} (Periods 1 & 2 Locked)</option>
+      {/* ── School Identity Card ───────────────────────────────────── */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
+        {/* Multi-School Switcher / Actions bar */}
+        {app && (
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Tenants:</span>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {app.schools.map(s => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => app.setActiveSchoolId(s.id)}
+                    className={`px-2.5 py-1 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                      s.id === school.id
+                        ? 'bg-indigo-600 text-white shadow-2xs'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    <Building2 className="w-3 h-3" />
+                    <span>{s.name}</span>
+                  </button>
                 ))}
-              </select>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
-                <div className="font-bold text-emerald-950">Primary Cutoff</div>
-                <div className="text-emerald-700 mt-0.5">12:00 PM (4 Periods/day)</div>
-              </div>
-              <div className="p-3 rounded-xl bg-sky-50 border border-sky-200">
-                <div className="font-bold text-sky-950">Senior Cutoff</div>
-                <div className="text-sky-700 mt-0.5">02:00 PM (6 Periods/day)</div>
               </div>
             </div>
 
-            <div>
-              <label className="block font-semibold text-slate-700 mb-1">
-                Hard Teacher Daily Cap (Max Periods / Day)
-              </label>
-              <input
-                type="number"
-                min={3}
-                max={6}
-                value={school.rules.maxTeacherPeriodsPerDay}
-                onChange={(e) => {
-                  const val = Number(e.target.value) || 5;
-                  updateSchool(s => ({
-                    ...s,
-                    rules: { ...s.rules, maxTeacherPeriodsPerDay: val }
-                  }));
-                }}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold"
-              />
-            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsNewSchoolOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold transition cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>New School</span>
+              </button>
 
-            <button
-              onClick={onRunSolver}
-              className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold cursor-pointer transition shadow-xs"
+              {app.schools.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (window.confirm(`Are you sure you want to delete "${school.name}"? This action cannot be undone.`)) {
+                      app.deleteSchool(school.id);
+                    }
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-rose-600 hover:bg-rose-50 border border-rose-200 text-xs font-bold transition cursor-pointer"
+                  title="Delete this school instance"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Delete School</span>
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
+            <Building2 className="w-4 h-4 text-indigo-600" />
+            <span>School Identity &amp; Academic Term</span>
+          </h3>
+          <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+            {school.published ? '🟢 Published' : '🟡 Draft'}
+          </span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+          {/* School Name */}
+          <div className="lg:col-span-2">
+            <label className="block font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
+              <Building2 className="w-3.5 h-3.5 text-indigo-500" />
+              School Name
+            </label>
+            <input
+              type="text"
+              value={school.name}
+              onChange={e => updateSchool(s => ({ ...s, name: e.target.value }))}
+              placeholder="e.g. Greenwood High School"
+              className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-semibold text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+            />
+          </div>
+
+          {/* Academic Term */}
+          <div className="lg:col-span-2">
+            <label className="block font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5 text-indigo-500" />
+              Academic Term
+            </label>
+            <input
+              type="text"
+              value={school.term}
+              onChange={e => updateSchool(s => ({ ...s, term: e.target.value }))}
+              placeholder="e.g. Academic Year 2026–27 (Term 1)"
+              className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+            />
+          </div>
+
+          {/* Timezone */}
+          <div>
+            <label className="block font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
+              <Globe className="w-3.5 h-3.5 text-indigo-500" />
+              Timezone
+            </label>
+            <select
+              value={school.timezone}
+              onChange={e => updateSchool(s => ({ ...s, timezone: e.target.value }))}
+              className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
             >
-              Save Rules & Re-Generate Timetable
-            </button>
+              <option value="IST (UTC+5:30)">IST (UTC+5:30) — India</option>
+              <option value="UTC+0">UTC+0 — London</option>
+              <option value="UTC+1">UTC+1 — Central Europe</option>
+              <option value="UTC+2">UTC+2 — Eastern Europe</option>
+              <option value="UTC+3">UTC+3 — Gulf / EAT</option>
+              <option value="UTC+4">UTC+4 — GST / Dubai</option>
+              <option value="UTC+5">UTC+5 — PKT / Ekaterinburg</option>
+              <option value="UTC+7">UTC+7 — WIB / Bangkok</option>
+              <option value="UTC+8">UTC+8 — AWST / Singapore / CST</option>
+              <option value="UTC-5">UTC-5 — EST / New York</option>
+              <option value="UTC-6">UTC-6 — CST / Chicago</option>
+              <option value="UTC-7">UTC-7 — MST / Denver</option>
+              <option value="UTC-8">UTC-8 — PST / Los Angeles</option>
+            </select>
+          </div>
+
+          {/* Subdomain */}
+          <div className="lg:col-span-3">
+            <label className="block font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
+              <Pencil className="w-3.5 h-3.5 text-indigo-500" />
+              Portal Subdomain
+            </label>
+            <div className="flex items-center gap-0">
+              <input
+                type="text"
+                value={school.subdomain.replace(/\.chronos\.edu$/, '').replace(/\.chronosedu$/, '')}
+                onChange={e => {
+                  const slug = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/--+/g, '-').replace(/^-|-$/g, '');
+                  updateSchool(s => ({ ...s, subdomain: `${slug}.chronos.edu` }));
+                }}
+                placeholder="your-school"
+                className="flex-1 px-3 py-2 rounded-l-xl border border-r-0 border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+              />
+              <span className="px-3 py-2 rounded-r-xl border border-slate-300 bg-slate-100 text-slate-500 font-semibold text-[11px] whitespace-nowrap">.chronos.edu</span>
+            </div>
           </div>
         </div>
+
+        {/* Live preview pill */}
+        <div className="mt-3 flex flex-wrap items-center gap-2 pt-3 border-t border-slate-100">
+          <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Preview:</span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-[12px] font-bold text-indigo-800">
+            <Building2 className="w-3 h-3" />
+            {school.name || 'School Name'}
+          </span>
+          <span className="text-slate-400 text-[11px]">&middot;</span>
+          <span className="text-[11px] text-slate-500">{school.term || 'Academic Term'}</span>
+          <span className="text-slate-400 text-[11px]">&middot;</span>
+          <span className="inline-flex items-center gap-1 text-[11px] text-slate-500">
+            <Globe className="w-3 h-3" />
+            {school.timezone}
+          </span>
+          <span className="text-slate-400 text-[11px]">&middot;</span>
+          <span className="text-[11px] font-mono text-slate-500">{school.subdomain}</span>
+        </div>
+      </div>
+
+      {/* 2x2 Grid of School Architecture */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Card 1: Bell Schedule, Start Time & Working Days */}
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
+              <Clock className="w-4 h-4 text-indigo-600" />
+              <span>1. Bell Schedule, Start Time & Working Days</span>
+            </h3>
+            <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+              {school.workingDays.length} Working Days • {computedSchedule.slots.filter(s => !s.isBreak).length} Periods/Day
+            </span>
+          </div>
+
+          <div className="space-y-4 text-xs">
+            {/* Working Days Selector & Quick Presets */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="font-bold text-slate-700 flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-indigo-600" />
+                  <span>Working Days Calendar</span>
+                </label>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleUpdateDays(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'])}
+                    className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border transition cursor-pointer ${
+                      school.workingDays.length === 5 && !school.workingDays.includes('Saturday')
+                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
+                        : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
+                    }`}
+                  >
+                    5-Day (Mon–Fri)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleUpdateDays(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'])}
+                    className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border transition cursor-pointer ${
+                      school.workingDays.includes('Saturday')
+                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
+                        : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
+                    }`}
+                  >
+                    6-Day (Mon–Sat Full Day)
+                  </button>
+                </div>
+              </div>
+
+              {/* Day selection chips */}
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+                {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => {
+                  const isActive = school.workingDays.includes(day);
+                  return (
+                    <button
+                      key={day}
+                      type="button"
+                      onClick={() => handleToggleDay(day)}
+                      className={`py-1.5 px-2 rounded-xl text-center font-bold text-xs border transition cursor-pointer flex items-center justify-center gap-1 ${
+                        isActive
+                          ? day === 'Saturday'
+                            ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
+                            : 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                          : 'bg-slate-50 text-slate-400 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      <span>{day.slice(0, 3)}</span>
+                      {isActive && <Check className="w-3 h-3 shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
+              {school.workingDays.includes('Saturday') && (
+                <div className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-2 flex items-center gap-1.5">
+                  <span className="font-bold">✨ Saturday Operations Active:</span> Timetable slots are generated across full Monday to Saturday week ({primaryCap} Primary / {seniorCap} Senior total weekly periods).
+                </div>
+              )}
+            </div>
+
+            {/* School Start Time & Period Length */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-slate-100">
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  School Opening / Start Time
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="time"
+                    value={timing.startTime}
+                    onChange={(e) => handleUpdateTiming({ ...timing, startTime: e.target.value })}
+                    className="flex-1 px-3 py-1.5 rounded-xl border border-slate-300 font-bold bg-white text-slate-800"
+                  />
+                  <div className="flex items-center gap-1">
+                    {['07:30', '08:00', '08:30'].map(t => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => handleUpdateTiming({ ...timing, startTime: t })}
+                        className={`px-1.5 py-1 rounded text-[10px] font-semibold border transition cursor-pointer ${
+                          timing.startTime === t ? 'bg-indigo-50 border-indigo-300 text-indigo-700 font-bold' : 'bg-slate-50 text-slate-600 border-slate-200'
+                        }`}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Standard Period Duration
+                </label>
+                <select
+                  value={timing.periodDurationMinutes}
+                  onChange={(e) => handleUpdateTiming({ ...timing, periodDurationMinutes: Number(e.target.value) || 45 })}
+                  className="w-full px-3 py-1.5 rounded-xl border border-slate-300 font-bold bg-white text-slate-800"
+                >
+                  <option value={30}>30 Minutes</option>
+                  <option value={35}>35 Minutes</option>
+                  <option value={40}>40 Minutes</option>
+                  <option value={45}>45 Minutes (Standard)</option>
+                  <option value={50}>50 Minutes</option>
+                  <option value={55}>55 Minutes</option>
+                  <option value={60}>60 Minutes (1 Hour)</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Periods Per Day — Primary & Senior */}
+            <div className="p-3 rounded-xl bg-indigo-50/60 border border-indigo-200 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-indigo-950 text-xs flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5 text-indigo-600" />
+                  Periods Per Day (Full-Day Lengths)
+                </span>
+                <span className="text-[10px] text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded-full font-semibold">
+                  Controls school-day length per tier
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Primary */}
+                <div className="bg-white rounded-xl border border-emerald-200 p-3 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-emerald-900">🟢 Primary Classes</span>
+                    <span className="text-[10px] text-emerald-600 font-semibold">Out at {computedSchedule.primaryDismissalTime}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = Math.max(2, school.rules.primaryEndPeriod - 1);
+                        handleUpdateTiming(timing, { primaryEndPeriod: next });
+                      }}
+                      className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-800 font-bold text-base flex items-center justify-center hover:bg-emerald-200 transition cursor-pointer select-none"
+                    >
+                      <Minus className="w-3.5 h-3.5" />
+                    </button>
+                    <div className="flex-1 text-center">
+                      <span className="text-xl font-extrabold text-emerald-900">{school.rules.primaryEndPeriod}</span>
+                      <span className="text-[10px] text-emerald-600 ml-1">periods/day</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = Math.min(school.rules.seniorEndPeriod, school.rules.primaryEndPeriod + 1);
+                        handleUpdateTiming(timing, { primaryEndPeriod: next });
+                      }}
+                      className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-800 font-bold text-base flex items-center justify-center hover:bg-emerald-200 transition cursor-pointer select-none"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                  <div className="text-[10px] text-emerald-600 text-center">
+                    {school.rules.primaryEndPeriod} periods × {school.workingDays.length} days = <strong>{primaryCap} periods/wk</strong>
+                  </div>
+                </div>
+
+                {/* Senior */}
+                <div className="bg-white rounded-xl border border-sky-200 p-3 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-sky-900">🔵 Senior Classes</span>
+                    <span className="text-[10px] text-sky-600 font-semibold">Out at {computedSchedule.seniorDismissalTime}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = Math.max(school.rules.primaryEndPeriod, school.rules.seniorEndPeriod - 1);
+                        handleUpdateTiming(timing, { seniorEndPeriod: next });
+                      }}
+                      className="w-7 h-7 rounded-lg bg-sky-100 text-sky-800 font-bold text-base flex items-center justify-center hover:bg-sky-200 transition cursor-pointer select-none"
+                    >
+                      <Minus className="w-3.5 h-3.5" />
+                    </button>
+                    <div className="flex-1 text-center">
+                      <span className="text-xl font-extrabold text-sky-900">{school.rules.seniorEndPeriod}</span>
+                      <span className="text-[10px] text-sky-600 ml-1">periods/day</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = Math.min(10, school.rules.seniorEndPeriod + 1);
+                        handleUpdateTiming(timing, { seniorEndPeriod: next });
+                      }}
+                      className="w-7 h-7 rounded-lg bg-sky-100 text-sky-800 font-bold text-base flex items-center justify-center hover:bg-sky-200 transition cursor-pointer select-none"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                  <div className="text-[10px] text-sky-600 text-center">
+                    {school.rules.seniorEndPeriod} periods × {school.workingDays.length} days = <strong>{seniorCap} periods/wk</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Zero Period / Morning Assembly */}
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="font-semibold text-slate-800 flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={timing.hasZeroPeriod}
+                    onChange={(e) => handleUpdateTiming({ ...timing, hasZeroPeriod: e.target.checked })}
+                    className="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer"
+                  />
+                  <Sun className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Zero Period / Morning Assembly</span>
+                </label>
+                {timing.hasZeroPeriod && (
+                  <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                    {timing.zeroPeriodDurationMinutes} mins
+                  </span>
+                )}
+              </div>
+
+              {timing.hasZeroPeriod && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-xs">
+                  <input
+                    value={timing.zeroPeriodLabel}
+                    onChange={(e) => handleUpdateTiming({ ...timing, zeroPeriodLabel: e.target.value }, { zeroPeriodLabel: e.target.value })}
+                    placeholder="Assembly & Homeroom"
+                    className="px-2.5 py-1 rounded-lg border border-slate-300 bg-white"
+                  />
+                  <select
+                    value={timing.zeroPeriodDurationMinutes}
+                    onChange={(e) => handleUpdateTiming({ ...timing, zeroPeriodDurationMinutes: Number(e.target.value) || 30 })}
+                    className="px-2.5 py-1 rounded-lg border border-slate-300 bg-white font-semibold"
+                  >
+                    <option value={15}>15 Minutes</option>
+                    <option value={20}>20 Minutes</option>
+                    <option value={25}>25 Minutes</option>
+                    <option value={30}>30 Minutes</option>
+                    <option value={40}>40 Minutes</option>
+                  </select>
+                </div>
+              )}
+            </div>
+
+            {/* Recess & Lunch Breaks */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Recess Break */}
+              <div className="p-3 rounded-xl bg-emerald-50/60 border border-emerald-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-emerald-950 flex items-center gap-1.5">
+                    <Coffee className="w-3.5 h-3.5 text-emerald-700" />
+                    <span>Recess Break</span>
+                  </span>
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
+                    {timing.recessDurationMinutes} mins
+                  </span>
+                </div>
+                {/* Editable recess label */}
+                <input
+                  value={timing.recessLabel}
+                  onChange={(e) => handleUpdateTiming({ ...timing, recessLabel: e.target.value })}
+                  placeholder="Short Break"
+                  className="w-full px-2.5 py-1 rounded-lg border border-emerald-300 bg-white text-xs font-semibold text-emerald-900"
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] text-emerald-800 font-semibold block mb-0.5">After Period:</label>
+                    <select
+                      value={timing.recessAfterPeriod}
+                      onChange={(e) => handleUpdateTiming({ ...timing, recessAfterPeriod: Number(e.target.value) || 2 })}
+                      className="w-full px-2 py-1 rounded-lg border border-emerald-300 bg-white text-xs font-semibold"
+                    >
+                      {Array.from({ length: Math.max(1, school.rules.primaryEndPeriod - 1) }, (_, i) => i + 1).map(p => (
+                        <option key={p} value={p}>Period {p}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-emerald-800 font-semibold block mb-0.5">Duration:</label>
+                    <select
+                      value={timing.recessDurationMinutes}
+                      onChange={(e) => handleUpdateTiming({ ...timing, recessDurationMinutes: Number(e.target.value) || 15 })}
+                      className="w-full px-2 py-1 rounded-lg border border-emerald-300 bg-white text-xs font-semibold"
+                    >
+                      <option value={10}>10 Mins</option>
+                      <option value={15}>15 Mins</option>
+                      <option value={20}>20 Mins</option>
+                      <option value={25}>25 Mins</option>
+                      <option value={30}>30 Mins</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Lunch Break */}
+              <div className="p-3 rounded-xl bg-sky-50/60 border border-sky-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-sky-950 flex items-center gap-1.5">
+                    <Utensils className="w-3.5 h-3.5 text-sky-700" />
+                    <span>Lunch Break</span>
+                  </span>
+                  <span className="text-[10px] font-bold text-sky-700 bg-sky-100 px-2 py-0.5 rounded-md">
+                    {timing.lunchDurationMinutes} mins
+                  </span>
+                </div>
+                {/* Editable lunch label */}
+                <input
+                  value={timing.lunchLabel}
+                  onChange={(e) => handleUpdateTiming({ ...timing, lunchLabel: e.target.value })}
+                  placeholder="Lunch Break"
+                  className="w-full px-2.5 py-1 rounded-lg border border-sky-300 bg-white text-xs font-semibold text-sky-900"
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] text-sky-800 font-semibold block mb-0.5">After Period:</label>
+                    <select
+                      value={timing.lunchAfterPeriod}
+                      onChange={(e) => handleUpdateTiming({ ...timing, lunchAfterPeriod: Number(e.target.value) || 4 }, { lunchAfterPeriod: Number(e.target.value) || 4 })}
+                      className="w-full px-2 py-1 rounded-lg border border-sky-300 bg-white text-xs font-semibold"
+                    >
+                      {Array.from(
+                        { length: Math.max(1, school.rules.seniorEndPeriod - timing.recessAfterPeriod - 1) },
+                        (_, i) => timing.recessAfterPeriod + 1 + i
+                      ).map(p => (
+                        <option key={p} value={p}>Period {p}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-sky-800 font-semibold block mb-0.5">Duration:</label>
+                    <select
+                      value={timing.lunchDurationMinutes}
+                      onChange={(e) => handleUpdateTiming({ ...timing, lunchDurationMinutes: Number(e.target.value) || 30 })}
+                      className="w-full px-2 py-1 rounded-lg border border-sky-300 bg-white text-xs font-semibold"
+                    >
+                      <option value={20}>20 Mins</option>
+                      <option value={25}>25 Mins</option>
+                      <option value={30}>30 Mins</option>
+                      <option value={40}>40 Mins</option>
+                      <option value={45}>45 Mins</option>
+                      <option value={60}>60 Mins</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between pt-1">
+                  <label className="text-[10px] font-semibold text-sky-900 flex items-center gap-1.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={!timing.lunchSeniorOnly}
+                      onChange={(e) => handleUpdateTiming({ ...timing, lunchSeniorOnly: !e.target.checked })}
+                      className="rounded text-sky-600 focus:ring-sky-500 w-3.5 h-3.5"
+                    />
+                    <span>Synchronized for all classes</span>
+                  </label>
+                  <span className="text-[10px] text-sky-600">
+                    {!timing.lunchSeniorOnly ? 'All Classes' : 'Senior Only'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+
+
+            {/* Activity Block & Teacher Cap */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-slate-100">
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Weekly Activity Block Day</label>
+                <select
+                  value={school.rules.activityDay}
+                  onChange={(e) => {
+                    updateSchool(s => ({
+                      ...s,
+                      rules: { ...s.rules, activityDay: e.target.value }
+                    }));
+                    setTimeout(() => onRunSolver(), 150);
+                  }}
+                  className="w-full px-3 py-1.5 rounded-xl border border-slate-300 font-semibold bg-white"
+                >
+                  {school.workingDays.map(d => (
+                    <option key={d} value={d}>{d} (Periods 1 & 2 Locked)</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Teacher Daily Cap (Max Periods / Day)
+                </label>
+                <input
+                  type="number"
+                  min={3}
+                  max={6}
+                  value={school.rules.maxTeacherPeriodsPerDay}
+                  onChange={(e) => {
+                    const val = Number(e.target.value) || 5;
+                    updateSchool(s => ({
+                      ...s,
+                      rules: { ...s.rules, maxTeacherPeriodsPerDay: val }
+                    }));
+                    setTimeout(() => onRunSolver(), 150);
+                  }}
+                  className="w-full px-3 py-1.5 rounded-xl border border-slate-300 font-bold bg-white"
+                />
+              </div>
+            </div>
+
+            {/* Live Visual Timeline Preview */}
+            <div className="p-3 rounded-xl bg-slate-900 text-white space-y-2">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="font-bold flex items-center gap-1.5 text-indigo-300">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>Calculated Daily Timeline</span>
+                </span>
+                <span className="text-[10px] text-slate-400">
+                  Starts {timing.startTime} • Primary Out {computedSchedule.primaryDismissalTime} • Senior Out {computedSchedule.seniorDismissalTime}
+                </span>
+              </div>
+
+              <div className="flex flex-wrap gap-1.5 overflow-x-auto pb-1 text-[10px]">
+                {computedSchedule.slots.map(s => {
+                  if (s.type === 'zero') {
+                    return (
+                      <span key={s.label} className="px-2 py-1 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30 font-medium">
+                        🌅 {s.label} ({s.time})
+                      </span>
+                    );
+                  }
+                  if (s.type === 'break') {
+                    return (
+                      <span key={s.label} className="px-2 py-1 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-medium">
+                        ☕ {s.label} ({s.time})
+                      </span>
+                    );
+                  }
+                  if (s.type === 'lunch') {
+                    return (
+                      <span key={s.label} className="px-2 py-1 rounded-md bg-sky-500/20 text-sky-300 border border-sky-500/30 font-medium">
+                        🍱 {s.label} ({s.time})
+                      </span>
+                    );
+                  }
+                  return (
+                    <span
+                      key={s.label}
+                      className={`px-2 py-1 rounded-md font-medium border ${
+                        s.seniorOnly
+                          ? 'bg-slate-800 text-sky-300 border-sky-500/30'
+                          : 'bg-slate-800 text-slate-200 border-slate-700'
+                      }`}
+                    >
+                      P{s.number}: {s.time}
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 1.5: Google OR-Tools CP-SAT Soft Optimization Preferences */}
+        {app && (
+          <SolverPreferencesCard
+            preferences={app.solverPreferences}
+            onToggle={app.toggleSolverPreference}
+            onRunSolver={onRunSolver}
+            onResetDefaults={() => app.setSolverPreferences(DEFAULT_SOLVER_PREFERENCES)}
+            isSyncing={app.isSyncing}
+          />
+        )}
 
         {/* Card 2: Classes, Grade Tiers & Classrooms (with Custom Room & Delete) */}
         <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4">
@@ -696,7 +1322,63 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver }: Props) {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 shrink-0">
+                  <div className="flex items-center gap-2 shrink-0">
+                    {/* Color Swatch Badge & Popover */}
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setColorPickerSubId(colorPickerSubId === sub.id ? null : sub.id)}
+                        className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg border text-[11px] font-semibold transition cursor-pointer ${
+                          sub.color || 'bg-slate-50 text-slate-700 border-slate-200'
+                        } hover:opacity-100 shadow-2xs`}
+                        title="Change subject theme color"
+                      >
+                        <Palette className="w-3 h-3 opacity-70" />
+                        <span className="hidden sm:inline">Color</span>
+                        <ChevronDown className="w-2.5 h-2.5 opacity-60" />
+                      </button>
+
+                      {colorPickerSubId === sub.id && (
+                        <div className="absolute right-0 top-full mt-1.5 z-40 p-2 bg-white rounded-2xl shadow-xl border border-slate-200 w-52 grid grid-cols-2 gap-1.5 animate-in fade-in zoom-in-95 duration-150">
+                          <div className="col-span-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1 pb-1 border-b border-slate-100">
+                            Choose Color Theme
+                          </div>
+                          {SUBJECT_PALETTE.map((pal) => (
+                            <button
+                              key={pal.name}
+                              type="button"
+                              onClick={() => handleChangeSubjectColor(sub.id, pal.color)}
+                              className={`p-1.5 rounded-lg text-left text-[11px] font-semibold border flex items-center gap-1.5 cursor-pointer transition hover:scale-105 ${pal.color}`}
+                            >
+                              <span className={`w-2.5 h-2.5 rounded-full ${pal.dot} shrink-0`} />
+                              <span className="truncate">{pal.name}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Double Period Toggle Pill */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateSchool(s => ({
+                          ...s,
+                          subjects: s.subjects.map(item => item.id === sub.id ? { ...item, requiresDoublePeriod: !item.requiresDoublePeriod } : item)
+                        }));
+                        setTimeout(() => onRunSolver(), 150);
+                      }}
+                      className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg border text-[11px] font-semibold transition cursor-pointer ${
+                        sub.requiresDoublePeriod
+                          ? 'bg-purple-50 text-purple-700 border-purple-300 shadow-2xs'
+                          : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'
+                      }`}
+                      title="Require a consecutive 2-period double block (e.g. for Lab, Practical, or Art)"
+                    >
+                      <FlaskConical className="w-3 h-3 text-purple-600" />
+                      <span className="hidden sm:inline">{sub.requiresDoublePeriod ? '2P Block' : 'Single'}</span>
+                    </button>
+
                     {/* Inline Frequency Tuners */}
                     <div className="flex items-center gap-2">
                       <div className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-lg border border-slate-200">
@@ -821,6 +1503,22 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver }: Props) {
               />
             </div>
 
+            {/* Double Period Checkbox */}
+            <div className="flex items-center gap-2 pt-0.5">
+              <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700 select-none">
+                <input
+                  type="checkbox"
+                  checked={newSubDoublePeriod}
+                  onChange={e => setNewSubDoublePeriod(e.target.checked)}
+                  className="rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+                />
+                <span className="flex items-center gap-1.5">
+                  <FlaskConical className="w-3.5 h-3.5 text-purple-600" />
+                  <span>Require 2-Period Consecutive Block (Science Lab / Practical / Art)</span>
+                </span>
+              </label>
+            </div>
+
             <div className="flex items-center gap-2">
               <span className="text-slate-500 text-[11px] shrink-0">Assign Teacher:</span>
               <select
@@ -835,15 +1533,51 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver }: Props) {
               </select>
             </div>
 
+            {/* Color Palette Selector */}
+            <div className="space-y-1.5 pt-1">
+              <span className="text-slate-600 text-[11px] font-semibold flex items-center gap-1.5">
+                <Palette className="w-3.5 h-3.5 text-indigo-500" />
+                <span>Card Color Theme:</span>
+              </span>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {SUBJECT_PALETTE.map((pal) => {
+                  const isSelected = newSubColor === pal.color;
+                  return (
+                    <button
+                      key={pal.name}
+                      type="button"
+                      onClick={() => setNewSubColor(pal.color)}
+                      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg border text-[10px] font-semibold transition cursor-pointer ${
+                        pal.color
+                      } ${isSelected ? 'ring-2 ring-indigo-600 ring-offset-1 scale-105 font-bold shadow-xs' : 'opacity-70 hover:opacity-100'}`}
+                      title={pal.name}
+                    >
+                      <span className={`w-2 h-2 rounded-full ${pal.dot}`} />
+                      <span>{pal.name}</span>
+                      {isSelected && <Check className="w-2.5 h-2.5 ml-0.5 stroke-[3]" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <button
               onClick={handleAddSubject}
               className="w-full py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold cursor-pointer transition shadow-xs"
             >
-              + Add Subject & Balance Timetable
+              + Add Subject &amp; Balance Timetable
             </button>
           </div>
         </div>
       </div>
+
+      {app && (
+        <NewSchoolModal
+          app={app}
+          isOpen={isNewSchoolOpen}
+          onClose={() => setIsNewSchoolOpen(false)}
+        />
+      )}
     </div>
   );
 }

@@ -165,17 +165,25 @@ async def test_full_timetable_lifecycle_generate_override_publish():
 
         curie_entries = [e for e in entries if e["teacher_id"] == t_s1["id"]]
         if curie_entries:
-            busy_slot = curie_entries[0]
-            if entry_to_edit["class_id"] != busy_slot["class_id"]:
-                teacher_clash_payload = {
-                    "day": busy_slot["day"],
-                    "period": busy_slot["period"],
-                    "subject_id": s_sci["id"],
-                    "teacher_id": t_s1["id"],
-                }
-                t_clash_resp = await auth_client.put(f"/api/schools/{sid}/entries/{entry_to_edit['id']}", json=teacher_clash_payload)
-                assert t_clash_resp.status_code == 409
-                assert "Teacher double-booking clash" in t_clash_resp.json()["detail"]
+            for busy_slot in curie_entries:
+                class_slot_busy = any(
+                    e for e in entries
+                    if e["class_id"] == entry_to_edit["class_id"]
+                    and e["day"] == busy_slot["day"]
+                    and e["period"] == busy_slot["period"]
+                    and e["id"] != entry_to_edit["id"]
+                )
+                if not class_slot_busy and entry_to_edit["class_id"] != busy_slot["class_id"]:
+                    teacher_clash_payload = {
+                        "day": busy_slot["day"],
+                        "period": busy_slot["period"],
+                        "subject_id": s_sci["id"],
+                        "teacher_id": t_s1["id"],
+                    }
+                    t_clash_resp = await auth_client.put(f"/api/schools/{sid}/entries/{entry_to_edit['id']}", json=teacher_clash_payload)
+                    assert t_clash_resp.status_code == 409
+                    assert "Teacher double-booking clash" in t_clash_resp.json()["detail"]
+                    break
 
         # 11. Publish Timetable
         pub_resp = await auth_client.post(f"/api/schools/{sid}/publish")

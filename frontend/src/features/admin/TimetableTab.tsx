@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { Edit3, Search, X } from 'lucide-react';
+import { Edit3, Search, X, Clock } from 'lucide-react';
 import type { TimetableApp } from '../../hooks/useTimetableApp';
 import { ClassTimetableGrid } from '../../components/timetable/ClassTimetableGrid';
 import { TeacherTimetableGrid } from '../../components/timetable/TeacherTimetableGrid';
 import { FacultyWorkloadHeatmap } from '../../components/timetable/FacultyWorkloadHeatmap';
+import { computeBellSchedule } from '../../engine/bellSchedule';
+import { DEFAULT_TIMING_CONFIG } from '../../domain/types';
 
 export function TimetableTab({ app }: { app: TimetableApp }) {
   const {
@@ -14,10 +16,14 @@ export function TimetableTab({ app }: { app: TimetableApp }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'substitutions' | 'activity' | 'academic'>('all');
 
+  const timing = activeSchool.timingConfig || DEFAULT_TIMING_CONFIG;
+  const bellSchedule = computeBellSchedule(timing, activeSchool.rules);
+  const totalPeriods = bellSchedule.slots.filter(s => !s.isBreak).length;
+
   return (
               <div className="space-y-4">
                 {/* Filter Bar: View by Class or Teacher */}
-                <div className="bg-white rounded-2xl border border-slate-200 p-4 flex flex-wrap items-center justify-between gap-4">
+                <div className="no-print bg-white rounded-2xl border border-slate-200 p-4 flex flex-wrap items-center justify-between gap-4">
                   <div className="flex flex-wrap items-center gap-3">
                     <div className="inline-flex rounded-xl bg-slate-100 p-1">
                       <button
@@ -80,7 +86,7 @@ export function TimetableTab({ app }: { app: TimetableApp }) {
                 </div>
 
                 {/* Instant Search & Multi-Filter Bar */}
-                <div className="bg-white rounded-2xl border border-slate-200 p-3 flex flex-wrap items-center justify-between gap-3 shadow-2xs">
+                <div className="no-print bg-white rounded-2xl border border-slate-200 p-3 flex flex-wrap items-center justify-between gap-3 shadow-2xs">
                   {/* Left: Search input */}
                   <div className="relative flex-1 min-w-[240px] max-w-md">
                     <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -142,6 +148,32 @@ export function TimetableTab({ app }: { app: TimetableApp }) {
                       </button>
                     )}
                   </div>
+                </div>
+
+                {/* Bell Schedule Summary Bar */}
+                <div className="bg-white rounded-2xl border border-slate-200 px-4 py-2.5 flex flex-wrap items-center gap-3 shadow-2xs">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-indigo-500" />
+                    Today's Bell
+                  </span>
+                  <span className="text-[11px] font-semibold text-slate-600">
+                    Starts <strong className="text-slate-900">{timing.startTime}</strong>
+                  </span>
+                  <span className="mx-1 text-slate-300">|</span>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-[11px] font-bold text-emerald-800">
+                    🟢 Primary out {bellSchedule.primaryDismissalTime}
+                  </span>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-sky-50 border border-sky-200 text-[11px] font-bold text-sky-800">
+                    🔵 Senior out {bellSchedule.seniorDismissalTime}
+                  </span>
+                  <span className="mx-1 text-slate-300">|</span>
+                  <span className="text-[11px] text-slate-500">
+                    <strong className="text-slate-700">{activeSchool.workingDays.length}</strong> working days
+                    &nbsp;·&nbsp;
+                    <strong className="text-slate-700">{totalPeriods}</strong> periods in schedule
+                    &nbsp;·&nbsp;
+                    <strong className="text-slate-700">{activeSchool.classes.length}</strong> class sections
+                  </span>
                 </div>
 
                 {/* Faculty Workload Heatmap Matrix */}

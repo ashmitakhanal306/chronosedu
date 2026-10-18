@@ -177,7 +177,7 @@ def resolve_school_by_subdomain(request: Request):
                 detail=f"School with subdomain '{subdomain}' not found",
             )
         return {
-            "id": school.id,
+            "id": str(school.id),
             "name": school.name,
             "subdomain": school.subdomain,
             "published": school.published,

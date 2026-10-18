@@ -1,4 +1,5 @@
 import type { ClassSection, EntryMap, School, Subject, Teacher, TimetableEntry } from '../../domain/types';
+import { FlaskConical } from 'lucide-react';
 
 interface Props {
   school: School;
@@ -73,11 +74,19 @@ export function TeacherTimetableGrid({
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50 text-[11px] uppercase tracking-wider text-slate-500">
               <th className="py-3 px-4 w-36 font-semibold">Period / Time</th>
-              {school.workingDays.map(day => (
-                <th key={day} className="py-3 px-4 font-semibold min-w-[155px]">
-                  {day}
-                </th>
-              ))}
+              {school.workingDays.map(day => {
+                const isSat = day === 'Saturday';
+                return (
+                  <th key={day} className={`py-3 px-4 font-semibold min-w-[155px] ${
+                    isSat ? 'bg-amber-50/60 border-l-2 border-amber-300' : ''
+                  }`}>
+                    <div className={isSat ? 'text-amber-800' : ''}>{day}</div>
+                    {isSat && (
+                      <div className="text-[9px] font-normal normal-case tracking-normal text-amber-600 mt-0.5">Saturday school day</div>
+                    )}
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200 text-xs">
@@ -90,6 +99,7 @@ export function TeacherTimetableGrid({
                     <div className="text-[11px] text-slate-500">{slot.time}</div>
                   </td>
                   {school.workingDays.map(day => {
+                    const isSatCol = day === 'Saturday';
                     // Find if teacher is teaching a regular class or substituting
                     let matchedEntry = null as TimetableEntry | null;
                     let isSubbing = false;
@@ -147,7 +157,9 @@ export function TeacherTimetableGrid({
 
                     if (!matchedEntry) {
                       return (
-                        <td key={day} className="p-2.5 border-r border-slate-100">
+                        <td key={day} className={`p-2.5 border-r ${
+                          isSatCol ? 'bg-amber-50/20 border-amber-200' : 'border-slate-100'
+                        }`}>
                           <div
                             className={`h-16 rounded-xl bg-emerald-50/40 border border-dashed border-emerald-200 flex flex-col items-center justify-center text-emerald-700 transition-opacity ${
                               isFilterActive ? 'opacity-20' : ''
@@ -160,11 +172,31 @@ export function TeacherTimetableGrid({
                       );
                     }
 
-                    const cls = classMap[matchedEntry.classId];
-                    const sub = subjectMap[matchedEntry.subjectId];
+                    const currentEntry = matchedEntry;
+                    const cls = classMap[currentEntry.classId];
+                    const sub = subjectMap[currentEntry.subjectId];
+                    const recessP = school.timingConfig?.recessAfterPeriod ?? 2;
+                    const lunchP = school.timingConfig?.lunchAfterPeriod ?? 4;
+                    const isConnNext = p !== recessP && p !== lunchP && Object.values(entries).some(e =>
+                      e.day === day &&
+                      e.period === p + 1 &&
+                      e.classId === currentEntry.classId &&
+                      e.subjectId === currentEntry.subjectId &&
+                      (school.substitutions[`${e.day}-${e.period}-${e.classId}`] || e.teacherId) === teacher.id
+                    );
+                    const isConnPrev = (p - 1) !== recessP && (p - 1) !== lunchP && Object.values(entries).some(e =>
+                      e.day === day &&
+                      e.period === p - 1 &&
+                      e.classId === currentEntry.classId &&
+                      e.subjectId === currentEntry.subjectId &&
+                      (school.substitutions[`${e.day}-${e.period}-${e.classId}`] || e.teacherId) === teacher.id
+                    );
+                    const isDoubleBlock = Boolean(sub?.requiresDoublePeriod && (isConnNext || isConnPrev));
 
                     return (
-                      <td key={day} className="p-2.5 border-r border-slate-100">
+                      <td key={day} className={`p-2.5 border-r ${
+                        isSatCol ? 'bg-amber-50/20 border-amber-200' : 'border-slate-100'
+                      }`}>
                         <div
                           className={`p-2.5 rounded-xl border transition-all duration-200 ${
                             isSubbing
@@ -178,13 +210,21 @@ export function TeacherTimetableGrid({
                               : ''
                           } ${isDimmed ? 'opacity-20 grayscale-[30%]' : ''}`}
                         >
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between gap-1">
                             <span className="font-bold text-xs">Class {cls?.name}</span>
-                            {isSubbing && (
-                              <span className="px-1.5 py-0.2 rounded bg-amber-700 text-white text-[10px] font-bold">
-                                SUB DUTY
-                              </span>
-                            )}
+                            <div className="flex items-center gap-1 shrink-0">
+                              {isDoubleBlock && (
+                                <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-purple-600 text-white flex items-center gap-0.5 shadow-2xs" title="90-Minute Consecutive Lab / Practical Block">
+                                  <FlaskConical className="w-2.5 h-2.5" />
+                                  <span>90m</span>
+                                </span>
+                              )}
+                              {isSubbing && (
+                                <span className="px-1.5 py-0.2 rounded bg-amber-700 text-white text-[10px] font-bold">
+                                  SUB DUTY
+                                </span>
+                              )}
+                            </div>
                           </div>
                           <div className="font-medium mt-1">{sub?.name}</div>
                           <div className="text-[10px] opacity-75 mt-0.5">📍 {matchedEntry.room}</div>

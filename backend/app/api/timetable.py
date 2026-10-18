@@ -7,6 +7,7 @@ from app.schemas.timetable import (
     AbsenceOut,
     CandidateOut,
     EntryOut,
+    GenerateRequest,
     GenerateResponse,
     OverrideRequest,
     PublishResponse,
@@ -21,11 +22,12 @@ router = APIRouter(prefix="/api/schools/{school_id}", tags=["timetable"])
 @router.post("/generate", response_model=GenerateResponse)
 def generate_timetable(
     school_id: str,
+    req: GenerateRequest | None = None,
     auth: AuthContext = Depends(require_roles(["admin"])),
 ):
     """Run solver engine on school data, store generated schedule and return result. Admin only."""
     verify_tenant_access(school_id, auth)
-    return timetable_service.generate(school_id)
+    return timetable_service.generate(school_id, req)
 
 
 @router.get("/timetable", response_model=list[EntryOut])

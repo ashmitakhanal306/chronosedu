@@ -26,17 +26,24 @@ export function LoginModal({ app }: { app: TimetableApp }) {
   // React Hook rules: ALL hooks must run before any return statement!
   useEffect(() => {
     const s = schools.find(x => x.id === selectedSchoolId) || activeSchool;
-    const sub = s.subdomain?.replace(/\.chronos\.edu$/, '') || 'school';
+    const sub = s.subdomain?.replace(/\.chronos\.edu$/, '') || 'greenwood';
     if (selectedRole === 'admin') {
       setEmail(`admin@${sub}.edu`);
+      setPassword('AdminPass123!');
     } else if (selectedRole === 'teacher') {
       const teacher = s.teachers?.find(t => t.id === selectedTeacherId);
-      const cleanName = teacher?.name?.toLowerCase().replace(/[^a-z]/g, '') || 'teacher';
-      setEmail(`${cleanName}@${sub}.edu`);
+      if (teacher?.email) {
+        setEmail(teacher.email);
+      } else {
+        const cleanName = teacher?.name?.toLowerCase().replace(/[^a-z]/g, '') || 'teacher';
+        setEmail(`${cleanName}@${sub}.edu`);
+      }
+      setPassword('TeacherPass123!');
     } else {
       const cls = s.classes?.find(c => c.id === selectedClassId);
-      const cleanClass = cls?.name?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'class';
+      const cleanClass = cls?.name?.toLowerCase().replace(/[^a-z0-9]/g, '') || '4a';
       setEmail(`student.${cleanClass}@${sub}.edu`);
+      setPassword('StudentPass123!');
     }
   }, [selectedSchoolId, selectedRole, selectedTeacherId, selectedClassId, schools, activeSchool]);
 

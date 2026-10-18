@@ -11,6 +11,7 @@ from app.db.session import tenant_session
 from app.schemas.setup import (
     ClassSectionCreate,
     ClassSectionOut,
+    FullSchoolOut,
     GradeCreate,
     GradeOut,
     RequirementCreate,
@@ -317,4 +318,187 @@ def setup_initial_admin(school_id: str, data: UserCreate) -> UserOut:
             role="admin",
             teacher_id=None,
             class_id=None,
+        )
+
+
+def list_schools() -> list[SchoolOut]:
+    """Retrieve all school tenants in the platform."""
+    with tenant_session("") as session:
+        schools = session.scalars(select(models.School).order_by(models.School.name)).all()
+        return [
+            SchoolOut(
+                id=str(s.id),
+                name=s.name,
+                subdomain=s.subdomain,
+                timezone=s.timezone,
+                term=s.term,
+                published=s.published,
+                working_days=s.working_days,
+                max_teacher_periods_per_day=s.max_teacher_periods_per_day,
+                activity_day=s.activity_day,
+                activity_periods=s.activity_periods,
+            )
+            for s in schools
+        ]
+
+
+def get_full_school(school_id: str) -> FullSchoolOut:
+    """Retrieve fully hydrated school hierarchy matching frontend School domain model."""
+    sid = uuid.UUID(school_id) if isinstance(school_id, str) else school_id
+    with tenant_session(str(sid)) as session:
+        school = session.get(models.School, sid)
+        if not school:
+            raise HTTPException(status_code=404, detail="School not found")
+
+        grades = session.scalars(select(models.GradeLevel).where(models.GradeLevel.school_id == sid)).all()
+        classes = session.scalars(
+            select(models.ClassSection)
+            .where(models.ClassSection.school_id == sid)
+            .options(joinedload(models.ClassSection.grade), joinedload(models.ClassSection.home_room))
+        ).all()
+        subjects = session.scalars(
+            select(models.Subject)
+            .where(models.Subject.school_id == sid)
+            .options(joinedload(models.Subject.room))
+        ).all()
+        teachers = session.scalars(
+            select(models.Teacher)
+            .where(models.Teacher.school_id == sid)
+            .options(joinedload(models.Teacher.subjects))
+        ).unique().all()
+        requirements = session.scalars(
+            select(models.SubjectRequirement).where(models.SubjectRequirement.school_id == sid)
+        ).all()
+        absences = session.scalars(
+            select(models.TeacherAbsence).where(models.TeacherAbsence.school_id == sid)
+        ).all()
+        substitutions = session.scalars(
+            select(models.Substitution)
+            .where(models.Substitution.school_id == sid)
+            .options(joinedload(models.Substitution.entry))
+        ).all()
+
+        grade_tier = {g.id: g.tier.lower() for g in grades}
+
+        req_primary: dict[uuid.UUID, int] = {}
+        req_senior: dict[uuid.UUID, int] = {}
+        for r in requirements:
+            tier = grade_tier.get(r.grade_id, "primary")
+            if tier == "primary":
+                req_primary[r.subject_id] = r.weekly_frequency
+            else:
+                req_senior[r.subject_id] = r.weekly_frequency
+
+        default_colors = [
+            "bg-blue-50 text-blue-700 border-blue-200",
+            "bg-indigo-50 text-indigo-700 border-indigo-200",
+            "bg-emerald-50 text-emerald-700 border-emerald-200",
+            "bg-amber-50 text-amber-700 border-amber-200",
+            "bg-cyan-50 text-cyan-700 border-cyan-200",
+            "bg-rose-50 text-rose-700 border-rose-200",
+            "bg-purple-100 text-purple-800 border-purple-300",
+            "bg-pink-100 text-pink-800 border-pink-300",
+            "bg-lime-100 text-lime-800 border-lime-300",
+        ]
+
+        formatted_subjects = [
+            {
+                "id": str(s.id),
+                "name": s.name,
+                "code": s.code,
+                "type": s.type,
+                "room": s.room.name if s.room else None,
+                "color": default_colors[idx % len(default_colors)],
+                "freqPrimary": req_primary.get(s.id, 0),
+                "freqSenior": req_senior.get(s.id, 0),
+            }
+            for idx, s in enumerate(subjects)
+        ]
+
+        formatted_classes = [
+            {
+                "id": str(c.id),
+                "name": c.section,
+                "grade": c.grade.name if c.grade else "General",
+                "tier": "Primary" if (c.grade and c.grade.tier.lower() == "primary") else "Senior",
+                "room": c.home_room.name if c.home_room else "Classroom",
+            }
+            for c in classes
+        ]
+
+        formatted_teachers = [
+            {
+                "id": str(t.id),
+                "name": t.name,
+                "subjects": [str(ts.subject_id) for ts in t.subjects],
+                "maxPerDay": t.max_periods_per_day,
+                "unavailableDays": t.unavailable_days or [],
+            }
+            for t in teachers
+        ]
+
+        formatted_absences = [
+            {
+                "id": str(a.id),
+                "teacherId": str(a.teacher_id),
+                "day": a.day,
+                "reason": a.reason or "",
+            }
+            for a in absences
+        ]
+
+        formatted_substitutions = {
+            f"{sub.entry.day}-{sub.entry.period}-{str(sub.entry.class_id)}": str(sub.substitute_teacher_id)
+            for sub in substitutions if sub.entry
+        }
+
+        period_slots = [
+            {"number": 0, "label": "Zero Period", "time": "08:00 - 08:30", "isBreak": True, "type": "zero"},
+            {"number": 1, "label": "Period 1", "time": "08:30 - 09:15", "isBreak": False},
+            {"number": 2, "label": "Period 2", "time": "09:15 - 10:00", "isBreak": False},
+            {"number": "B1", "label": "Short Break", "time": "10:00 - 10:15", "isBreak": True, "type": "break"},
+            {"number": 3, "label": "Period 3", "time": "10:15 - 11:00", "isBreak": False},
+            {"number": 4, "label": "Period 4", "time": "11:00 - 12:00", "isBreak": False, "note": "Primary Dismissal (12:00)"},
+            {"number": "L1", "label": "Lunch Break", "time": "12:00 - 12:30", "isBreak": True, "type": "lunch", "seniorOnly": True},
+            {"number": 5, "label": "Period 5", "time": "12:30 - 01:15", "isBreak": False, "seniorOnly": True},
+            {"number": 6, "label": "Period 6", "time": "01:15 - 02:00", "isBreak": False, "seniorOnly": True, "note": "Senior Dismissal (02:00)"},
+        ]
+
+        return FullSchoolOut(
+            id=str(school.id),
+            name=school.name,
+            subdomain=school.subdomain,
+            timezone=school.timezone,
+            term=school.term,
+            published=school.published,
+            workingDays=school.working_days,
+            rules={
+                "primaryEndPeriod": 4,
+                "seniorEndPeriod": 6,
+                "maxTeacherPeriodsPerDay": school.max_teacher_periods_per_day,
+                "activityDay": school.activity_day,
+                "activityPeriods": school.activity_periods,
+                "zeroPeriodLabel": "Zero Period (Homeroom / Assembly)",
+                "lunchAfterPeriod": 4,
+            },
+            timingConfig={
+                "startTime": "08:00",
+                "periodDurationMinutes": 45,
+                "hasZeroPeriod": True,
+                "zeroPeriodDurationMinutes": 30,
+                "zeroPeriodLabel": "Zero Period (Homeroom / Assembly)",
+                "recessAfterPeriod": 2,
+                "recessDurationMinutes": 15,
+                "recessLabel": "Short Break",
+                "lunchAfterPeriod": 4,
+                "lunchDurationMinutes": 30,
+                "lunchLabel": "Lunch Break",
+                "lunchSeniorOnly": False,
+            },
+            periodSlots=period_slots,
+            classes=formatted_classes,
+            subjects=formatted_subjects,
+            teachers=formatted_teachers,
+            absences=formatted_absences,
+            substitutions=formatted_substitutions,
         )

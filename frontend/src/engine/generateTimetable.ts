@@ -156,14 +156,52 @@ export function generateSchoolTimetable(school: School): ScheduleResult {
         const key = `${day}-${period}-${cls.id}`;
         if (entries[key]) continue; // Already locked by Activity Block
 
-        // Get remaining academic (or leftover activity) subjects for this class
         const availableDemands = demand[cls.id].filter(d => d.remaining > 0);
         if (availableDemands.length === 0) continue;
 
+        // Consecutive Double Period Heuristic: If previous slot was a subject with requiresDoublePeriod,
+        // and current period is not interrupted by recess or lunch, complete the 2-period block!
+        const prevKey = `${day}-${period - 1}-${cls.id}`;
+        const prevEntry = entries[prevKey];
+        const prevSub = prevEntry ? subjects.find(s => s.id === prevEntry.subjectId) : null;
+        const recessAfter = school.timingConfig?.recessAfterPeriod || 2;
+        const lunchAfter = school.timingConfig?.lunchAfterPeriod || 4;
+
+        if (prevSub?.requiresDoublePeriod && (period - 1) !== recessAfter && (period - 1) !== lunchAfter) {
+          const matchDemand = availableDemands.find(d => d.subject.id === prevSub.id && d.remaining > 0);
+          if (matchDemand && !teacherBusy[day][period][prevEntry.teacherId]) {
+            const t = teachers.find(teach => teach.id === prevEntry.teacherId);
+            const maxCap = Math.min(t?.maxPerDay || 5, rules.maxTeacherPeriodsPerDay || 5);
+            if (t && teacherDailyCount[day][t.id] < maxCap) {
+              entries[key] = {
+                classId: cls.id,
+                day,
+                period,
+                subjectId: matchDemand.subject.id,
+                teacherId: t.id,
+                room: matchDemand.subject.room || cls.room,
+                isActivity: matchDemand.subject.type === 'activity'
+              };
+              teacherBusy[day][period][t.id] = cls.id;
+              teacherDailyCount[day][t.id] += 1;
+              matchDemand.remaining -= 1;
+              classSubjectDayCount[cls.id][day][matchDemand.subject.id] = (classSubjectDayCount[cls.id][day][matchDemand.subject.id] || 0) + 1;
+              continue;
+            }
+          }
+        }
+
         // Sort candidates by:
-        // 1. Not taught today yet in this class (Soft Constraint: spread subjects across week)
-        // 2. Highest remaining weekly frequency first (Most constrained first heuristic)
+        // 1. Double-period subjects shouldn't start right before a break or on the last period
+        // 2. Not taught today yet in this class (Soft Constraint: spread subjects across week)
+        // 3. Highest remaining weekly frequency first (Most constrained first heuristic)
+        const isBadDoubleStart = (period === recessAfter || period === lunchAfter || period >= maxP);
         availableDemands.sort((a, b) => {
+          if (isBadDoubleStart) {
+            const aDbl = Boolean(a.subject.requiresDoublePeriod && a.remaining >= 2);
+            const bDbl = Boolean(b.subject.requiresDoublePeriod && b.remaining >= 2);
+            if (aDbl !== bDbl) return aDbl ? 1 : -1;
+          }
           const countTodayA = classSubjectDayCount[cls.id][day][a.subject.id] || 0;
           const countTodayB = classSubjectDayCount[cls.id][day][b.subject.id] || 0;
           if (countTodayA !== countTodayB) return countTodayA - countTodayB;

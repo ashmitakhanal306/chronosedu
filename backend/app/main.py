@@ -20,6 +20,11 @@ async def lifespan(app: FastAPI):
 
     # Ensure tables are created on startup (e.g. for sqlite / local dev)
     Base.metadata.create_all(bind=engine)
+
+    # Seed demo school if database is empty
+    from app.db.seed import seed_demo_school_if_empty
+    seed_demo_school_if_empty()
+
     yield
 
 
