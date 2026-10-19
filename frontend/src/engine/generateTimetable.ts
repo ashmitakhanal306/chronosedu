@@ -59,45 +59,74 @@ export function generateSchoolTimetable(school: School): ScheduleResult {
     })).filter(d => d.remaining > 0);
   });
 
-  // Helper to find best valid teacher for (subjectId, day, period)
+  // 0. Teaching Assignments (Class + Subject -> Teacher)
+  // Step 8 / Rule: ONE teacher per class-subject always!
+  // Pre-populate with admin-decided assignments from school.assignments
+  const assignedTeacherMap: Record<string, string> = {};
+  (school.assignments || []).forEach(a => {
+    if (a.classId && a.subjectId && a.teacherId) {
+      assignedTeacherMap[`${a.classId}_${a.subjectId}`] = a.teacherId;
+    }
+  });
+
+  // Helper to get or lock dedicated teacher for (classId, subjectId)
+  // Rule: ONE teacher per class-subject always. The solver strictly never swaps teachers across days.
+  const getOrLockDedicatedTeacher = (classId: string, subjectId: string): Teacher | null => {
+    const pairKey = `${classId}_${subjectId}`;
+    const assignedTid = assignedTeacherMap[pairKey];
+    if (assignedTid) {
+      return teachers.find(t => t.id === assignedTid) || null;
+    }
+
+    // If no admin assignment exists yet, select the best qualified teacher with lowest overall weekly load
+    // and LOCK them permanently for this (class, subject) pair across all days and periods!
+    const qualified = teachers.filter(t => t.subjects.includes(subjectId));
+    if (qualified.length === 0) return null;
+
+    // Pick teacher with fewest total assignments already locked
+    const loadCount: Record<string, number> = {};
+    qualified.forEach(t => { loadCount[t.id] = 0; });
+    Object.values(assignedTeacherMap).forEach(tid => {
+      if (loadCount[tid] !== undefined) loadCount[tid]++;
+    });
+
+    qualified.sort((a, b) => (loadCount[a.id] || 0) - (loadCount[b.id] || 0));
+    const chosen = qualified[0];
+    assignedTeacherMap[pairKey] = chosen.id;
+    return chosen;
+  };
+
+  // Helper to find dedicated valid teacher for (classId, subjectId, day, period)
   const findBestTeacher = (
+    classId: string,
     subjectId: string,
     day: string,
     period: number,
   ): { teacher: Teacher | null; reason: string | null } => {
-    const qualified = teachers.filter(t => t.subjects.includes(subjectId));
-    
-    // First attempt: pick from officially qualified teachers
-    const candidates = qualified.filter(t => {
-      if ((t.unavailableDays || []).includes(day)) return false;
-      if (teacherBusy[day][period][t.id]) return false; // Hard Constraint: No double booking
-      const maxCap = Math.min(t.maxPerDay || 5, rules.maxTeacherPeriodsPerDay || 5);
-      if (teacherDailyCount[day][t.id] >= maxCap) return false; // Hard Constraint: <= 5 periods/day
-      return true;
-    });
-
-    if (candidates.length > 0) {
-      // Soft Constraint: Balance teacher load (pick teacher with fewest periods today, then fewest overall)
-      candidates.sort((a, b) => teacherDailyCount[day][a.id] - teacherDailyCount[day][b.id]);
-      return { teacher: candidates[0], reason: null };
+    const dedicatedTeacher = getOrLockDedicatedTeacher(classId, subjectId);
+    if (!dedicatedTeacher) {
+      return { teacher: null, reason: 'No qualified teacher exists or is assigned for this subject' };
     }
 
-    // Dynamic Fallback: if no qualified teacher was assigned or all qualified teachers are busy,
-    // automatically find any available teacher with free capacity today to prevent breaking the timetable
-    const generalAvailable = teachers.filter(t => {
-      if ((t.unavailableDays || []).includes(day)) return false;
-      if (teacherBusy[day][period][t.id]) return false;
-      const maxCap = Math.min(t.maxPerDay || 5, rules.maxTeacherPeriodsPerDay || 5);
-      if (teacherDailyCount[day][t.id] >= maxCap) return false;
-      return true;
-    });
-
-    if (generalAvailable.length > 0) {
-      generalAvailable.sort((a, b) => teacherDailyCount[day][a.id] - teacherDailyCount[day][b.id]);
-      return { teacher: generalAvailable[0], reason: null };
+    // Check if the dedicated teacher is available on this day
+    if ((dedicatedTeacher.unavailableDays || []).includes(day)) {
+      return { teacher: null, reason: `${dedicatedTeacher.name} is unavailable on ${day}` };
     }
 
-    return { teacher: null, reason: 'All teachers are currently busy in other classes or reached daily period cap' };
+    // Check double-booking
+    if (teacherBusy[day][period][dedicatedTeacher.id]) {
+      const busyWithClassId = teacherBusy[day][period][dedicatedTeacher.id];
+      const busyWithClass = classes.find(c => c.id === busyWithClassId)?.name || busyWithClassId;
+      return { teacher: null, reason: `${dedicatedTeacher.name} is already teaching ${busyWithClass} during Period ${period}` };
+    }
+
+    // Check daily cap
+    const maxCap = Math.min(dedicatedTeacher.maxPerDay || 5, rules.maxTeacherPeriodsPerDay || 5);
+    if (teacherDailyCount[day][dedicatedTeacher.id] >= maxCap) {
+      return { teacher: null, reason: `${dedicatedTeacher.name} has reached the daily limit of ${maxCap} periods on ${day}` };
+    }
+
+    return { teacher: dedicatedTeacher, reason: null };
   };
 
   // STEP A: Lock in Fixed Weekly Activity Block first (Hard Constraint)
@@ -113,7 +142,7 @@ export function generateSchoolTimetable(school: School): ScheduleResult {
           // Pick an activity subject that has an available specialist teacher
           let assigned = false;
           for (const dItem of actDemands) {
-            const { teacher } = findBestTeacher(dItem.subject.id, actDay, period);
+            const { teacher } = findBestTeacher(cls.id, dItem.subject.id, actDay, period);
             if (teacher) {
               const key = `${actDay}-${period}-${cls.id}`;
               entries[key] = {
@@ -214,7 +243,7 @@ export function generateSchoolTimetable(school: School): ScheduleResult {
         let lastFailureReason = '';
 
         for (const dItem of availableDemands) {
-          const { teacher, reason } = findBestTeacher(dItem.subject.id, day, period);
+          const { teacher, reason } = findBestTeacher(cls.id, dItem.subject.id, day, period);
           if (teacher) {
             entries[key] = {
               classId: cls.id,
