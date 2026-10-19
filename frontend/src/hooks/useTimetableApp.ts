@@ -11,6 +11,12 @@ import type {
   School,
   Subject,
   Teacher,
+  TeachingAssignment,
+  Holiday,
+  PinnedLesson,
+  BlockedSlot,
+  TimetableVersion,
+  AuditLog,
   TimetableEntry,
   ViewMode,
   SolverPreferences,
@@ -68,7 +74,8 @@ export function useTimetableApp() {
   });
 
   const activeRole = currentUser.role;
-  const [adminTab, setAdminTab] = useState<AdminTab>('timetable');
+  const [adminTab, setAdminTab] = useState<AdminTab>('wizard');
+  const [wizardStep, setWizardStep] = useState<number>(8);
   const [selectedClassId, setSelectedClassId] = useState(currentUser.classId || 'c-4a');
   const [selectedTeacherId, setSelectedTeacherId] = useState(currentUser.teacherId || 't-1');
   const [timetableViewMode, setTimetableViewMode] = useState<ViewMode>('class');
@@ -77,6 +84,22 @@ export function useTimetableApp() {
   const [overrideTeacherId, setOverrideTeacherId] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
   const { toast, showToast } = useToast();
+
+  const switchRole = (newRole: Role) => {
+    setCurrentUser(prev => {
+      const updated: CurrentUser = {
+        ...prev,
+        role: newRole,
+        teacherId: newRole === 'teacher' ? (prev.teacherId || activeSchool.teachers[0]?.id) : undefined,
+        classId: newRole === 'student' ? (prev.classId || activeSchool.classes[0]?.id) : undefined,
+      };
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('chronos_user', JSON.stringify(updated));
+      }
+      return updated;
+    });
+    showToast(`Switched view to ${newRole === 'admin' ? 'School Admin' : newRole === 'teacher' ? 'Teacher Portal' : 'Student / Parent Portal'}`, 'info');
+  };
   const [solverPreferences, setSolverPreferences] = useState<SolverPreferences>(DEFAULT_SOLVER_PREFERENCES);
 
   const toggleSolverPreference = (key: keyof SolverPreferences) => {
@@ -172,6 +195,44 @@ export function useTimetableApp() {
               classes: full.classes,
               subjects: full.subjects,
               teachers: full.teachers,
+              assignments: full.assignments || s.assignments || [],
+              holidays: (full.holidays || []).map((h: any) => ({
+                id: h.id,
+                name: h.name,
+                startDate: h.startDate || h.start_date,
+                endDate: h.endDate || h.end_date,
+                type: h.type || h.holiday_type || 'school',
+              })),
+              pinnedLessons: (full.pinnedLessons || []).map((p: any) => ({
+                id: p.id,
+                classId: p.classId || p.class_id,
+                subjectId: p.subjectId || p.subject_id,
+                teacherId: p.teacherId || p.teacher_id,
+                className: p.className || p.class_name,
+                subjectName: p.subjectName || p.subject_name,
+                teacherName: p.teacherName || p.teacher_name,
+                day: p.day,
+                period: p.period,
+              })),
+              blockedSlots: (full.blockedSlots || []).map((b: any) => ({
+                id: b.id,
+                scope: b.scope,
+                scopeId: b.scopeId || b.scope_id,
+                day: b.day,
+                period: b.period,
+                label: b.label,
+                onDate: b.onDate || b.on_date,
+              })),
+              versions: (full.versions || []).map((v: any) => ({
+                id: v.id,
+                versionNumber: v.versionNumber || v.version_number,
+                state: v.state,
+                effectiveFrom: v.effectiveFrom || v.effective_from,
+                publishedAt: v.publishedAt || v.published_at,
+                notes: v.notes,
+                entryCount: v.entryCount || v.entry_count || 0,
+                createdAt: v.createdAt || v.created_at,
+              })),
               absences: full.absences || s.absences,
               substitutions: full.substitutions || s.substitutions,
             }));
@@ -315,9 +376,21 @@ export function useTimetableApp() {
         res.entries.forEach(e => {
           entryMap[slotKey(e.day, e.period, e.class_id)] = mapApiEntry(e);
         });
+        const mappedQualityReport = res.quality_report ? {
+          total_entries: res.quality_report.total_entries,
+          empty_period_count: res.quality_report.empty_period_count,
+          unplaced_lessons: res.quality_report.unplaced_lessons || [],
+          teacher_workload: res.quality_report.teacher_workload || [],
+          soft_score: res.quality_report.soft_score || 0,
+        } : undefined;
         setSchedulesBySchool(prev => ({
           ...prev,
-          [activeSchool.id]: { entries: entryMap, diagnostics: [] },
+          [activeSchool.id]: {
+            entries: entryMap,
+            diagnostics: [],
+            generatedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            qualityReport: mappedQualityReport,
+          },
         }));
         showToast(`Conflict-free timetable generated via OR-Tools CP-SAT server!`, 'success');
         return;
@@ -334,15 +407,305 @@ export function useTimetableApp() {
         showToast(`Server solver detected ${res.diagnostics.length} constraint issue(s).`, 'warning');
         return;
       }
-    } catch {
-      // Fallback to client-side engine if server is offline or school not in DB yet
-      const result = generateSchoolTimetable(activeSchool);
-      setSchedulesBySchool(prev => ({ ...prev, [activeSchool.id]: result }));
-      if (result.diagnostics.length === 0) {
-        showToast(`Conflict-free timetable generated for ${activeSchool.name}!`, 'success');
+    } catch (err: any) {
+      showToast(err?.message || 'Backend offline — cannot generate timetable.', 'warning');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const upsertAssignment = async (classId: string, subjectId: string, teacherId: string) => {
+    setIsSyncing(true);
+    try {
+      const res = await api.upsertAssignment(activeSchool.id, {
+        class_id: classId,
+        subject_id: subjectId,
+        teacher_id: teacherId,
+      });
+      updateActiveSchool(s => {
+        const existing = s.assignments || [];
+        const idx = existing.findIndex(a => a.classId === classId && a.subjectId === subjectId);
+        const mapped: TeachingAssignment = {
+          id: res.id,
+          classId: res.class_id,
+          subjectId: res.subject_id,
+          teacherId: res.teacher_id,
+          className: res.class_name || undefined,
+          subjectName: res.subject_name || undefined,
+          teacherName: res.teacher_name || undefined,
+          teacherWeeklyLoad: res.teacher_weekly_load,
+        };
+        const next = idx >= 0
+          ? existing.map((a, i) => (i === idx ? mapped : a))
+          : [...existing, mapped];
+        return { ...s, assignments: next };
+      });
+      showToast('Assignment updated successfully.', 'success');
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to update assignment', 'warning');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const deleteAssignment = async (assignmentId: string) => {
+    setIsSyncing(true);
+    try {
+      await api.deleteAssignment(activeSchool.id, assignmentId);
+      updateActiveSchool(s => ({
+        ...s,
+        assignments: (s.assignments || []).filter(a => a.id !== assignmentId),
+      }));
+      showToast('Assignment removed.', 'info');
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to delete assignment', 'warning');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const suggestAssignments = async () => {
+    setIsSyncing(true);
+    try {
+      const res = await api.suggestAssignments(activeSchool.id);
+      if (res.suggestions && res.suggestions.length > 0) {
+        for (const sug of res.suggestions) {
+          await api.upsertAssignment(activeSchool.id, {
+            class_id: sug.class_id,
+            subject_id: sug.subject_id,
+            teacher_id: sug.teacher_id,
+          });
+        }
+        const full = await api.getFullSchool(activeSchool.id);
+        if (full?.assignments) {
+          updateActiveSchool(s => ({ ...s, assignments: full.assignments }));
+        }
+        showToast(
+          `Auto-assigned ${res.suggestions.length} class-subject pairs!${res.warnings.length ? ` (${res.warnings.length} warning(s))` : ''}`,
+          res.warnings.length ? 'warning' : 'success'
+        );
       } else {
-        showToast(`Solver finished with ${result.diagnostics.length} constraint alert(s).`, 'warning');
+        showToast('No unassigned pairs or suggestions found.', 'info');
       }
+      return res;
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to suggest assignments', 'warning');
+      return null;
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const addHoliday = async (data: { name: string; startDate: string; endDate: string; type?: string }) => {
+    setIsSyncing(true);
+    try {
+      const res = await api.createHoliday(activeSchool.id, {
+        name: data.name,
+        start_date: data.startDate,
+        end_date: data.endDate,
+        holiday_type: data.type || 'school',
+      });
+      const mapped: Holiday = {
+        id: res.id,
+        name: res.name,
+        startDate: res.start_date,
+        endDate: res.end_date,
+        type: (res.holiday_type as any) || 'school',
+      };
+      updateActiveSchool(s => ({
+        ...s,
+        holidays: [...(s.holidays || []), mapped],
+      }));
+      showToast(`Holiday "${data.name}" added to calendar.`, 'success');
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to add holiday', 'warning');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const deleteHoliday = async (holidayId: string) => {
+    setIsSyncing(true);
+    try {
+      await api.deleteHoliday(activeSchool.id, holidayId);
+      updateActiveSchool(s => ({
+        ...s,
+        holidays: (s.holidays || []).filter(h => h.id !== holidayId),
+      }));
+      showToast('Holiday removed from calendar.', 'info');
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to delete holiday', 'warning');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const addPinnedLesson = async (data: { classId: string; subjectId: string; teacherId: string; day: string; period: number }) => {
+    setIsSyncing(true);
+    try {
+      const res = await api.createPinnedLesson(activeSchool.id, {
+        class_id: data.classId,
+        subject_id: data.subjectId,
+        teacher_id: data.teacherId,
+        day: data.day,
+        period: data.period,
+      });
+      const mapped: PinnedLesson = {
+        id: res.id,
+        classId: res.class_id,
+        subjectId: res.subject_id,
+        teacherId: res.teacher_id,
+        className: res.class_name || undefined,
+        subjectName: res.subject_name || undefined,
+        teacherName: res.teacher_name || undefined,
+        day: res.day,
+        period: res.period,
+      };
+      updateActiveSchool(s => ({
+        ...s,
+        pinnedLessons: [...(s.pinnedLessons || []), mapped],
+      }));
+      showToast(`Lesson pinned to ${data.day} Period ${data.period}.`, 'success');
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to pin lesson (clash detected)', 'warning');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const deletePinnedLesson = async (pinId: string) => {
+    setIsSyncing(true);
+    try {
+      await api.deletePinnedLesson(activeSchool.id, pinId);
+      updateActiveSchool(s => ({
+        ...s,
+        pinnedLessons: (s.pinnedLessons || []).filter(p => p.id !== pinId),
+      }));
+      showToast('Pinned lesson rule removed.', 'info');
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to remove pinned lesson', 'warning');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const addBlockedSlot = async (data: { scope?: string; scopeId?: string | null; day: string; period: number; label: string; onDate?: string | null }) => {
+    setIsSyncing(true);
+    try {
+      const res = await api.createBlockedSlot(activeSchool.id, {
+        scope: data.scope,
+        scope_id: data.scopeId,
+        day: data.day,
+        period: data.period,
+        label: data.label,
+        on_date: data.onDate,
+      });
+      const mapped: BlockedSlot = {
+        id: res.id,
+        scope: res.scope as any,
+        scopeId: res.scope_id || undefined,
+        day: res.day,
+        period: res.period,
+        label: res.label,
+        onDate: res.on_date || undefined,
+      };
+      updateActiveSchool(s => ({
+        ...s,
+        blockedSlots: [...(s.blockedSlots || []), mapped],
+      }));
+      showToast(`Blocked slot "${data.label}" saved.`, 'success');
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to block slot', 'warning');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const deleteBlockedSlot = async (slotId: string) => {
+    setIsSyncing(true);
+    try {
+      await api.deleteBlockedSlot(activeSchool.id, slotId);
+      updateActiveSchool(s => ({
+        ...s,
+        blockedSlots: (s.blockedSlots || []).filter(b => b.id !== slotId),
+      }));
+      showToast('Blocked slot removed.', 'info');
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to remove blocked slot', 'warning');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const approveVersion = async (versionId: string) => {
+    setIsSyncing(true);
+    try {
+      const res = await api.approveVersion(activeSchool.id, versionId);
+      updateActiveSchool(s => ({
+        ...s,
+        versions: (s.versions || []).map(v =>
+          v.id === versionId ? { ...v, state: 'approved' as const } : v
+        ),
+      }));
+      showToast(`Timetable Version v${res.version_number} approved!`, 'success');
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to approve version', 'warning');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const publishVersion = async (versionId: string, effectiveFrom?: string) => {
+    setIsSyncing(true);
+    try {
+      const res = await api.publishVersion(activeSchool.id, versionId, effectiveFrom);
+      updateActiveSchool(s => ({
+        ...s,
+        published: true,
+        versions: (s.versions || []).map(v =>
+          v.id === versionId
+            ? { ...v, state: 'published' as const, publishedAt: res.published_at || new Date().toISOString(), effectiveFrom: res.effective_from || undefined }
+            : v
+        ),
+      }));
+      showToast(`Timetable Version v${res.version_number} published to portals!`, 'success');
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to publish version', 'warning');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const rollbackVersion = async (versionId: string) => {
+    setIsSyncing(true);
+    try {
+      const res = await api.rollbackVersion(activeSchool.id, versionId);
+      const apiEntries = await api.getTimetable(activeSchool.id);
+      const entryMap: EntryMap = {};
+      apiEntries.forEach(e => {
+        entryMap[slotKey(e.day, e.period, e.class_id)] = mapApiEntry(e);
+      });
+      setSchedulesBySchool(prev => ({
+        ...prev,
+        [activeSchool.id]: { entries: entryMap, diagnostics: [] },
+      }));
+      const versions = await api.listVersions(activeSchool.id);
+      updateActiveSchool(s => ({
+        ...s,
+        versions: versions.map(v => ({
+          id: v.id,
+          versionNumber: v.version_number,
+          state: v.state,
+          effectiveFrom: v.effective_from || undefined,
+          publishedAt: v.published_at || undefined,
+          notes: v.notes || undefined,
+          entryCount: v.entry_count,
+          createdAt: v.created_at,
+        })),
+      }));
+      showToast(`Rolled back to Version v${res.version_number}. Active timetable updated.`, 'success');
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to rollback version', 'warning');
     } finally {
       setIsSyncing(false);
     }
@@ -580,21 +943,26 @@ export function useTimetableApp() {
 
   return {
     // state
-    schools, activeSchool, activeRole, currentUser, isAuthModalOpen, adminTab, timetableViewMode,
+    schools, activeSchool, activeRole, currentUser, isAuthModalOpen, adminTab, wizardStep, timetableViewMode,
     selectedClass, selectedTeacher, currentSchedule, entries,
     subjectMap, teacherMap, classMap,
     editingSlot, overrideSubjectId, overrideTeacherId, overrideConflicts, toast, showToast, isSyncing,
     solverPreferences,
     // setters
-    setActiveSchoolId, setAdminTab, setTimetableViewMode, setIsAuthModalOpen,
+    setActiveSchoolId, setAdminTab, setWizardStep, setTimetableViewMode, setIsAuthModalOpen,
     setSelectedClassId, setSelectedTeacherId, setEditingSlot, setOverrideSubjectId, setOverrideTeacherId,
     setSolverPreferences, toggleSolverPreference,
     // auth
-    login, logout,
+    login, logout, switchRole,
     // actions
     updateActiveSchool, runSolver, resetDemoData, addSchool, deleteSchool, togglePublish, exportCsv, exportExcel, exportPrintPdf,
     getCandidates, assignSubstitute, autoAssign, addAbsence, removeAbsence, toggleTeacherUnavailable,
     openManualOverride, saveManualOverride,
+    upsertAssignment, deleteAssignment, suggestAssignments,
+    addHoliday, deleteHoliday,
+    addPinnedLesson, deletePinnedLesson,
+    addBlockedSlot, deleteBlockedSlot,
+    approveVersion, publishVersion, rollbackVersion,
   };
 }
 

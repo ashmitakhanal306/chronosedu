@@ -17,6 +17,7 @@ class ClassSection:
     name: str
     tier: Tier
     home_room: str = ""
+    grade_id: str | None = None
 
 
 @dataclass(frozen=True)
@@ -34,7 +35,37 @@ class Teacher:
     name: str
     subject_ids: frozenset[str]
     max_periods_per_day: int = 5
+    max_periods_per_week: int = 30
+    max_consecutive_periods: int = 3
     unavailable_days: frozenset[str] = frozenset()
+
+
+@dataclass(frozen=True)
+class Assignment:
+    """Admin-decided mapping of class + subject -> one specific teacher."""
+    class_id: str
+    subject_id: str
+    teacher_id: str
+
+
+@dataclass(frozen=True)
+class PinnedLesson:
+    """Admin-pinned lesson: must occur at the given day and period."""
+    class_id: str
+    subject_id: str
+    teacher_id: str
+    day: str
+    period: int
+
+
+@dataclass(frozen=True)
+class BlockedSlot:
+    """Blocked slot: forbidden for regular teaching lessons (e.g. assembly, sports)."""
+    scope: Literal["school", "grade", "class"]
+    day: str
+    period: int
+    scope_id: str | None = None
+    label: str = ""
 
 
 @dataclass(frozen=True)
@@ -55,7 +86,6 @@ class Rules:
     consecutive_double_periods: bool = True
 
 
-
 @dataclass
 class ProblemInput:
     rules: Rules
@@ -64,6 +94,14 @@ class ProblemInput:
     teachers: list[Teacher]
     # (class_id, subject_id) -> required periods per week
     weekly_frequency: dict[tuple[str, str], int] = field(default_factory=dict)
+    # Admin-assigned teacher per (class, subject)
+    assignments: tuple[Assignment, ...] = ()
+    # Room capacities: room_name -> max simultaneous classes (default 1)
+    room_capacities: dict[str, int] = field(default_factory=dict)
+    # Admin-pinned lessons (forced placements)
+    pinned_lessons: tuple[PinnedLesson, ...] = ()
+    # Blocked time slots (forbidden for regular lessons)
+    blocked_slots: tuple[BlockedSlot, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -83,8 +121,18 @@ class Diagnostic:
     detail: str
 
 
+@dataclass(frozen=True)
+class QualityReport:
+    total_entries: int
+    empty_period_count: int
+    unplaced_lessons: list[str] = field(default_factory=list)
+    teacher_workload: list[dict] = field(default_factory=list)
+    soft_score: int = 0
+
+
 @dataclass
 class SolveResult:
     entries: list[Entry]
     diagnostics: list[Diagnostic]   # "infeasible" cases are reported here, never silently dropped
     feasible: bool
+    quality_report: QualityReport | None = None

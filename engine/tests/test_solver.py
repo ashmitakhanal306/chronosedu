@@ -4,10 +4,14 @@ from __future__ import annotations
 import time
 import pytest
 from chronos_engine.models import (
+    Assignment,
+    BlockedSlot,
     ClassSection,
     Diagnostic,
     Entry,
+    PinnedLesson,
     ProblemInput,
+    QualityReport,
     Rules,
     Subject,
     Teacher,
@@ -67,10 +71,6 @@ def create_demo_school_1_problem(extra_activity_teacher: bool = False) -> Proble
         )
 
     # Weekly frequencies:
-    # Primary (4A, 5B): 4 periods * 5 days = 20 total periods/week
-    # math: 5, eng: 5, sci: 4, sst: 4, mus: 1, art: 1 = 20 periods
-    # Senior (9A, 10A): 6 periods * 5 days = 30 total periods/week
-    # math: 6, eng: 5, sci: 6, sst: 5, cs: 3, hin: 3, mus: 1, gam: 1 = 30 periods
     weekly_frequency: dict[tuple[str, str], int] = {}
     for cid in ("c-4a", "c-5b"):
         weekly_frequency[(cid, "sub-math")] = 5
@@ -90,12 +90,48 @@ def create_demo_school_1_problem(extra_activity_teacher: bool = False) -> Proble
         weekly_frequency[(cid, "sub-mus")] = 1
         weekly_frequency[(cid, "sub-gam")] = 1
 
+    assignments = (
+        # c-4a
+        Assignment("c-4a", "sub-math", "t-1"),
+        Assignment("c-4a", "sub-eng", "t-3"),
+        Assignment("c-4a", "sub-sci", "t-5"),
+        Assignment("c-4a", "sub-sst", "t-7"),
+        Assignment("c-4a", "sub-mus", "t-9"),
+        Assignment("c-4a", "sub-art", "t-10"),
+        # c-5b
+        Assignment("c-5b", "sub-math", "t-2"),
+        Assignment("c-5b", "sub-eng", "t-4"),
+        Assignment("c-5b", "sub-sci", "t-6"),
+        Assignment("c-5b", "sub-sst", "t-8"),
+        Assignment("c-5b", "sub-mus", "t-9"),
+        Assignment("c-5b", "sub-art", "t-10"),
+        # c-9a
+        Assignment("c-9a", "sub-math", "t-1"),
+        Assignment("c-9a", "sub-eng", "t-3"),
+        Assignment("c-9a", "sub-sci", "t-5"),
+        Assignment("c-9a", "sub-sst", "t-7"),
+        Assignment("c-9a", "sub-cs", "t-2"),
+        Assignment("c-9a", "sub-hin", "t-4"),
+        Assignment("c-9a", "sub-mus", "t-12" if extra_activity_teacher else "t-9"),
+        Assignment("c-9a", "sub-gam", "t-11"),
+        # c-10a
+        Assignment("c-10a", "sub-math", "t-2"),
+        Assignment("c-10a", "sub-eng", "t-4"),
+        Assignment("c-10a", "sub-sci", "t-6"),
+        Assignment("c-10a", "sub-sst", "t-8"),
+        Assignment("c-10a", "sub-cs", "t-6"),
+        Assignment("c-10a", "sub-hin", "t-8"),
+        Assignment("c-10a", "sub-mus", "t-12" if extra_activity_teacher else "t-9"),
+        Assignment("c-10a", "sub-gam", "t-11"),
+    )
+
     return ProblemInput(
         rules=rules,
         classes=classes,
         subjects=subjects,
         teachers=teachers,
         weekly_frequency=weekly_frequency,
+        assignments=assignments,
     )
 
 
@@ -132,10 +168,6 @@ def create_demo_school_2_problem() -> ProblemInput:
         Teacher(id="xt-5", name="Ms. Claire Dearing", subject_ids=frozenset(["x-act1", "x-act2", "x-eng"])),
     ]
 
-    # Primary (3A): 20 periods
-    # math: 6, eng: 6, sci: 6, act1: 1, act2: 1 = 20
-    # Senior (11A): 30 periods
-    # math: 8, eng: 6, sci: 8, hum: 6, act1: 1, act2: 1 = 30
     weekly_frequency = {
         ("x-3a", "x-math"): 6,
         ("x-3a", "x-eng"): 6,
@@ -150,12 +182,27 @@ def create_demo_school_2_problem() -> ProblemInput:
         ("x-11a", "x-act2"): 1,
     }
 
+    assignments = (
+        Assignment("x-3a", "x-math", "xt-1"),
+        Assignment("x-3a", "x-eng", "xt-5"),
+        Assignment("x-3a", "x-sci", "xt-2"),
+        Assignment("x-3a", "x-act1", "xt-4"),
+        Assignment("x-3a", "x-act2", "xt-5"),
+        Assignment("x-11a", "x-math", "xt-1"),
+        Assignment("x-11a", "x-eng", "xt-3"),
+        Assignment("x-11a", "x-sci", "xt-2"),
+        Assignment("x-11a", "x-hum", "xt-3"),
+        Assignment("x-11a", "x-act1", "xt-5"),
+        Assignment("x-11a", "x-act2", "xt-4"),
+    )
+
     return ProblemInput(
         rules=rules,
         classes=classes,
         subjects=subjects,
         teachers=teachers,
         weekly_frequency=weekly_frequency,
+        assignments=assignments,
     )
 
 
@@ -422,12 +469,27 @@ def test_large_synthetic_scale():
         teachers.append(Teacher(id=f"tact_{i}", name=f"Act Specialist {i}", subject_ids=frozenset(["s-act"])))
 
     # Total: 60 academic teachers + 40 activity specialists = 100 teachers
+    assignments = []
+    for g in range(20):
+        sm, se, ss = f"m_{g}", f"e_{g}", f"s_{g}"
+        c1, c2 = f"c-{2*g}", f"c-{2*g+1}"
+        assignments.append(Assignment(c1, sm, f"tm_{g}"))
+        assignments.append(Assignment(c2, sm, f"tm_{g}"))
+        assignments.append(Assignment(c1, se, f"te_{g}"))
+        assignments.append(Assignment(c2, se, f"te_{g}"))
+        assignments.append(Assignment(c1, ss, f"ts_{g}"))
+        assignments.append(Assignment(c2, ss, f"ts_{g}"))
+
+    for i in range(num_classes):
+        assignments.append(Assignment(f"c-{i}", "s-act", f"tact_{i}"))
+
     problem = ProblemInput(
         rules=rules,
         classes=classes,
         subjects=subjects,
         teachers=teachers,
         weekly_frequency=weekly_frequency,
+        assignments=tuple(assignments),
     )
 
     t0 = time.perf_counter()
@@ -437,6 +499,37 @@ def test_large_synthetic_scale():
     assert result.feasible, f"Large scale failed: {result.diagnostics}"
     expected_total_entries = 20 * 20 + 20 * 30  # 1000 entries
     assert len(result.entries) == expected_total_entries
+
+
+def test_no_teacher_assigned_diagnostics():
+    """POST /generate with no assignments returns clear per-pair error messages."""
+    problem = create_demo_school_1_problem(extra_activity_teacher=True)
+    problem.assignments = ()
+    result = solve(problem)
+    assert not result.feasible
+    assert len(result.diagnostics) > 0
+    # Every pair with freq > 0 must have an error diagnostic
+    for (cid, sid), freq in problem.weekly_frequency.items():
+        if freq > 0:
+            c = next(cls for cls in problem.classes if cls.id == cid)
+            s = next(sub for sub in problem.subjects if sub.id == sid)
+            assert any(
+                d.severity == "error" and f"No Teacher Assigned: {c.name} / {s.name}" in d.title
+                for d in result.diagnostics
+            )
+
+
+def test_assignments_strictly_enforced_in_entries():
+    """With assignments set, the solver produces a timetable where every entry's teacher_id matches its assignment."""
+    problem = create_demo_school_1_problem(extra_activity_teacher=True)
+    result = solve(problem)
+    assert result.feasible
+    assignment_map = {(a.class_id, a.subject_id): a.teacher_id for a in problem.assignments}
+    for e in result.entries:
+        assigned_tid = assignment_map.get((e.class_id, e.subject_id))
+        assert e.teacher_id == assigned_tid, (
+            f"Entry {e} teacher_id {e.teacher_id} did not match assigned teacher {assigned_tid}!"
+        )
 
 
 def test_consecutive_double_period_scheduled():
@@ -482,5 +575,100 @@ def test_consecutive_double_period_scheduled():
                 break
 
         assert has_double, f"Class {cls.name} did not receive a consecutive double period for Science!"
+
+
+def test_room_capacity_hard_constraint():
+    """Verify that room capacity is strictly respected (e.g. at most 1 class in STEM Lab per period)."""
+    problem = create_demo_school_1_problem(extra_activity_teacher=True)
+    # Assign sub-sci to "STEM Lab" for all classes
+    new_subjects = []
+    for s in problem.subjects:
+        if s.id == "sub-sci":
+            new_subjects.append(Subject(id=s.id, name=s.name, is_activity=s.is_activity, room="STEM Lab"))
+        else:
+            new_subjects.append(s)
+    problem.subjects = new_subjects
+    problem.room_capacities = {"STEM Lab": 1}
+
+    result = solve(problem, time_limit_s=10.0)
+    assert result.feasible, f"Solver failed: {result.diagnostics}"
+
+    # Verify that in result.entries, "STEM Lab" is never used by more than 1 class simultaneously
+    stem_slots: dict[tuple[str, int], list[Entry]] = {}
+    for e in result.entries:
+        if e.room == "STEM Lab":
+            stem_slots.setdefault((e.day, e.period), []).append(e)
+
+    for (d, p), entries in stem_slots.items():
+        assert len(entries) <= 1, f"STEM Lab was double-booked on {d} Period {p} with {len(entries)} classes!"
+
+
+def test_pinned_lesson_enforced():
+    """Verify that a pinned lesson is placed exactly at the specified day and period."""
+    problem = create_demo_school_1_problem(extra_activity_teacher=True)
+    # Pin 9A Science with Dr. Neha Verma to Monday Period 1
+    pin = PinnedLesson(
+        class_id="c-9a",
+        subject_id="sub-sci",
+        teacher_id="t-5",
+        day="Monday",
+        period=1,
+    )
+    problem.pinned_lessons = (pin,)
+
+    result = solve(problem, time_limit_s=10.0)
+    assert result.feasible, f"Solver failed: {result.diagnostics}"
+
+    matching = [
+        e for e in result.entries
+        if e.class_id == "c-9a" and e.subject_id == "sub-sci" and e.day == "Monday" and e.period == 1
+    ]
+    assert len(matching) == 1, "Pinned lesson was not placed at Monday Period 1!"
+    assert matching[0].teacher_id == "t-5"
+
+
+def test_blocked_slot_enforced():
+    """Verify that a blocked slot prevents any class from being scheduled in that slot."""
+    problem = create_demo_school_1_problem(extra_activity_teacher=True)
+    # Adjust 9A and 10A to 29 required periods so they fit in 29 available slots
+    wf = dict(problem.weekly_frequency)
+    wf[("c-9a", "sub-math")] = 5
+    wf[("c-10a", "sub-math")] = 5
+    problem.weekly_frequency = wf
+
+    # Block Friday Period 6 for all classes (All-School Assembly)
+    block = BlockedSlot(
+        scope="school",
+        day="Friday",
+        period=6,
+        label="All-School Assembly",
+    )
+    problem.blocked_slots = (block,)
+
+    result = solve(problem, time_limit_s=10.0)
+    assert result.feasible, f"Solver failed: {result.diagnostics}"
+
+    # Verify no entry exists on Friday Period 6
+    friday_p6_entries = [e for e in result.entries if e.day == "Friday" and e.period == 6]
+    assert len(friday_p6_entries) == 0, f"Found entries on blocked Friday Period 6: {friday_p6_entries}"
+
+
+def test_quality_report_returned():
+    """Verify that after solving, a complete QualityReport is returned."""
+    problem = create_demo_school_1_problem(extra_activity_teacher=True)
+    result = solve(problem, time_limit_s=10.0)
+    assert result.feasible
+    assert result.quality_report is not None
+
+    qr = result.quality_report
+    assert qr.total_entries == len(result.entries)
+    assert qr.empty_period_count >= 0
+    assert len(qr.teacher_workload) == len(problem.teachers)
+    for tw in qr.teacher_workload:
+        assert "teacher_id" in tw
+        assert "assigned" in tw
+        assert "max" in tw
+        assert "pct" in tw
+
 
 

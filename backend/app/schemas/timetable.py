@@ -16,6 +16,7 @@ class EntryOut(BaseModel):
     teacher_name: str | None = None
     room: str | None = None
     is_manual_override: bool = False
+    is_locked: bool = False
     substitute_teacher_id: str | None = None
     substitute_teacher_name: str | None = None
 
@@ -36,10 +37,19 @@ class GenerateRequest(BaseModel):
     consecutive_double_periods: bool = True
 
 
+class QualityReportOut(BaseModel):
+    total_entries: int
+    empty_period_count: int
+    unplaced_lessons: list[str] = []
+    teacher_workload: list[dict] = []
+    soft_score: int = 0
+
+
 class GenerateResponse(BaseModel):
     feasible: bool
     entries: list[EntryOut]
     diagnostics: list[DiagnosticOut]
+    quality_report: QualityReportOut | None = None
 
 
 
@@ -93,3 +103,18 @@ class SubstitutionOut(BaseModel):
 class PublishResponse(BaseModel):
     published: bool
     message: str
+
+
+class MoveRequest(BaseModel):
+    new_day: str
+    new_period: int
+
+
+class SwapRequest(BaseModel):
+    other_entry_id: str
+
+
+class LockResponse(BaseModel):
+    id: str
+    is_locked: bool
+

@@ -1,5 +1,6 @@
 """Phase 5 Tests: Real Pilot Schools Validation (Greenwood High & St. Xavier's International)."""
 from chronos_engine.models import (
+    Assignment,
     ClassSection,
     ProblemInput,
     Rules,
@@ -91,12 +92,48 @@ def test_pilot_school_1_greenwood_high_feasible():
         Teacher(id="t-12", name="Coach Taylor", subject_ids=frozenset(["sub-gam", "sub-art", "sub-mus"])),
     ]
 
+    assignments = (
+        # 4A
+        Assignment("c-4a", "sub-math", "t-1"),
+        Assignment("c-4a", "sub-eng", "t-3"),
+        Assignment("c-4a", "sub-sci", "t-5"),
+        Assignment("c-4a", "sub-sst", "t-7"),
+        Assignment("c-4a", "sub-mus", "t-9"),
+        Assignment("c-4a", "sub-art", "t-10"),
+        # 5B
+        Assignment("c-5b", "sub-math", "t-2"),
+        Assignment("c-5b", "sub-eng", "t-4"),
+        Assignment("c-5b", "sub-sci", "t-6"),
+        Assignment("c-5b", "sub-sst", "t-8"),
+        Assignment("c-5b", "sub-mus", "t-9"),
+        Assignment("c-5b", "sub-art", "t-10"),
+        # 9A
+        Assignment("c-9a", "sub-math", "t-1"),
+        Assignment("c-9a", "sub-eng", "t-3"),
+        Assignment("c-9a", "sub-sci", "t-5"),
+        Assignment("c-9a", "sub-sst", "t-7"),
+        Assignment("c-9a", "sub-cs", "t-2"),
+        Assignment("c-9a", "sub-hin", "t-4"),
+        Assignment("c-9a", "sub-mus", "t-12"),
+        Assignment("c-9a", "sub-gam", "t-11"),
+        # 10A
+        Assignment("c-10a", "sub-math", "t-2"),
+        Assignment("c-10a", "sub-eng", "t-4"),
+        Assignment("c-10a", "sub-sci", "t-6"),
+        Assignment("c-10a", "sub-sst", "t-8"),
+        Assignment("c-10a", "sub-cs", "t-6"),
+        Assignment("c-10a", "sub-hin", "t-8"),
+        Assignment("c-10a", "sub-mus", "t-12"),
+        Assignment("c-10a", "sub-gam", "t-11"),
+    )
+
     problem = ProblemInput(
         rules=rules,
         classes=classes,
         subjects=subjects,
         teachers=teachers,
         weekly_frequency=weekly_frequency,
+        assignments=assignments,
     )
 
     output = solve(problem, time_limit_s=10.0)
@@ -224,12 +261,27 @@ def test_pilot_school_2_st_xaviers_feasible():
         Teacher(id="xt-5", name="Ms. Dearing", subject_ids=frozenset(["x-act1", "x-act2", "x-eng"])),
     ]
 
+    assignments = (
+        Assignment("x-3a", "x-math", "xt-1"),
+        Assignment("x-3a", "x-eng", "xt-3"),
+        Assignment("x-3a", "x-sci", "xt-2"),
+        Assignment("x-3a", "x-act1", "xt-4"),
+        Assignment("x-3a", "x-act2", "xt-4"),
+        Assignment("x-11a", "x-math", "xt-1"),
+        Assignment("x-11a", "x-eng", "xt-5"),
+        Assignment("x-11a", "x-sci", "xt-2"),
+        Assignment("x-11a", "x-hum", "xt-3"),
+        Assignment("x-11a", "x-act1", "xt-5"),
+        Assignment("x-11a", "x-act2", "xt-5"),
+    )
+
     problem = ProblemInput(
         rules=rules,
         classes=classes,
         subjects=subjects,
         teachers=teachers,
         weekly_frequency=weekly_frequency,
+        assignments=assignments,
     )
 
     output = solve(problem, time_limit_s=10.0)

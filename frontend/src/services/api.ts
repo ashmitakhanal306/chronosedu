@@ -25,10 +25,27 @@ export interface ApiDiagnosticOut {
   detail: string;
 }
 
+export interface ApiTeacherWorkloadStat {
+  teacher_id: string;
+  name: string;
+  assigned: number;
+  max: number;
+  pct: number;
+}
+
+export interface ApiQualityReportOut {
+  total_entries: number;
+  empty_period_count: number;
+  unplaced_lessons: string[];
+  teacher_workload: ApiTeacherWorkloadStat[];
+  soft_score: number;
+}
+
 export interface ApiGenerateResponse {
   feasible: boolean;
   entries: ApiEntryOut[];
   diagnostics: ApiDiagnosticOut[];
+  quality_report?: ApiQualityReportOut | null;
 }
 
 export interface ApiOverrideRequest {
@@ -66,6 +83,96 @@ export interface ApiSubstitutionOut {
 export interface ApiPublishResponse {
   published: boolean;
   message: string;
+}
+
+export interface ApiHoliday {
+  id: string;
+  school_id: string;
+  name: string;
+  start_date: string;
+  end_date: string;
+  holiday_type: string;
+}
+
+export interface ApiPinnedLesson {
+  id: string;
+  school_id: string;
+  class_id: string;
+  class_name?: string | null;
+  subject_id: string;
+  subject_name?: string | null;
+  teacher_id: string;
+  teacher_name?: string | null;
+  day: string;
+  period: number;
+}
+
+export interface ApiBlockedSlot {
+  id: string;
+  school_id: string;
+  scope: string;
+  scope_id?: string | null;
+  scope_name?: string | null;
+  day: string;
+  period: number;
+  label: string;
+  on_date?: string | null;
+}
+
+export interface ApiVersionOut {
+  id: string;
+  school_id: string;
+  version_number: number;
+  state: 'draft' | 'approved' | 'published';
+  effective_from?: string | null;
+  published_by?: string | null;
+  published_at?: string | null;
+  notes?: string | null;
+  entry_count: number;
+  created_at: string;
+}
+
+export interface ApiAuditLog {
+  id: string;
+  school_id: string;
+  actor_id?: string | null;
+  action: string;
+  entity_type: string;
+  entity_id?: string | null;
+  detail?: string | null;
+  created_at: string;
+}
+
+export interface ApiAssignmentOut {
+  id: string;
+  school_id: string;
+  class_id: string;
+  subject_id: string;
+  teacher_id: string;
+  class_name?: string | null;
+  subject_name?: string | null;
+  teacher_name?: string | null;
+  teacher_weekly_load: number;
+}
+
+export interface ApiAssignmentCreate {
+  class_id: string;
+  subject_id: string;
+  teacher_id: string;
+}
+
+export interface ApiWorkloadItem {
+  teacher_id: string;
+  teacher_name: string;
+  assigned_periods: number;
+  max_periods_per_week: number;
+  overloaded: boolean;
+}
+
+export interface ApiSuggestAssignmentsOut {
+  suggestions: ApiAssignmentOut[];
+  warnings: string[];
+  workload_summary: ApiWorkloadItem[];
 }
 
 let currentToken: string | null = typeof window !== 'undefined' ? localStorage.getItem('chronos_token') : null;
@@ -214,6 +321,42 @@ export const api = {
     });
   },
 
+  /** Lock a timetable entry */
+  async lockEntry(schoolId: string, entryId: string): Promise<{ id: string; is_locked: boolean }> {
+    return request<{ id: string; is_locked: boolean }>(`/schools/${schoolId}/entries/${entryId}/lock`, {
+      method: 'PATCH',
+    });
+  },
+
+  /** Unlock a timetable entry */
+  async unlockEntry(schoolId: string, entryId: string): Promise<{ id: string; is_locked: boolean }> {
+    return request<{ id: string; is_locked: boolean }>(`/schools/${schoolId}/entries/${entryId}/unlock`, {
+      method: 'PATCH',
+    });
+  },
+
+  /** Delete a timetable entry slot */
+  async deleteEntry(schoolId: string, entryId: string): Promise<void> {
+    return request<void>(`/schools/${schoolId}/entries/${entryId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  /** Move a timetable entry to new day and period */
+  async moveEntry(schoolId: string, entryId: string, newDay: string, newPeriod: number): Promise<ApiEntryOut> {
+    return request<ApiEntryOut>(`/schools/${schoolId}/entries/${entryId}/move`, {
+      method: 'PATCH',
+      body: JSON.stringify({ new_day: newDay, new_period: newPeriod }),
+    });
+  },
+
+  /** Swap two timetable entries */
+  async swapEntries(schoolId: string, entryAId: string, entryBId: string): Promise<ApiEntryOut[]> {
+    return request<ApiEntryOut[]>(`/schools/${schoolId}/entries/${entryAId}/swap/${entryBId}`, {
+      method: 'POST',
+    });
+  },
+
   /** Publish timetable */
   async publish(schoolId: string): Promise<ApiPublishResponse> {
     return request<ApiPublishResponse>(`/schools/${schoolId}/publish`, {
@@ -240,5 +383,115 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ entry_id: entryId, substitute_teacher_id: substituteTeacherId }),
     });
+  },
+
+  /** List all teaching assignments */
+  async listAssignments(schoolId: string): Promise<ApiAssignmentOut[]> {
+    return request<ApiAssignmentOut[]>(`/schools/${schoolId}/assignments`);
+  },
+
+  /** Upsert teaching assignment for a class + subject */
+  async upsertAssignment(schoolId: string, data: ApiAssignmentCreate): Promise<ApiAssignmentOut> {
+    return request<ApiAssignmentOut>(`/schools/${schoolId}/assignments`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  /** Delete a teaching assignment */
+  async deleteAssignment(schoolId: string, assignmentId: string): Promise<void> {
+    return request<void>(`/schools/${schoolId}/assignments/${assignmentId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  /** Auto-suggest teacher assignments based on subject qualification and lowest current load */
+  async suggestAssignments(schoolId: string): Promise<ApiSuggestAssignmentsOut> {
+    return request<ApiSuggestAssignmentsOut>(`/schools/${schoolId}/assignments/suggest`, {
+      method: 'POST',
+    });
+  },
+
+  // ── Holiday methods (Phase 2-A) ───────────────────────────────────────────
+  async listHolidays(schoolId: string): Promise<ApiHoliday[]> {
+    return request<ApiHoliday[]>(`/schools/${schoolId}/holidays`);
+  },
+
+  async createHoliday(schoolId: string, data: { name: string; start_date: string; end_date: string; holiday_type?: string }): Promise<ApiHoliday> {
+    return request<ApiHoliday>(`/schools/${schoolId}/holidays`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async deleteHoliday(schoolId: string, holidayId: string): Promise<void> {
+    return request<void>(`/schools/${schoolId}/holidays/${holidayId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  // ── Pinned Lesson methods (Phase 2-C) ─────────────────────────────────────
+  async listPinnedLessons(schoolId: string): Promise<ApiPinnedLesson[]> {
+    return request<ApiPinnedLesson[]>(`/schools/${schoolId}/pinned-lessons`);
+  },
+
+  async createPinnedLesson(schoolId: string, data: { class_id: string; subject_id: string; teacher_id: string; day: string; period: number }): Promise<ApiPinnedLesson> {
+    return request<ApiPinnedLesson>(`/schools/${schoolId}/pinned-lessons`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async deletePinnedLesson(schoolId: string, pinId: string): Promise<void> {
+    return request<void>(`/schools/${schoolId}/pinned-lessons/${pinId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  // ── Blocked Slot methods (Phase 2-C) ───────────────────────────────────────
+  async listBlockedSlots(schoolId: string): Promise<ApiBlockedSlot[]> {
+    return request<ApiBlockedSlot[]>(`/schools/${schoolId}/blocked-slots`);
+  },
+
+  async createBlockedSlot(schoolId: string, data: { scope?: string; scope_id?: string | null; day: string; period: number; label: string; on_date?: string | null }): Promise<ApiBlockedSlot> {
+    return request<ApiBlockedSlot>(`/schools/${schoolId}/blocked-slots`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async deleteBlockedSlot(schoolId: string, slotId: string): Promise<void> {
+    return request<void>(`/schools/${schoolId}/blocked-slots/${slotId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  // ── Timetable Version methods (Phase 2-D) ──────────────────────────────────
+  async listVersions(schoolId: string): Promise<ApiVersionOut[]> {
+    return request<ApiVersionOut[]>(`/schools/${schoolId}/versions`);
+  },
+
+  async approveVersion(schoolId: string, versionId: string): Promise<ApiVersionOut> {
+    return request<ApiVersionOut>(`/schools/${schoolId}/versions/${versionId}/approve`, {
+      method: 'POST',
+    });
+  },
+
+  async publishVersion(schoolId: string, versionId: string, effectiveFrom?: string): Promise<ApiVersionOut> {
+    return request<ApiVersionOut>(`/schools/${schoolId}/versions/${versionId}/publish`, {
+      method: 'POST',
+      body: JSON.stringify(effectiveFrom ? { effective_from: effectiveFrom } : {}),
+    });
+  },
+
+  async rollbackVersion(schoolId: string, versionId: string): Promise<ApiVersionOut> {
+    return request<ApiVersionOut>(`/schools/${schoolId}/versions/${versionId}/rollback`, {
+      method: 'POST',
+    });
+  },
+
+  // ── Audit Log methods (Phase 2-E) ──────────────────────────────────────────
+  async listAuditLogs(schoolId: string): Promise<ApiAuditLog[]> {
+    return request<ApiAuditLog[]>(`/schools/${schoolId}/audit-logs`);
   },
 };

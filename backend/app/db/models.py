@@ -130,6 +130,11 @@ class School(Base):
     teachers: Mapped[list[Teacher]] = relationship("Teacher", back_populates="school", cascade="all, delete-orphan")
     period_slots: Mapped[list[PeriodSlot]] = relationship("PeriodSlot", back_populates="school", cascade="all, delete-orphan")
     timetable_entries: Mapped[list[TimetableEntry]] = relationship("TimetableEntry", back_populates="school", cascade="all, delete-orphan")
+    holidays: Mapped[list[Holiday]] = relationship("Holiday", back_populates="school", cascade="all, delete-orphan")
+    pinned_lessons: Mapped[list[PinnedLesson]] = relationship("PinnedLesson", back_populates="school", cascade="all, delete-orphan")
+    blocked_slots: Mapped[list[BlockedSlot]] = relationship("BlockedSlot", back_populates="school", cascade="all, delete-orphan")
+    versions: Mapped[list[TimetableVersion]] = relationship("TimetableVersion", back_populates="school", cascade="all, delete-orphan")
+    audit_logs: Mapped[list[AuditLog]] = relationship("AuditLog", back_populates="school", cascade="all, delete-orphan")
 
 
 class AppUser(Base):
@@ -169,6 +174,8 @@ class Room(Base):
     school_id: Mapped[uuid.UUID] = mapped_column(GUID, ForeignKey("school.id", ondelete="CASCADE"), nullable=False)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     type: Mapped[str] = mapped_column(String(50), default="classroom", nullable=False)
+    # How many simultaneous classes the room can hold (1 = exclusive use, >1 = shared/hall)
+    capacity: Mapped[int] = mapped_column(SmallInteger, default=1, nullable=False)
 
     __table_args__ = (UniqueConstraint("school_id", "name"),)
     school: Mapped[School] = relationship("School", back_populates="rooms")
@@ -200,6 +207,8 @@ class Subject(Base):
     type: Mapped[str] = mapped_column(String(50), default="academic", nullable=False)  # 'academic', 'activity'
     room_id: Mapped[uuid.UUID | None] = mapped_column(GUID, ForeignKey("room.id"), nullable=True)
     requires_double_period: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # UI colour stored so it persists across sessions (e.g. 'bg-blue-50 text-blue-700 border-blue-200')
+    color: Mapped[str | None] = mapped_column(String(120), nullable=True)
 
     __table_args__ = (UniqueConstraint("school_id", "code"),)
     school: Mapped[School] = relationship("School", back_populates="subjects")
@@ -233,23 +242,164 @@ class Teacher(Base):
     email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     phone: Mapped[str | None] = mapped_column(String(50), nullable=True)
     max_periods_per_day: Mapped[int] = mapped_column(SmallInteger, default=5, nullable=False)
+    # Hard cap on how many periods this teacher can teach across the whole week
+    max_periods_per_week: Mapped[int] = mapped_column(SmallInteger, default=30, nullable=False)
+    # Hard cap on consecutive teaching periods without a break
+    max_consecutive_periods: Mapped[int] = mapped_column(SmallInteger, default=3, nullable=False)
     unavailable_days: Mapped[list[str]] = mapped_column(PortableStringList, default=list, nullable=False)
 
     school: Mapped[School] = relationship("School", back_populates="teachers")
-    subjects: Mapped[list[TeacherSubject]] = relationship("TeacherSubject", back_populates="teacher", cascade="all, delete-orphan")
+    subjects: Mapped[list[TeacherQualification]] = relationship("TeacherQualification", back_populates="teacher", cascade="all, delete-orphan")
+    assignments: Mapped[list[TeachingAssignment]] = relationship("TeachingAssignment", back_populates="teacher", cascade="all, delete-orphan")
     absences: Mapped[list[TeacherAbsence]] = relationship("TeacherAbsence", back_populates="teacher", cascade="all, delete-orphan")
     timetable_entries: Mapped[list[TimetableEntry]] = relationship("TimetableEntry", back_populates="teacher", cascade="all, delete-orphan")
 
+    @property
+    def qualifications(self) -> list[TeacherQualification]:
+        return self.subjects
 
-class TeacherSubject(Base):
-    __tablename__ = "teacher_subject"
 
+class TeacherQualification(Base):
+    """Teacher qualification for a subject, optionally scoped to a specific grade level.
+    If grade_id is None, the teacher is qualified for that subject across all grades.
+    """
+    __tablename__ = "teacher_qualification"
+
+    id: Mapped[uuid.UUID] = mapped_column(GUID, primary_key=True, default=uuid.uuid4)
     school_id: Mapped[uuid.UUID] = mapped_column(GUID, ForeignKey("school.id", ondelete="CASCADE"), nullable=False)
-    teacher_id: Mapped[uuid.UUID] = mapped_column(GUID, ForeignKey("teacher.id", ondelete="CASCADE"), primary_key=True)
-    subject_id: Mapped[uuid.UUID] = mapped_column(GUID, ForeignKey("subject.id", ondelete="CASCADE"), primary_key=True)
+    teacher_id: Mapped[uuid.UUID] = mapped_column(GUID, ForeignKey("teacher.id", ondelete="CASCADE"), nullable=False)
+    subject_id: Mapped[uuid.UUID] = mapped_column(GUID, ForeignKey("subject.id", ondelete="CASCADE"), nullable=False)
+    grade_id: Mapped[uuid.UUID | None] = mapped_column(GUID, ForeignKey("grade_level.id", ondelete="CASCADE"), nullable=True)
+
+    __table_args__ = (
+        UniqueConstraint("teacher_id", "subject_id", "grade_id", name="uq_teacher_qual_grade"),
+    )
 
     teacher: Mapped[Teacher] = relationship("Teacher", back_populates="subjects")
     subject: Mapped[Subject] = relationship("Subject")
+    grade: Mapped[GradeLevel | None] = relationship("GradeLevel")
+
+
+# Backward compatibility alias
+TeacherSubject = TeacherQualification
+
+
+class Holiday(Base):
+    """School holiday calendar event (national, term break, exam day, sports day)."""
+    __tablename__ = "holiday"
+
+    id: Mapped[uuid.UUID] = mapped_column(GUID, primary_key=True, default=uuid.uuid4)
+    school_id: Mapped[uuid.UUID] = mapped_column(GUID, ForeignKey("school.id", ondelete="CASCADE"), nullable=False)
+    name: Mapped[str] = mapped_column(String(150), nullable=False)
+    start_date: Mapped[date] = mapped_column(Date, nullable=False)
+    end_date: Mapped[date] = mapped_column(Date, nullable=False)
+    holiday_type: Mapped[str] = mapped_column(String(50), default="school", nullable=False)  # 'national', 'school', 'exam', 'sports'
+
+    school: Mapped[School] = relationship("School", back_populates="holidays")
+
+
+class PinnedLesson(Base):
+    """Admin-fixed lesson that cannot be moved or overridden by the solver."""
+    __tablename__ = "pinned_lesson"
+
+    id: Mapped[uuid.UUID] = mapped_column(GUID, primary_key=True, default=uuid.uuid4)
+    school_id: Mapped[uuid.UUID] = mapped_column(GUID, ForeignKey("school.id", ondelete="CASCADE"), nullable=False)
+    class_id: Mapped[uuid.UUID] = mapped_column(GUID, ForeignKey("class_section.id", ondelete="CASCADE"), nullable=False)
+    subject_id: Mapped[uuid.UUID] = mapped_column(GUID, ForeignKey("subject.id", ondelete="CASCADE"), nullable=False)
+    teacher_id: Mapped[uuid.UUID] = mapped_column(GUID, ForeignKey("teacher.id", ondelete="CASCADE"), nullable=False)
+    day: Mapped[str] = mapped_column(String(50), nullable=False)
+    period: Mapped[int] = mapped_column(SmallInteger, nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint("school_id", "class_id", "day", "period", name="uq_pinned_class_slot"),
+        UniqueConstraint("school_id", "teacher_id", "day", "period", name="uq_pinned_teacher_slot"),
+    )
+
+    school: Mapped[School] = relationship("School", back_populates="pinned_lessons")
+    class_section: Mapped[ClassSection] = relationship("ClassSection")
+    subject: Mapped[Subject] = relationship("Subject")
+    teacher: Mapped[Teacher] = relationship("Teacher")
+
+
+class BlockedSlot(Base):
+    """Blocked slot for assembly, staff meeting, sports or maintenance where no lessons can occur."""
+    __tablename__ = "blocked_slot"
+
+    id: Mapped[uuid.UUID] = mapped_column(GUID, primary_key=True, default=uuid.uuid4)
+    school_id: Mapped[uuid.UUID] = mapped_column(GUID, ForeignKey("school.id", ondelete="CASCADE"), nullable=False)
+    scope: Mapped[str] = mapped_column(String(50), default="school", nullable=False)  # 'school', 'class', 'grade'
+    scope_id: Mapped[uuid.UUID | None] = mapped_column(GUID, nullable=True)  # class_id or grade_id, None = school-wide
+    day: Mapped[str] = mapped_column(String(50), nullable=False)
+    period: Mapped[int] = mapped_column(SmallInteger, nullable=False)
+    label: Mapped[str] = mapped_column(String(150), default="Blocked", nullable=False)
+    on_date: Mapped[date | None] = mapped_column(Date, nullable=True)  # None = recurring weekly
+
+    school: Mapped[School] = relationship("School", back_populates="blocked_slots")
+
+
+class TimetableVersion(Base):
+    """Full version tracking of school timetable generation, approval, and publication."""
+    __tablename__ = "timetable_version"
+
+    id: Mapped[uuid.UUID] = mapped_column(GUID, primary_key=True, default=uuid.uuid4)
+    school_id: Mapped[uuid.UUID] = mapped_column(GUID, ForeignKey("school.id", ondelete="CASCADE"), nullable=False)
+    version_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    state: Mapped[str] = mapped_column(String(50), default="draft", nullable=False)  # 'draft', 'approved', 'published'
+    effective_from: Mapped[date | None] = mapped_column(Date, nullable=True)
+    published_by: Mapped[uuid.UUID | None] = mapped_column(GUID, ForeignKey("app_user.id"), nullable=True)
+    published_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint("school_id", "version_number", name="uq_school_version_num"),
+    )
+
+    school: Mapped[School] = relationship("School", back_populates="versions")
+    entries: Mapped[list[TimetableEntry]] = relationship("TimetableEntry", back_populates="version", cascade="all, delete-orphan")
+
+
+class AuditLog(Base):
+    """Immutable audit trail for all admin and system mutations."""
+    __tablename__ = "audit_log"
+
+    id: Mapped[uuid.UUID] = mapped_column(GUID, primary_key=True, default=uuid.uuid4)
+    school_id: Mapped[uuid.UUID] = mapped_column(GUID, ForeignKey("school.id", ondelete="CASCADE"), nullable=False)
+    actor_id: Mapped[uuid.UUID | None] = mapped_column(GUID, nullable=True)  # user id or None for system
+    action: Mapped[str] = mapped_column(String(100), nullable=False)
+    entity_type: Mapped[str] = mapped_column(String(100), nullable=False)
+    entity_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    detail: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+
+    school: Mapped[School] = relationship("School", back_populates="audit_logs")
+
+
+class TeachingAssignment(Base):
+    """Admin-decided: this class is taught this subject by this teacher.
+
+    The solver reads these and ONLY places the assigned teacher into time slots.
+    It never selects a different teacher on its own.
+    Phase 1 — the most critical new model.
+    """
+    __tablename__ = "teaching_assignment"
+
+    id: Mapped[uuid.UUID] = mapped_column(GUID, primary_key=True, default=uuid.uuid4)
+    school_id: Mapped[uuid.UUID] = mapped_column(GUID, ForeignKey("school.id", ondelete="CASCADE"), nullable=False)
+    class_id: Mapped[uuid.UUID] = mapped_column(GUID, ForeignKey("class_section.id", ondelete="CASCADE"), nullable=False)
+    subject_id: Mapped[uuid.UUID] = mapped_column(GUID, ForeignKey("subject.id", ondelete="CASCADE"), nullable=False)
+    teacher_id: Mapped[uuid.UUID] = mapped_column(GUID, ForeignKey("teacher.id", ondelete="CASCADE"), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+
+    # One teacher per class-subject pair (enforced at the DB level)
+    __table_args__ = (
+        UniqueConstraint("class_id", "subject_id", name="uq_assignment_class_subject"),
+    )
+
+    school: Mapped[School] = relationship("School")
+    class_section: Mapped[ClassSection] = relationship("ClassSection")
+    subject: Mapped[Subject] = relationship("Subject")
+    teacher: Mapped[Teacher] = relationship("Teacher", back_populates="assignments")
 
 
 class TeacherAbsence(Base):
@@ -293,6 +443,10 @@ class TimetableEntry(Base):
     teacher_id: Mapped[uuid.UUID] = mapped_column(GUID, ForeignKey("teacher.id"), nullable=False)
     room_id: Mapped[uuid.UUID | None] = mapped_column(GUID, ForeignKey("room.id"), nullable=True)
     is_manual_override: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # Locked entries survive regeneration and cannot be moved or deleted without explicit unlock
+    is_locked: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # Associated generated/published timetable version
+    version_id: Mapped[uuid.UUID | None] = mapped_column(GUID, ForeignKey("timetable_version.id", ondelete="CASCADE"), nullable=True)
 
     __table_args__ = (
         UniqueConstraint("school_id", "class_id", "day", "period"),
@@ -306,6 +460,7 @@ class TimetableEntry(Base):
     subject: Mapped[Subject] = relationship("Subject")
     teacher: Mapped[Teacher] = relationship("Teacher", back_populates="timetable_entries")
     room: Mapped[Room | None] = relationship("Room")
+    version: Mapped[TimetableVersion | None] = relationship("TimetableVersion", back_populates="entries")
     substitutions: Mapped[list[Substitution]] = relationship("Substitution", back_populates="entry", cascade="all, delete-orphan")
 
 

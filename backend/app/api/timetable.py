@@ -13,6 +13,9 @@ from app.schemas.timetable import (
     PublishResponse,
     SubstitutionAssignRequest,
     SubstitutionOut,
+    LockResponse,
+    MoveRequest,
+    SwapRequest,
 )
 from app.services import notifications, timetable_service
 
@@ -90,6 +93,64 @@ def update_entry(
     """Manual override for a timetable slot. Strictly re-validates H1, H2, H7 and rejects clashes with 409. Admin only."""
     verify_tenant_access(school_id, auth)
     return timetable_service.manual_override(school_id, entry_id, override)
+
+
+@router.patch("/entries/{entry_id}/lock", response_model=LockResponse)
+def lock_entry(
+    school_id: str,
+    entry_id: str,
+    auth: AuthContext = Depends(require_roles(["admin"])),
+):
+    """Lock an entry so solver and edits cannot move or delete it. Admin only."""
+    verify_tenant_access(school_id, auth)
+    return timetable_service.lock_entry(school_id, entry_id, lock_state=True)
+
+
+@router.patch("/entries/{entry_id}/unlock", response_model=LockResponse)
+def unlock_entry(
+    school_id: str,
+    entry_id: str,
+    auth: AuthContext = Depends(require_roles(["admin"])),
+):
+    """Unlock an entry. Admin only."""
+    verify_tenant_access(school_id, auth)
+    return timetable_service.lock_entry(school_id, entry_id, lock_state=False)
+
+
+@router.delete("/entries/{entry_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_entry(
+    school_id: str,
+    entry_id: str,
+    auth: AuthContext = Depends(require_roles(["admin"])),
+):
+    """Delete a timetable entry slot. Admin only."""
+    verify_tenant_access(school_id, auth)
+    timetable_service.delete_entry(school_id, entry_id)
+
+
+@router.patch("/entries/{entry_id}/move", response_model=EntryOut)
+def move_entry(
+    school_id: str,
+    entry_id: str,
+    req: MoveRequest,
+    auth: AuthContext = Depends(require_roles(["admin"])),
+):
+    """Move a timetable entry to a new day and period with strict constraint validation. Admin only."""
+    verify_tenant_access(school_id, auth)
+    return timetable_service.move_entry(school_id, entry_id, req.new_day, req.new_period)
+
+
+@router.post("/entries/{entry_id}/swap/{other_entry_id}", response_model=list[EntryOut])
+def swap_entries(
+    school_id: str,
+    entry_id: str,
+    other_entry_id: str,
+    auth: AuthContext = Depends(require_roles(["admin"])),
+):
+    """Swap two timetable entries with bi-directional constraint validation. Admin only."""
+    verify_tenant_access(school_id, auth)
+    return timetable_service.swap_entries(school_id, entry_id, other_entry_id)
+
 
 
 @router.post("/publish", response_model=PublishResponse)

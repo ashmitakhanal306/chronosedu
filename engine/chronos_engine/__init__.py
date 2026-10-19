@@ -1,8 +1,12 @@
 from .models import (
+    Assignment,
+    BlockedSlot,
     ClassSection,
     Diagnostic,
     Entry,
+    PinnedLesson,
     ProblemInput,
+    QualityReport,
     Rules,
     SolveResult,
     Subject,
@@ -13,10 +17,14 @@ from .solver import solve
 from .substitutes import rank_substitutes
 
 __all__ = [
+    "Assignment",
+    "BlockedSlot",
     "ClassSection",
     "Diagnostic",
     "Entry",
+    "PinnedLesson",
     "ProblemInput",
+    "QualityReport",
     "Rules",
     "SolveResult",
     "Subject",

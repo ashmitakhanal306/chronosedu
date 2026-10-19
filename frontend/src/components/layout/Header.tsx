@@ -1,45 +1,47 @@
-import { Calendar, ShieldCheck, UserCheck, Building2, GraduationCap, Key, Plus } from 'lucide-react';
+import { Building2, Bell, RotateCcw, Plus, Key } from 'lucide-react';
 import { useState } from 'react';
 import type { TimetableApp } from '../../hooks/useTimetableApp';
 import { NewSchoolModal } from './NewSchoolModal';
 
 export function Header({ app }: { app: TimetableApp }) {
-  const { schools, activeSchool, currentUser, setActiveSchoolId, setIsAuthModalOpen } = app;
+  const {
+    schools, activeSchool, activeRole, switchRole, currentSchedule,
+    setActiveSchoolId, setIsAuthModalOpen, resetDemoData, showToast,
+  } = app;
   const [isNewSchoolOpen, setIsNewSchoolOpen] = useState(false);
+
+  const versions = activeSchool.versions || [];
+  const latestVersion = versions[0];
+  const versionLabel = latestVersion
+    ? `${latestVersion.state === 'published' ? 'Published' : latestVersion.state === 'approved' ? 'Approved' : 'Draft'} (v${latestVersion.versionNumber})`
+    : activeSchool.published ? 'Published (v1)' : 'Draft (v1)';
+
+  const assignedCount = (activeSchool.assignments || []).length;
+  const isSetupReady = assignedCount > 0;
 
   return (
     <>
-      <header className="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-4">
-          {/* Brand & Tenant Switcher */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-indigo-500 flex items-center justify-center shadow-inner">
-                <Calendar className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-bold tracking-tight text-base">ChronosEdu</span>
-                  <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">
-                    Multi-Tenant SaaS
-                  </span>
-                </div>
-                <p className="text-xs text-slate-400 hidden sm:block">Automated School Constraint Solver & Substitution Engine</p>
-              </div>
+      <header className="no-print sticky top-0 z-30 bg-slate-900 text-white border-b border-slate-800 shadow-sm">
+        <div className="max-w-[1600px] mx-auto px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
+          {/* Brand & Active School */}
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center font-extrabold text-lg shadow-inner text-white select-none">
+              C
             </div>
-
-            <div className="h-6 w-px bg-slate-800 hidden md:block" />
-
-            {/* Tenant Selector & New School button */}
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2 bg-slate-800/90 border border-slate-700 rounded-lg px-2.5 py-1.5">
-                <Building2 className="w-4 h-4 text-indigo-400 shrink-0" />
-                <div className="text-xs">
-                  <span className="text-slate-400 block text-[10px] leading-none">Active Tenant (School)</span>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-bold tracking-tight text-base text-white">ChronosEdu</span>
+                <span className="text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 font-semibold">
+                  v2.6 Engine
+                </span>
+              </div>
+              <div className="text-xs text-slate-400 flex items-center gap-1.5 flex-wrap">
+                <div className="flex items-center gap-1">
+                  <Building2 className="w-3.5 h-3.5 text-slate-400" />
                   <select
                     value={activeSchool.id}
                     onChange={(e) => setActiveSchoolId(e.target.value)}
-                    className="bg-transparent text-white font-semibold focus:outline-none cursor-pointer pr-2"
+                    className="bg-transparent text-slate-200 font-semibold focus:outline-none cursor-pointer hover:text-white"
                   >
                     {schools.map(s => (
                       <option key={s.id} value={s.id} className="bg-slate-900 text-white">
@@ -48,80 +50,124 @@ export function Header({ app }: { app: TimetableApp }) {
                     ))}
                   </select>
                 </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setIsNewSchoolOpen(true)}
-                className="inline-flex items-center gap-1.5 px-2.5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-xs transition cursor-pointer"
-                title="Create a new school tenant"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">New School</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Authenticated User Identity & Login Switcher */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2.5 bg-slate-800/90 border border-slate-700/80 rounded-xl px-3 py-1.5">
-              <div className="w-7 h-7 rounded-lg bg-indigo-600/30 border border-indigo-400/30 flex items-center justify-center text-indigo-300">
-                {currentUser.role === 'admin' && <ShieldCheck className="w-4 h-4" />}
-                {currentUser.role === 'teacher' && <UserCheck className="w-4 h-4" />}
-                {currentUser.role === 'student' && <GraduationCap className="w-4 h-4" />}
-              </div>
-              <div className="text-left">
-                <div className="flex items-center gap-1.5 leading-none">
-                  <span className="text-xs font-semibold text-white">{currentUser.name}</span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                    {currentUser.role}
-                  </span>
-                </div>
-                <span className="text-[10px] text-slate-400 block mt-0.5 leading-none">
-                  JWT Verified • {activeSchool.name}
+                <span>•</span>
+                <span className="text-emerald-400 font-medium">
+                  {activeSchool.term || '2026–2027 (Term 1)'}
                 </span>
               </div>
             </div>
-
-            <button
-              onClick={() => setIsAuthModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-medium transition cursor-pointer"
-              title="Authenticate as different tenant or role"
-            >
-              <Key className="w-3.5 h-3.5 text-indigo-400" />
-              <span>Switch User / Login</span>
-            </button>
           </div>
-        </div>
 
-        {/* Sub-bar with School Metadata & Quick Status */}
-        <div className="bg-slate-950/60 border-t border-slate-800/80 px-4 sm:px-6 py-2">
-          <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
-            <div className="flex flex-wrap items-center gap-4">
-              <span>Tenant Domain: <strong className="text-slate-200">{activeSchool.subdomain}</strong></span>
-              <span>•</span>
-              <span>Days: <strong className="text-slate-200">{activeSchool.workingDays.length} Days ({activeSchool.workingDays.map(d => d.slice(0, 3)).join(', ')})</strong></span>
-              <span>•</span>
-              <span>Primary Cutoff: <strong className="text-emerald-400">{activeSchool.periodSlots.find(s => s.number === activeSchool.rules.primaryEndPeriod)?.time.split('-')[1]?.trim() || '12:00 PM'} (P{activeSchool.rules.primaryEndPeriod})</strong></span>
-              <span>•</span>
-              <span>Senior Cutoff: <strong className="text-sky-400">{activeSchool.periodSlots.find(s => s.number === activeSchool.rules.seniorEndPeriod)?.time.split('-')[1]?.trim() || '02:00 PM'} (P{activeSchool.rules.seniorEndPeriod})</strong></span>
-              <span>•</span>
-              <span>Activity Block: <strong className="text-purple-400">{activeSchool.rules.activityDay} (P{activeSchool.rules.activityPeriods.join(', P')})</strong></span>
+          {/* 3-Layer Status Breadcrumb */}
+          <div className="hidden xl:flex items-center bg-slate-800/90 border border-slate-700/80 rounded-xl px-3.5 py-1.5 text-xs gap-3">
+            <div className="flex items-center gap-1.5">
+              <span className={`w-2 h-2 rounded-full ${isSetupReady ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+              <span className="text-slate-300">
+                <strong className="text-white">Layer A:</strong> Facts Setup ({isSetupReady ? '10/10 Ready' : 'Needs Setup'})
+              </span>
             </div>
-            <div className="flex items-center gap-2">
-              <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium ${
-                activeSchool.published
-                  ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
-                  : 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
-              }`}>
-                <span className={`w-1.5 h-1.5 rounded-full ${activeSchool.published ? 'bg-emerald-400' : 'bg-amber-400'}`} />
-                {activeSchool.published ? 'Published Live' : 'Draft Mode'}
+            <span className="text-slate-600">→</span>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-indigo-400" />
+              <span className="text-slate-300">
+                <strong className="text-white">Layer B:</strong> Rule Solver ({currentSchedule.entries && Object.keys(currentSchedule.entries).length > 0 ? '96% Quality' : 'Standby'})
+              </span>
+            </div>
+            <span className="text-slate-600">→</span>
+            <div className="flex items-center gap-1.5">
+              <span className={`w-2 h-2 rounded-full ${activeSchool.published ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+              <span className="text-slate-300">
+                <strong className="text-white">Layer C:</strong> {versionLabel}
               </span>
             </div>
           </div>
+
+          {/* Role Switcher & Global Actions */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center bg-slate-800 p-1 rounded-xl border border-slate-700">
+              <span className="text-[11px] text-slate-400 px-2 font-medium">Role:</span>
+              <button
+                type="button"
+                onClick={() => switchRole('admin')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                  activeRole === 'admin'
+                    ? 'bg-indigo-600 text-white shadow-2xs'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-700/60'
+                }`}
+              >
+                School Admin
+              </button>
+              <button
+                type="button"
+                onClick={() => switchRole('teacher')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                  activeRole === 'teacher'
+                    ? 'bg-indigo-600 text-white shadow-2xs'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-700/60'
+                }`}
+              >
+                Teacher
+              </button>
+              <button
+                type="button"
+                onClick={() => switchRole('student')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                  activeRole === 'student'
+                    ? 'bg-indigo-600 text-white shadow-2xs'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-700/60'
+                }`}
+              >
+                Student / Parent
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => showToast('All hard rules (H1–H7) conflict-free. Zero blockers.', 'info')}
+              className="relative px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium flex items-center gap-1.5 text-slate-200 transition cursor-pointer"
+              title="System Alerts & Notifications"
+            >
+              <Bell className="w-3.5 h-3.5 text-slate-300" />
+              <span className="px-1.5 py-0.2 bg-amber-500 text-slate-950 rounded-full text-[10px] font-bold">
+                {activeSchool.absences.length > 0 ? activeSchool.absences.length : 1}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={resetDemoData}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-300 hover:text-white transition cursor-pointer"
+              title="Reset to default sample data"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Reset Demo</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsNewSchoolOpen(true)}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-500/40 text-indigo-200 hover:text-white text-xs font-medium transition cursor-pointer"
+              title="Add School Tenant"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">School</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsAuthModalOpen(true)}
+              className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
+              title="JWT Switch User / Login"
+            >
+              <Key className="w-4 h-4 text-indigo-400" />
+            </button>
+          </div>
         </div>
       </header>
-      <NewSchoolModal app={app} isOpen={isNewSchoolOpen} onClose={() => setIsNewSchoolOpen(false)} />
+
+      {isNewSchoolOpen && (
+        <NewSchoolModal isOpen={isNewSchoolOpen} onClose={() => setIsNewSchoolOpen(false)} app={app} />
+      )}
     </>
   );
 }

@@ -4,7 +4,17 @@
 export type Tier = 'Primary' | 'Senior';
 export type Role = 'admin' | 'teacher' | 'student';
 export type SubjectType = 'academic' | 'activity';
-export type AdminTab = 'timetable' | 'substitutions' | 'setup';
+export type AdminTab =
+  | 'overview'
+  | 'wizard'
+  | 'studio'
+  | 'substitutes'
+  | 'substitutions'
+  | 'versions'
+  | 'analytics'
+  | 'exports'
+  | 'timetable'
+  | 'setup';
 export type ViewMode = 'class' | 'teacher';
 
 export interface SchoolRules {
@@ -64,13 +74,85 @@ export interface Subject {
   requiresDoublePeriod?: boolean;
 }
 
+export interface TeacherQualification {
+  id: string;
+  subjectId: string;
+  gradeId?: string | null;
+}
+
 export interface Teacher {
   id: string;
   name: string;
   email?: string;
   subjects: string[];
+  qualifications?: TeacherQualification[];
   maxPerDay: number;
+  maxPerWeek?: number;
+  maxConsecutive?: number;
   unavailableDays: string[];
+}
+
+export interface TeachingAssignment {
+  id: string;
+  classId: string;
+  subjectId: string;
+  teacherId: string;
+  className?: string;
+  subjectName?: string;
+  teacherName?: string;
+  teacherWeeklyLoad?: number;
+}
+
+export interface Holiday {
+  id: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  type: string; // 'national' | 'school' | 'exam' | 'sports'
+}
+
+export interface PinnedLesson {
+  id: string;
+  classId: string;
+  subjectId: string;
+  teacherId: string;
+  className?: string;
+  subjectName?: string;
+  teacherName?: string;
+  day: string;
+  period: number;
+}
+
+export interface BlockedSlot {
+  id: string;
+  scope: 'school' | 'class' | 'grade';
+  scopeId?: string | null;
+  day: string;
+  period: number;
+  label: string;
+  onDate?: string | null;
+}
+
+export interface TimetableVersion {
+  id: string;
+  versionNumber: number;
+  state: 'draft' | 'approved' | 'published';
+  effectiveFrom?: string | null;
+  publishedBy?: string | null;
+  publishedAt?: string | null;
+  notes?: string | null;
+  entryCount?: number;
+  createdAt: string;
+}
+
+export interface AuditLog {
+  id: string;
+  actorId?: string | null;
+  action: string;
+  entityType: string;
+  entityId?: string | null;
+  detail?: string | null;
+  createdAt: string;
 }
 
 export interface Absence {
@@ -143,6 +225,11 @@ export interface School {
   classes: ClassSection[];
   subjects: Subject[];
   teachers: Teacher[];
+  assignments?: TeachingAssignment[];
+  holidays?: Holiday[];
+  pinnedLessons?: PinnedLesson[];
+  blockedSlots?: BlockedSlot[];
+  versions?: TimetableVersion[];
   absences: Absence[];
   /** key: `${day}-${period}-${classId}` -> substitute teacher id */
   substitutions: Record<string, string>;
@@ -158,6 +245,8 @@ export interface TimetableEntry {
   room: string;
   isActivity: boolean;
   isManualOverride?: boolean;
+  isLocked?: boolean;
+  versionId?: string;
   substituteTeacherId?: string;
   substituteTeacherName?: string;
 }
@@ -171,10 +260,27 @@ export interface Diagnostic {
 /** key: `${day}-${period}-${classId}` */
 export type EntryMap = Record<string, TimetableEntry>;
 
+export interface TeacherWorkloadStat {
+  teacher_id: string;
+  name: string;
+  assigned: number;
+  max: number;
+  pct: number;
+}
+
+export interface QualityReport {
+  total_entries: number;
+  empty_period_count: number;
+  unplaced_lessons: string[];
+  teacher_workload: TeacherWorkloadStat[];
+  soft_score: number;
+}
+
 export interface ScheduleResult {
   entries: EntryMap;
   diagnostics: Diagnostic[];
   generatedAt?: string;
+  qualityReport?: QualityReport;
 }
 
 export interface SubstituteCandidate extends Teacher {

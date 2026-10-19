@@ -1,7 +1,7 @@
 import type { ClassSection, EntryMap, School, Subject, Teacher } from '../../domain/types';
 import { computeBellSchedule } from '../../engine/bellSchedule';
 import { DEFAULT_TIMING_CONFIG } from '../../domain/types';
-import { FlaskConical } from 'lucide-react';
+import { FlaskConical, Pin } from 'lucide-react';
 
 interface Props {
   school: School;
@@ -166,6 +166,13 @@ export function ClassTimetableGrid({
                     const subTeacher = subTeacherId ? teacherMap[subTeacherId] : null;
                     const isAbsent = school.absences.some(a => a.day === day && a.teacherId === entry?.teacherId);
                     const isActivitySlot = day === school.rules.activityDay && school.rules.activityPeriods.includes(periodNum);
+                    const isPinned = (school.pinnedLessons || []).some(
+                      p => p.classId === cls.id && p.day === day && p.period === periodNum
+                    ) || Boolean(entry?.isLocked);
+                    const blockedSlot = (school.blockedSlots || []).find(
+                      b => (b.scope === 'school' || (b.scope === 'grade' && b.scopeId === cls.tier) || (b.scope === 'class' && b.scopeId === cls.id)) &&
+                           b.day === day && b.period === periodNum
+                    );
 
                     // Search & Filter matching
                     const hasSearch = Boolean(searchQuery && searchQuery.trim().length > 0);
@@ -225,10 +232,16 @@ export function ClassTimetableGrid({
                             <div className="flex items-start justify-between gap-1">
                               <span className="font-bold text-xs leading-tight">{sub.name}</span>
                               <div className="flex items-center gap-1 shrink-0">
+                                {isPinned && (
+                                  <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-500 text-white flex items-center gap-0.5 shadow-2xs" title="Pinned Slot: Solver will never move this lesson">
+                                    <Pin className="w-2.5 h-2.5" />
+                                    <span>Pinned</span>
+                                  </span>
+                                )}
                                 {isDoubleBlock && (
                                   <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-purple-600 text-white flex items-center gap-0.5 shadow-2xs" title="90-Minute Consecutive Lab / Practical Block">
                                     <FlaskConical className="w-2.5 h-2.5" />
-                                    <span>90m Block</span>
+                                    <span>90m</span>
                                   </span>
                                 )}
                                 {entry.isActivity && (
@@ -257,6 +270,19 @@ export function ClassTimetableGrid({
                                 {entry.isManualOverride && <span className="underline">Edited</span>}
                               </div>
                             </div>
+                          </div>
+                        ) : blockedSlot ? (
+                          <div
+                            className={`h-16 rounded-xl border border-dashed border-rose-300 bg-rose-50/70 p-2 flex flex-col items-center justify-center text-center transition-opacity ${
+                              isFilterActive ? 'opacity-20' : ''
+                            }`}
+                          >
+                            <span className="text-[10px] font-bold text-rose-800 flex items-center gap-1">
+                              🚫 {blockedSlot.label}
+                            </span>
+                            <span className="text-[9px] font-semibold text-rose-500 capitalize">
+                              {blockedSlot.scope} Blocked
+                            </span>
                           </div>
                         ) : (
                           <div

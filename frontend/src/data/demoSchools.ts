@@ -89,6 +89,39 @@ export const INITIAL_SCHOOLS: School[] = [
       // Pre-populated example absence so user can immediately see Substitute Ranking in action
       { id: 'abs-1', teacherId: 't-1', day: 'Tuesday', reason: 'Medical Leave' }
     ],
+    assignments: [
+      { id: 'asgn-1', classId: 'c-4a', subjectId: 'sub-math', teacherId: 't-1' },
+      { id: 'asgn-2', classId: 'c-4a', subjectId: 'sub-eng', teacherId: 't-3' },
+      { id: 'asgn-3', classId: 'c-4a', subjectId: 'sub-sci', teacherId: 't-5' },
+      { id: 'asgn-4', classId: 'c-4a', subjectId: 'sub-sst', teacherId: 't-7' },
+      { id: 'asgn-5', classId: 'c-4a', subjectId: 'sub-mus', teacherId: 't-9' },
+      { id: 'asgn-6', classId: 'c-4a', subjectId: 'sub-art', teacherId: 't-10' },
+
+      { id: 'asgn-7', classId: 'c-5b', subjectId: 'sub-math', teacherId: 't-2' },
+      { id: 'asgn-8', classId: 'c-5b', subjectId: 'sub-eng', teacherId: 't-4' },
+      { id: 'asgn-9', classId: 'c-5b', subjectId: 'sub-sci', teacherId: 't-6' },
+      { id: 'asgn-10', classId: 'c-5b', subjectId: 'sub-sst', teacherId: 't-8' },
+      { id: 'asgn-11', classId: 'c-5b', subjectId: 'sub-mus', teacherId: 't-9' },
+      { id: 'asgn-12', classId: 'c-5b', subjectId: 'sub-art', teacherId: 't-10' },
+
+      { id: 'asgn-13', classId: 'c-9a', subjectId: 'sub-math', teacherId: 't-1' },
+      { id: 'asgn-14', classId: 'c-9a', subjectId: 'sub-eng', teacherId: 't-3' },
+      { id: 'asgn-15', classId: 'c-9a', subjectId: 'sub-sci', teacherId: 't-5' },
+      { id: 'asgn-16', classId: 'c-9a', subjectId: 'sub-sst', teacherId: 't-7' },
+      { id: 'asgn-17', classId: 'c-9a', subjectId: 'sub-cs', teacherId: 't-2' },
+      { id: 'asgn-18', classId: 'c-9a', subjectId: 'sub-hin', teacherId: 't-4' },
+      { id: 'asgn-19', classId: 'c-9a', subjectId: 'sub-mus', teacherId: 't-12' },
+      { id: 'asgn-20', classId: 'c-9a', subjectId: 'sub-gam', teacherId: 't-11' },
+
+      { id: 'asgn-21', classId: 'c-10a', subjectId: 'sub-math', teacherId: 't-2' },
+      { id: 'asgn-22', classId: 'c-10a', subjectId: 'sub-eng', teacherId: 't-4' },
+      { id: 'asgn-23', classId: 'c-10a', subjectId: 'sub-sci', teacherId: 't-6' },
+      { id: 'asgn-24', classId: 'c-10a', subjectId: 'sub-sst', teacherId: 't-8' },
+      { id: 'asgn-25', classId: 'c-10a', subjectId: 'sub-cs', teacherId: 't-6' },
+      { id: 'asgn-26', classId: 'c-10a', subjectId: 'sub-hin', teacherId: 't-8' },
+      { id: 'asgn-27', classId: 'c-10a', subjectId: 'sub-mus', teacherId: 't-12' },
+      { id: 'asgn-28', classId: 'c-10a', subjectId: 'sub-gam', teacherId: 't-11' },
+    ],
     substitutions: {} // key: `${day}-${period}-${classId}` -> substituteTeacherId
   },
   {
@@ -153,6 +186,19 @@ export const INITIAL_SCHOOLS: School[] = [
       { id: 'xt-5', name: 'Ms. Claire Dearing', subjects: ['x-act1', 'x-act2', 'x-eng'], maxPerDay: 5, unavailableDays: [] },
     ],
     absences: [],
+    assignments: [
+      { id: 'x-asgn-1', classId: 'x-3a', subjectId: 'x-math', teacherId: 'xt-1' },
+      { id: 'x-asgn-2', classId: 'x-3a', subjectId: 'x-eng', teacherId: 'xt-5' },
+      { id: 'x-asgn-3', classId: 'x-3a', subjectId: 'x-sci', teacherId: 'xt-2' },
+      { id: 'x-asgn-4', classId: 'x-3a', subjectId: 'x-act1', teacherId: 'xt-4' },
+      { id: 'x-asgn-5', classId: 'x-3a', subjectId: 'x-act2', teacherId: 'xt-5' },
+      { id: 'x-asgn-6', classId: 'x-11a', subjectId: 'x-math', teacherId: 'xt-1' },
+      { id: 'x-asgn-7', classId: 'x-11a', subjectId: 'x-eng', teacherId: 'xt-3' },
+      { id: 'x-asgn-8', classId: 'x-11a', subjectId: 'x-sci', teacherId: 'xt-2' },
+      { id: 'x-asgn-9', classId: 'x-11a', subjectId: 'x-hum', teacherId: 'xt-3' },
+      { id: 'x-asgn-10', classId: 'x-11a', subjectId: 'x-act1', teacherId: 'xt-5' },
+      { id: 'x-asgn-11', classId: 'x-11a', subjectId: 'x-act2', teacherId: 'xt-4' },
+    ],
     substitutions: {}
   }
 ];

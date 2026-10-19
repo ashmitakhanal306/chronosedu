@@ -101,6 +101,12 @@ async def test_substitution_assign_triggers_background_notification():
         })
         t2 = t2_resp.json()
 
+        # Assign teacher (Phase 1)
+        await auth_client.post(
+            f"/api/schools/{sid}/assignments",
+            json={"class_id": cid, "subject_id": sub_id, "teacher_id": t1["id"]},
+        )
+
         # Generate schedule
         gen_resp = await auth_client.post(f"/api/schools/{sid}/generate")
         assert gen_resp.status_code == 200
@@ -167,6 +173,12 @@ async def test_notification_failure_never_blocks_assignment():
             await auth_client.post(f"/api/schools/{sid}/requirements", json={"subject_id": s["id"], "grade_id": g["id"], "weekly_frequency": 20})
             t1 = (await auth_client.post(f"/api/schools/{sid}/teachers", json={"name": "T1", "subject_ids": [s["id"]]})).json()
             t2 = (await auth_client.post(f"/api/schools/{sid}/teachers", json={"name": "T2", "subject_ids": [s["id"]]})).json()
+
+            # Assign teacher (Phase 1)
+            await auth_client.post(
+                f"/api/schools/{sid}/assignments",
+                json={"class_id": c["id"], "subject_id": s["id"], "teacher_id": t1["id"]},
+            )
 
             gen = (await auth_client.post(f"/api/schools/{sid}/generate")).json()
             entry = gen["entries"][0]
