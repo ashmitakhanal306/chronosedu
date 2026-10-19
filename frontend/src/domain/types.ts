@@ -168,9 +168,11 @@ export interface TimingConfig {
   hasZeroPeriod: boolean;
   zeroPeriodDurationMinutes: number; // 30
   zeroPeriodLabel: string; // "Zero Period (Homeroom / Assembly)"
+  hasRecessBreak?: boolean; // optional short break toggle
   recessAfterPeriod: number; // 2
   recessDurationMinutes: number; // 15
   recessLabel: string; // "Short Break"
+  hasLunchBreak?: boolean; // optional lunch break toggle
   lunchAfterPeriod: number; // 4
   lunchDurationMinutes: number; // 30
   lunchLabel: string; // "Lunch Break"
@@ -183,9 +185,11 @@ export const DEFAULT_TIMING_CONFIG: TimingConfig = {
   hasZeroPeriod: true,
   zeroPeriodDurationMinutes: 30,
   zeroPeriodLabel: 'Zero Period (Homeroom / Assembly)',
+  hasRecessBreak: true,
   recessAfterPeriod: 2,
   recessDurationMinutes: 15,
   recessLabel: 'Short Break',
+  hasLunchBreak: true,
   lunchAfterPeriod: 4,
   lunchDurationMinutes: 30,
   lunchLabel: 'Lunch Break',

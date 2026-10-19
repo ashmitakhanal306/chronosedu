@@ -80,8 +80,9 @@ export function computeBellSchedule(timing: TimingConfig, rules: SchoolRules): C
     });
     currentMin = pEnd;
 
-    // Check Recess Break
-    if (p === timing.recessAfterPeriod && timing.recessDurationMinutes > 0) {
+    // Check Recess Break (if enabled)
+    const hasRecess = timing.hasRecessBreak ?? true;
+    if (hasRecess && p === timing.recessAfterPeriod && timing.recessDurationMinutes > 0) {
       const bEnd = currentMin + timing.recessDurationMinutes;
       slots.push({
         number: 'B1',
@@ -94,8 +95,9 @@ export function computeBellSchedule(timing: TimingConfig, rules: SchoolRules): C
       currentMin = bEnd;
     }
 
-    // Check Lunch Break
-    if (p === timing.lunchAfterPeriod && timing.lunchDurationMinutes > 0) {
+    // Check Lunch Break (if enabled)
+    const hasLunch = timing.hasLunchBreak ?? true;
+    if (hasLunch && p === timing.lunchAfterPeriod && timing.lunchDurationMinutes > 0) {
       const lEnd = currentMin + timing.lunchDurationMinutes;
       slots.push({
         number: 'L1',

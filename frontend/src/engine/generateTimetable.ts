@@ -164,8 +164,10 @@ export function generateSchoolTimetable(school: School): ScheduleResult {
         const prevKey = `${day}-${period - 1}-${cls.id}`;
         const prevEntry = entries[prevKey];
         const prevSub = prevEntry ? subjects.find(s => s.id === prevEntry.subjectId) : null;
-        const recessAfter = school.timingConfig?.recessAfterPeriod || 2;
-        const lunchAfter = school.timingConfig?.lunchAfterPeriod || 4;
+        const hasRecess = school.timingConfig?.hasRecessBreak ?? true;
+        const recessAfter = hasRecess ? (school.timingConfig?.recessAfterPeriod ?? 2) : -1;
+        const hasLunch = school.timingConfig?.hasLunchBreak ?? true;
+        const lunchAfter = hasLunch ? (school.timingConfig?.lunchAfterPeriod ?? 4) : -1;
 
         if (prevSub?.requiresDoublePeriod && (period - 1) !== recessAfter && (period - 1) !== lunchAfter) {
           const matchDemand = availableDemands.find(d => d.subject.id === prevSub.id && d.remaining > 0);

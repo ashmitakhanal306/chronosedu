@@ -76,7 +76,9 @@ class Rules:
     max_teacher_periods_per_day: int = 5
     activity_day: str = "Wednesday"
     activity_periods: tuple[int, ...] = (1, 2)
+    has_recess_break: bool = True
     recess_after_period: int = 2
+    has_lunch_break: bool = True
     lunch_after_period: int = 4
     # Optimization & Soft Constraint Preferences (S1 & S2 on by default; S3 & S4 opt-in; S5 double periods)
     spread_subjects: bool = True

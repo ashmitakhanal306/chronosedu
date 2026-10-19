@@ -407,9 +407,11 @@ def solve(problem: ProblemInput, *, time_limit_s: float = 30.0) -> SolveResult:
             model.Add(sum(all_t_vars) <= t_week_cap)
 
     # Hard Constraint H_consec: Max consecutive periods without a break (Phase 3-C)
-    recess_after = getattr(rules, "recess_after_period", 2)
-    lunch_after = getattr(rules, "lunch_after_period", 4)
-    break_periods = {recess_after, lunch_after}
+    break_periods = set()
+    if getattr(rules, "has_recess_break", True):
+        break_periods.add(getattr(rules, "recess_after_period", 2))
+    if getattr(rules, "has_lunch_break", True):
+        break_periods.add(getattr(rules, "lunch_after_period", 4))
 
     for t in teachers:
         max_consec = getattr(t, "max_consecutive_periods", 3)
@@ -499,11 +501,14 @@ def solve(problem: ProblemInput, *, time_limit_s: float = 30.0) -> SolveResult:
 
     # S5: Consecutive Double Periods for Practical / Lab / Art subjects
     if getattr(rules, "consecutive_double_periods", True):
-        recess_after = getattr(rules, "recess_after_period", 2)
-        lunch_after = getattr(rules, "lunch_after_period", 4)
+        break_periods = set()
+        if getattr(rules, "has_recess_break", True):
+            break_periods.add(getattr(rules, "recess_after_period", 2))
+        if getattr(rules, "has_lunch_break", True):
+            break_periods.add(getattr(rules, "lunch_after_period", 4))
         for c in classes:
             max_p = class_max_p[c.id]
-            valid_start_periods = [p for p in range(1, max_p) if p != recess_after and p != lunch_after]
+            valid_start_periods = [p for p in range(1, max_p) if p not in break_periods]
             for s in subjects:
                 if not getattr(s, "requires_double_period", False):
                     continue
