@@ -86,6 +86,12 @@ class RoomOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class RoomUpdate(BaseModel):
+    name: str | None = None
+    type: str | None = None
+    capacity: int | None = None
+
+
 class ClassSectionCreate(BaseModel):
     grade_id: str
     section: str
@@ -196,6 +202,7 @@ class FullSchoolOut(BaseModel):
     timingConfig: dict[str, Any] | None = None
     periodSlots: list[dict[str, Any]] = Field(default_factory=list)
     classes: list[dict[str, Any]] = Field(default_factory=list)
+    rooms: list[dict[str, Any]] = Field(default_factory=list)
     subjects: list[dict[str, Any]] = Field(default_factory=list)
     teachers: list[dict[str, Any]] = Field(default_factory=list)
     assignments: list[dict[str, Any]] = Field(default_factory=list)

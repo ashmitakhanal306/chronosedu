@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Pin, Ban, Plus, Trash2, ShieldAlert, Sparkles, Building2, Users, Layers } from 'lucide-react';
 import type { School, PinnedLesson, BlockedSlot } from '../../domain/types';
 import type { TimetableApp } from '../../hooks/useTimetableApp';
+import { sortClasses, sortTeachers } from '../../utils/sorting';
 
 interface Props {
   school: School;
@@ -11,10 +12,13 @@ interface Props {
 export function SpecialRulesCard({ school, app }: Props) {
   const [activeTab, setActiveTab] = useState<'pinned' | 'blocked'>('pinned');
 
+  const sortedClasses = useMemo(() => sortClasses(school.classes), [school.classes]);
+  const sortedTeachers = useMemo(() => sortTeachers(school.teachers), [school.teachers]);
+
   // Pinned Lesson Form State
-  const [pinClassId, setPinClassId] = useState(school.classes[0]?.id || '');
+  const [pinClassId, setPinClassId] = useState(sortedClasses[0]?.id || school.classes[0]?.id || '');
   const [pinSubjectId, setPinSubjectId] = useState(school.subjects[0]?.id || '');
-  const [pinTeacherId, setPinTeacherId] = useState(school.teachers[0]?.id || '');
+  const [pinTeacherId, setPinTeacherId] = useState(sortedTeachers[0]?.id || school.teachers[0]?.id || '');
   const [pinDay, setPinDay] = useState(school.workingDays[0] || 'Monday');
   const [pinPeriod, setPinPeriod] = useState<number>(1);
   const [isPinSubmitting, setIsPinSubmitting] = useState(false);
@@ -183,7 +187,7 @@ export function SpecialRulesCard({ school, app }: Props) {
                   onChange={e => handleClassChange(e.target.value)}
                   className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white font-medium"
                 >
-                  {school.classes.map(c => (
+                  {sortedClasses.map(c => (
                     <option key={c.id} value={c.id}>{c.name} ({c.grade})</option>
                   ))}
                 </select>
@@ -212,7 +216,7 @@ export function SpecialRulesCard({ school, app }: Props) {
                     matchingAssignment ? 'bg-slate-100 text-slate-600 cursor-not-allowed' : ''
                   }`}
                 >
-                  {school.teachers.map(t => (
+                  {sortedTeachers.map(t => (
                     <option key={t.id} value={t.id}>{t.name}</option>
                   ))}
                 </select>
@@ -347,7 +351,7 @@ export function SpecialRulesCard({ school, app }: Props) {
                       className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white font-medium"
                     >
                       <option value="">-- Choose Class --</option>
-                      {school.classes.map(c => (
+                      {sortedClasses.map(c => (
                         <option key={c.id} value={c.id}>{c.name}</option>
                       ))}
                     </select>

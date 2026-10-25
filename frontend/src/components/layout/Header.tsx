@@ -145,6 +145,15 @@ export function Header({ app }: { app: TimetableApp }) {
 
             <button
               type="button"
+              onClick={app.loadTestDataset2}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/30 text-amber-200 hover:text-white text-xs font-semibold transition cursor-pointer"
+              title="Load Test Dataset 2: Greenwood Public School with Real-World Issues"
+            >
+              <span>🧪 Test Dataset 2</span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => setIsNewSchoolOpen(true)}
               className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-500/40 text-indigo-200 hover:text-white text-xs font-medium transition cursor-pointer"
               title="Add School Tenant"

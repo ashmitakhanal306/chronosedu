@@ -21,6 +21,7 @@ export function StudentPortal({ app }: { app: TimetableApp }) {
     setSelectedClassId,
     currentUser,
     exportPrintPdf,
+    sortedClasses,
   } = app;
 
   const isStudentRole = currentUser.role === 'student';
@@ -98,7 +99,7 @@ export function StudentPortal({ app }: { app: TimetableApp }) {
           </div>
 
           <div className="flex flex-wrap items-center gap-1.5">
-            {activeSchool.classes.map(cls => {
+            {(sortedClasses || activeSchool.classes).map(cls => {
               const isSelected = selectedClass?.id === cls.id;
               return (
                 <button

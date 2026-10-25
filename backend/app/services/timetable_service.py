@@ -312,10 +312,16 @@ def get_timetable(
         )
 
         if class_id:
-            stmt = stmt.where(models.TimetableEntry.class_id == uuid.UUID(class_id))
+            try:
+                stmt = stmt.where(models.TimetableEntry.class_id == uuid.UUID(class_id))
+            except (ValueError, AttributeError):
+                return []
         if teacher_id:
-            tid = uuid.UUID(teacher_id)
-            stmt = stmt.where(models.TimetableEntry.teacher_id == tid)
+            try:
+                tid = uuid.UUID(teacher_id)
+                stmt = stmt.where(models.TimetableEntry.teacher_id == tid)
+            except (ValueError, AttributeError):
+                return []
 
         entries = session.scalars(stmt).unique().all()
 

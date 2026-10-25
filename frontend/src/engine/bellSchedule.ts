@@ -30,6 +30,7 @@ export function formatRange(startMin: number, endMin: number): string {
 
 export interface ComputedBellSchedule {
   slots: PeriodSlot[];
+  prePrimaryDismissalTime?: string;
   primaryDismissalTime: string;
   seniorDismissalTime: string;
 }
@@ -37,6 +38,7 @@ export interface ComputedBellSchedule {
 export function computeBellSchedule(timing: TimingConfig, rules: SchoolRules): ComputedBellSchedule {
   const slots: PeriodSlot[] = [];
   let currentMin = parseTimeToMinutes(timing.startTime);
+  let prePrimaryDismissalTime = '';
   let primaryDismissalTime = '';
   let seniorDismissalTime = '';
 
@@ -61,6 +63,9 @@ export function computeBellSchedule(timing: TimingConfig, rules: SchoolRules): C
     const isPastPrimary = p > rules.primaryEndPeriod;
 
     let note: string | undefined = undefined;
+    if (rules.prePrimaryEndPeriod && p === rules.prePrimaryEndPeriod) {
+      prePrimaryDismissalTime = formatMinutesToTime(pEnd, true);
+    }
     if (p === rules.primaryEndPeriod) {
       primaryDismissalTime = formatMinutesToTime(pEnd, true);
       note = `Primary Dismissal (${formatMinutesToTime(pEnd)})`;
@@ -113,6 +118,7 @@ export function computeBellSchedule(timing: TimingConfig, rules: SchoolRules): C
 
   return {
     slots,
+    prePrimaryDismissalTime: prePrimaryDismissalTime || undefined,
     primaryDismissalTime: primaryDismissalTime || formatMinutesToTime(currentMin, true),
     seniorDismissalTime: seniorDismissalTime || formatMinutesToTime(currentMin, true),
   };

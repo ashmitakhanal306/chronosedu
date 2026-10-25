@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { ShieldCheck, UserCheck, GraduationCap, Building2, Key, Check, X, Lock } from 'lucide-react';
 import type { TimetableApp } from '../../hooks/useTimetableApp';
 import type { Role } from '../../domain/types';
+import { sortClasses, sortTeachers } from '../../utils/sorting';
 
 export function LoginModal({ app }: { app: TimetableApp }) {
   const {
@@ -13,15 +14,33 @@ export function LoginModal({ app }: { app: TimetableApp }) {
     login,
   } = app;
 
+  const currentSchool = schools.find(s => s.id === selectedSchoolId) || activeSchool;
+  const sortedSchoolTeachers = useMemo(() => sortTeachers(currentSchool.teachers || []), [currentSchool.teachers]);
+  const sortedSchoolClasses = useMemo(() => sortClasses(currentSchool.classes || []), [currentSchool.classes]);
+
   const [selectedSchoolId, setSelectedSchoolId] = useState(activeSchool.id);
   const [selectedRole, setSelectedRole] = useState<Role>(currentUser.role);
-  const [selectedTeacherId, setSelectedTeacherId] = useState(activeSchool.teachers[0]?.id || 't-1');
-  const [selectedClassId, setSelectedClassId] = useState(activeSchool.classes[0]?.id || 'c-4a');
+  const [selectedTeacherId, setSelectedTeacherId] = useState(
+    app.selectedTeacher?.id || currentUser.teacherId || sortedSchoolTeachers[0]?.id || activeSchool.teachers[0]?.id || ''
+  );
+  const [selectedClassId, setSelectedClassId] = useState(
+    app.selectedClass?.id || currentUser.classId || sortedSchoolClasses[0]?.id || activeSchool.classes[0]?.id || ''
+  );
   const [email, setEmail] = useState(`admin@${activeSchool.subdomain.replace(/\.chronos\.edu$/, '')}.edu`);
   const [password, setPassword] = useState('AdminPass123!');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const currentSchool = schools.find(s => s.id === selectedSchoolId) || activeSchool;
+  useEffect(() => {
+    if (sortedSchoolTeachers.length > 0 && (!selectedTeacherId || !sortedSchoolTeachers.some(t => t.id === selectedTeacherId))) {
+      setSelectedTeacherId(sortedSchoolTeachers[0].id);
+    }
+  }, [sortedSchoolTeachers, selectedTeacherId]);
+
+  useEffect(() => {
+    if (sortedSchoolClasses.length > 0 && (!selectedClassId || !sortedSchoolClasses.some(c => c.id === selectedClassId))) {
+      setSelectedClassId(sortedSchoolClasses[0].id);
+    }
+  }, [sortedSchoolClasses, selectedClassId]);
 
   // React Hook rules: ALL hooks must run before any return statement!
   useEffect(() => {
@@ -170,7 +189,7 @@ export function LoginModal({ app }: { app: TimetableApp }) {
                 onChange={(e) => setSelectedTeacherId(e.target.value)}
                 className="w-full px-3 py-2 rounded-xl border border-indigo-200 bg-white text-sm font-medium text-slate-800"
               >
-                {currentSchool.teachers?.map(t => (
+                {sortedSchoolTeachers.map(t => (
                   <option key={t.id} value={t.id}>{t.name}</option>
                 ))}
               </select>
@@ -190,7 +209,7 @@ export function LoginModal({ app }: { app: TimetableApp }) {
                 onChange={(e) => setSelectedClassId(e.target.value)}
                 className="w-full px-3 py-2 rounded-xl border border-emerald-200 bg-white text-sm font-medium text-slate-800"
               >
-                {currentSchool.classes?.map(c => (
+                {sortedSchoolClasses.map(c => (
                   <option key={c.id} value={c.id}>{c.name} ({c.grade} • {c.tier})</option>
                 ))}
               </select>

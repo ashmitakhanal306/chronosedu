@@ -7,6 +7,7 @@ import type {
   EditingSlot,
   EntryMap,
   Role,
+  Room,
   ScheduleResult,
   School,
   Subject,
@@ -20,9 +21,11 @@ import type {
   TimetableEntry,
   ViewMode,
   SolverPreferences,
+  Tier,
 } from '../domain/types';
 import { slotKey, DEFAULT_TIMING_CONFIG, DEFAULT_SOLVER_PREFERENCES } from '../domain/types';
 import { INITIAL_SCHOOLS, DEMO_SCHOOL_ID } from '../data/demoSchools';
+import { createGreenwoodIssuesSchool, GREENWOOD_ISSUES_SCHOOL_ID } from '../data/greenwoodIssuesSchool';
 import { computeBellSchedule } from '../engine/bellSchedule';
 import { generateSchoolTimetable } from '../engine/generateTimetable';
 import { autoAssignSubstitutes, getSubstituteCandidatesForSlot } from '../engine/substitutes';
@@ -30,10 +33,11 @@ import { checkManualOverrideConflict } from '../engine/conflicts';
 import { exportTimetableCsv, exportTimetableExcel, exportTimetablePrint } from '../services/exportFormats';
 import { api, type ApiEntryOut } from '../services/api';
 import { useToast } from './useToast';
+import { sortClasses, sortTeachers } from '../utils/sorting';
 
 export interface CreateSchoolOptions {
   name: string;
-  template?: 'starter' | 'blank';
+  template?: 'starter' | 'blank' | 'greenwood_issues';
   term?: string;
   timezone?: string;
   subdomain?: string;
@@ -76,30 +80,14 @@ export function useTimetableApp() {
   const activeRole = currentUser.role;
   const [adminTab, setAdminTab] = useState<AdminTab>('wizard');
   const [wizardStep, setWizardStep] = useState<number>(8);
-  const [selectedClassId, setSelectedClassId] = useState(currentUser.classId || 'c-4a');
-  const [selectedTeacherId, setSelectedTeacherId] = useState(currentUser.teacherId || 't-1');
+  const [selectedClassId, setSelectedClassId] = useState(currentUser.classId || '');
+  const [selectedTeacherId, setSelectedTeacherId] = useState(currentUser.teacherId || '');
   const [timetableViewMode, setTimetableViewMode] = useState<ViewMode>('class');
   const [editingSlot, setEditingSlot] = useState<EditingSlot | null>(null);
   const [overrideSubjectId, setOverrideSubjectId] = useState('');
   const [overrideTeacherId, setOverrideTeacherId] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
   const { toast, showToast } = useToast();
-
-  const switchRole = (newRole: Role) => {
-    setCurrentUser(prev => {
-      const updated: CurrentUser = {
-        ...prev,
-        role: newRole,
-        teacherId: newRole === 'teacher' ? (prev.teacherId || activeSchool.teachers[0]?.id) : undefined,
-        classId: newRole === 'student' ? (prev.classId || activeSchool.classes[0]?.id) : undefined,
-      };
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('chronos_user', JSON.stringify(updated));
-      }
-      return updated;
-    });
-    showToast(`Switched view to ${newRole === 'admin' ? 'School Admin' : newRole === 'teacher' ? 'Teacher Portal' : 'Student / Parent Portal'}`, 'info');
-  };
   const [solverPreferences, setSolverPreferences] = useState<SolverPreferences>(DEFAULT_SOLVER_PREFERENCES);
 
   const toggleSolverPreference = (key: keyof SolverPreferences) => {
@@ -139,8 +127,108 @@ export function useTimetableApp() {
     return m;
   }, [activeSchool.classes]);
 
-  const selectedClass = classMap[selectedClassId] || activeSchool.classes[0];
-  const selectedTeacher = teacherMap[selectedTeacherId] || activeSchool.teachers[0];
+  const sortedClasses = useMemo(() => sortClasses(activeSchool.classes), [activeSchool.classes]);
+  const sortedTeachers = useMemo(() => sortTeachers(activeSchool.teachers), [activeSchool.teachers]);
+
+  const selectedClass = classMap[selectedClassId] || sortedClasses[0] || activeSchool.classes[0];
+  const selectedTeacher = teacherMap[selectedTeacherId] || sortedTeachers[0] || activeSchool.teachers[0];
+
+  // Auto-sync selected IDs to active school entities
+  useEffect(() => {
+    if (activeSchool.teachers.length > 0 && (!selectedTeacherId || !teacherMap[selectedTeacherId])) {
+      const fallback = sortedTeachers[0]?.id || activeSchool.teachers[0]?.id;
+      if (fallback) setSelectedTeacherId(fallback);
+    }
+  }, [activeSchool.teachers, selectedTeacherId, teacherMap, sortedTeachers]);
+
+  useEffect(() => {
+    if (activeSchool.classes.length > 0 && (!selectedClassId || !classMap[selectedClassId])) {
+      const fallback = sortedClasses[0]?.id || activeSchool.classes[0]?.id;
+      if (fallback) setSelectedClassId(fallback);
+    }
+  }, [activeSchool.classes, selectedClassId, classMap, sortedClasses]);
+
+  const handleSetSelectedTeacherId = (id: string) => {
+    setSelectedTeacherId(id);
+    if (currentUser.role === 'teacher') {
+      setCurrentUser(prev => {
+        const teacher = teacherMap[id] || activeSchool.teachers.find(t => t.id === id);
+        const updated = {
+          ...prev,
+          teacherId: id,
+          name: teacher?.name || prev.name,
+        };
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('chronos_user', JSON.stringify(updated));
+        }
+        return updated;
+      });
+    }
+  };
+
+  const handleSetSelectedClassId = (id: string) => {
+    setSelectedClassId(id);
+    if (currentUser.role === 'student') {
+      setCurrentUser(prev => {
+        const cls = classMap[id] || activeSchool.classes.find(c => c.id === id);
+        const updated = {
+          ...prev,
+          classId: id,
+          name: cls?.name ? `Student (${cls.name})` : prev.name,
+        };
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('chronos_user', JSON.stringify(updated));
+        }
+        return updated;
+      });
+    }
+  };
+
+  const switchRole = (newRole: Role) => {
+    let targetTeacherId = selectedTeacherId;
+    if (newRole === 'teacher') {
+      const valid = activeSchool.teachers.some(t => t.id === targetTeacherId);
+      if (!valid) {
+        targetTeacherId = sortedTeachers[0]?.id || activeSchool.teachers[0]?.id;
+      }
+      if (targetTeacherId) {
+        setSelectedTeacherId(targetTeacherId);
+      }
+    }
+
+    let targetClassId = selectedClassId;
+    if (newRole === 'student') {
+      const valid = activeSchool.classes.some(c => c.id === targetClassId);
+      if (!valid) {
+        targetClassId = sortedClasses[0]?.id || activeSchool.classes[0]?.id;
+      }
+      if (targetClassId) {
+        setSelectedClassId(targetClassId);
+      }
+    }
+
+    setCurrentUser(prev => {
+      const teacher = targetTeacherId ? (teacherMap[targetTeacherId] || activeSchool.teachers.find(t => t.id === targetTeacherId)) : null;
+      const cls = targetClassId ? (classMap[targetClassId] || activeSchool.classes.find(c => c.id === targetClassId)) : null;
+
+      const updated: CurrentUser = {
+        ...prev,
+        role: newRole,
+        teacherId: newRole === 'teacher' ? targetTeacherId : undefined,
+        classId: newRole === 'student' ? targetClassId : undefined,
+        name: newRole === 'teacher'
+          ? (teacher?.name || 'Faculty Teacher')
+          : newRole === 'student'
+            ? `Student (${cls?.name || 'Class'})`
+            : `Admin (${activeSchool.name})`,
+      };
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('chronos_user', JSON.stringify(updated));
+      }
+      return updated;
+    });
+    showToast(`Switched view to ${newRole === 'admin' ? 'School Admin' : newRole === 'teacher' ? 'Teacher Portal' : 'Student / Parent Portal'}`, 'info');
+  };
 
   const updateActiveSchool = (updater: (s: School) => School) =>
     setSchools(prev => prev.map(s => (s.id === activeSchool.id ? updater(s) : s)));
@@ -160,33 +248,29 @@ export function useTimetableApp() {
     substituteTeacherName: e.substitute_teacher_name || undefined,
   });
 
-  // Ensure authenticated session on startup
-  useEffect(() => {
-    async function initAuthToken() {
-      if (!api.getAuthToken()) {
-        try {
-          await api.login({
-            school_id: activeSchool.id,
-            email: currentUser.email || 'admin@greenwood.edu',
-            password: 'AdminPass123!',
-          });
-        } catch {
-          // Fallback to offline demo mode
-        }
-      }
-    }
-    initAuthToken();
-  }, [activeSchool.id]);
-
-  // Load timetable from backend API on mount / school switch / auth change
+  // Load tenant data & timetable from backend API sequentially
   useEffect(() => {
     let isCancelled = false;
 
-    async function loadFromApi() {
+    async function initAndSync() {
       try {
         setIsSyncing(true);
 
-        // 1. Sync full school structure from backend if available
+        // 1. Ensure authenticated session first before making protected requests
+        if (!api.getAuthToken()) {
+          try {
+            await api.login({
+              school_id: activeSchool.id,
+              email: currentUser.email || 'admin@greenwood.edu',
+              password: 'AdminPass123!',
+            });
+          } catch {
+            // Offline demo fallback if backend unavailable
+          }
+        }
+        if (isCancelled) return;
+
+        // 2. Sync full school structure from backend if available
         try {
           const full = await api.getFullSchool(activeSchool.id);
           if (full && full.classes && full.classes.length > 0 && !isCancelled) {
@@ -233,6 +317,11 @@ export function useTimetableApp() {
                 entryCount: v.entryCount || v.entry_count || 0,
                 createdAt: v.createdAt || v.created_at,
               })),
+              rooms: full.rooms && full.rooms.length > 0 ? full.rooms : s.rooms,
+              workingDays: full.workingDays || s.workingDays,
+              rules: full.rules ? { ...s.rules, ...full.rules } : s.rules,
+              timingConfig: full.timingConfig ? { ...s.timingConfig, ...full.timingConfig } : s.timingConfig,
+              periodSlots: full.periodSlots && full.periodSlots.length > 0 ? full.periodSlots : s.periodSlots,
               absences: full.absences || s.absences,
               substitutions: full.substitutions || s.substitutions,
             }));
@@ -240,9 +329,15 @@ export function useTimetableApp() {
         } catch {
           // Non-fatal: keep current school in memory
         }
+        if (isCancelled) return;
 
-        const filterClass = currentUser.role === 'student' ? (currentUser.classId || selectedClassId) : undefined;
-        const filterTeacher = currentUser.role === 'teacher' ? (currentUser.teacherId || selectedTeacherId) : undefined;
+        // 3. Fetch active timetable entries
+        // If the authenticated user has unrestricted access (Admin or demo session), fetch full school timetable
+        const isRestrictedStudent = currentUser.role === 'student' && Boolean(currentUser.classId) && currentUser.userId.startsWith('student-');
+        const isRestrictedTeacher = currentUser.role === 'teacher' && Boolean(currentUser.teacherId) && currentUser.userId.startsWith('teacher-');
+
+        const filterClass = isRestrictedStudent ? currentUser.classId : undefined;
+        const filterTeacher = isRestrictedTeacher ? currentUser.teacherId : undefined;
 
         const apiEntries = await api.getTimetable(activeSchool.id, filterClass, filterTeacher);
         if (isCancelled) return;
@@ -252,10 +347,24 @@ export function useTimetableApp() {
           apiEntries.forEach(e => {
             entryMap[slotKey(e.day, e.period, e.class_id)] = mapApiEntry(e);
           });
-          setSchedulesBySchool(prev => ({
-            ...prev,
-            [activeSchool.id]: { entries: entryMap, diagnostics: [] },
-          }));
+          setSchedulesBySchool(prev => {
+            const existingEntries = prev[activeSchool.id]?.entries || {};
+            // If full school timetable loaded (or no filters applied), replace completely
+            if (!filterClass && !filterTeacher) {
+              return {
+                ...prev,
+                [activeSchool.id]: { entries: entryMap, diagnostics: [] },
+              };
+            }
+            // For filtered requests, merge so we never destroy other teachers/classes
+            return {
+              ...prev,
+              [activeSchool.id]: {
+                entries: { ...existingEntries, ...entryMap },
+                diagnostics: prev[activeSchool.id]?.diagnostics || [],
+              },
+            };
+          });
         }
       } catch (err: any) {
         if (err?.status === 403) {
@@ -266,7 +375,7 @@ export function useTimetableApp() {
       }
     }
 
-    loadFromApi();
+    initAndSync();
     return () => { isCancelled = true; };
   }, [activeSchool.id, currentUser]);
 
@@ -348,12 +457,12 @@ export function useTimetableApp() {
   // Keep selections valid when switching tenants
   useEffect(() => {
     if (activeSchool.classes.length > 0 && !activeSchool.classes.some(c => c.id === selectedClassId)) {
-      setSelectedClassId(activeSchool.classes[0].id);
+      setSelectedClassId(sortedClasses[0]?.id || activeSchool.classes[0].id);
     }
     if (activeSchool.teachers.length > 0 && !activeSchool.teachers.some(t => t.id === selectedTeacherId)) {
-      setSelectedTeacherId(activeSchool.teachers[0].id);
+      setSelectedTeacherId(sortedTeachers[0]?.id || activeSchool.teachers[0].id);
     }
-  }, [activeSchool, selectedClassId, selectedTeacherId]);
+  }, [activeSchool, selectedClassId, selectedTeacherId, sortedClasses, sortedTeachers]);
 
   const currentSchedule: ScheduleResult = schedulesBySchool[activeSchool.id] || { entries: {}, diagnostics: [] };
   const entries: EntryMap = currentSchedule.entries;
@@ -392,6 +501,26 @@ export function useTimetableApp() {
             qualityReport: mappedQualityReport,
           },
         }));
+
+        try {
+          const versions = await api.listVersions(activeSchool.id);
+          if (versions && versions.length > 0) {
+            updateActiveSchool(s => ({
+              ...s,
+              versions: versions.map(v => ({
+                id: v.id,
+                versionNumber: v.version_number,
+                state: v.state,
+                effectiveFrom: v.effective_from || undefined,
+                publishedAt: v.published_at || undefined,
+                notes: v.notes || undefined,
+                entryCount: v.entry_count,
+                createdAt: v.created_at,
+              })),
+            }));
+          }
+        } catch {}
+
         showToast(`Conflict-free timetable generated via OR-Tools CP-SAT server!`, 'success');
         return;
       }
@@ -467,29 +596,117 @@ export function useTimetableApp() {
   const suggestAssignments = async () => {
     setIsSyncing(true);
     try {
-      const res = await api.suggestAssignments(activeSchool.id);
-      if (res.suggestions && res.suggestions.length > 0) {
-        for (const sug of res.suggestions) {
-          await api.upsertAssignment(activeSchool.id, {
-            class_id: sug.class_id,
-            subject_id: sug.subject_id,
-            teacher_id: sug.teacher_id,
-          });
+      let res: any = null;
+      try {
+        res = await api.suggestAssignments(activeSchool.id);
+        if (res.suggestions && res.suggestions.length > 0) {
+          for (const sug of res.suggestions) {
+            await api.upsertAssignment(activeSchool.id, {
+              class_id: sug.class_id,
+              subject_id: sug.subject_id,
+              teacher_id: sug.teacher_id,
+            });
+          }
+          const full = await api.getFullSchool(activeSchool.id);
+          if (full?.assignments) {
+            updateActiveSchool(s => ({ ...s, assignments: full.assignments }));
+          }
+          showToast(
+            `Auto-assigned ${res.suggestions.length} class-subject pairs!${res.warnings.length ? ` (${res.warnings.length} warning(s))` : ''}`,
+            res.warnings.length ? 'warning' : 'success'
+          );
+          return res;
         }
-        const full = await api.getFullSchool(activeSchool.id);
-        if (full?.assignments) {
-          updateActiveSchool(s => ({ ...s, assignments: full.assignments }));
-        }
-        showToast(
-          `Auto-assigned ${res.suggestions.length} class-subject pairs!${res.warnings.length ? ` (${res.warnings.length} warning(s))` : ''}`,
-          res.warnings.length ? 'warning' : 'success'
-        );
-      } else {
-        showToast('No unassigned pairs or suggestions found.', 'info');
+      } catch (e) {
+        // Fall back to client-side smart balancer
       }
-      return res;
+
+      // Client-Side Smart Workload-Balanced Auto-Assignment Engine
+      const classes = activeSchool.classes || [];
+      const subjects = activeSchool.subjects || [];
+      const teachers = activeSchool.teachers || [];
+      const workingDaysCount = activeSchool.workingDays?.length || 6;
+
+      if (teachers.length === 0 || subjects.length === 0 || classes.length === 0) {
+        showToast('Please configure classes, subjects, and teachers before auto-assigning.', 'warning');
+        return null;
+      }
+
+      // Track teacher current weekly load
+      const teacherLoadMap = new Map<string, number>();
+      teachers.forEach(t => {
+        teacherLoadMap.set(t.id, 0);
+      });
+
+      // Keep existing manual assignments if any
+      const existingAssignments = activeSchool.assignments || [];
+      const assignedPairKeys = new Set<string>();
+      existingAssignments.forEach(a => {
+        assignedPairKeys.add(`${a.classId}_${a.subjectId}`);
+        const cur = teacherLoadMap.get(a.teacherId) || 0;
+        const cls = classes.find(c => c.id === a.classId);
+        const sub = subjects.find(s => s.id === a.subjectId);
+        const freq = cls?.tier === 'Primary' ? (sub?.freqPrimary || 0) : (sub?.freqSenior || 0);
+        teacherLoadMap.set(a.teacherId, cur + freq);
+      });
+
+      const newAssignments: TeachingAssignment[] = [...existingAssignments];
+      let assignedCount = 0;
+
+      // Iterate through classes and subjects
+      classes.forEach(c => {
+        subjects.forEach(s => {
+          const pairKey = `${c.id}_${s.id}`;
+          if (assignedPairKeys.has(pairKey)) return;
+
+          const freq = c.tier === 'Primary' ? (s.freqPrimary || 0) : (s.freqSenior || 0);
+          if (freq <= 0) return; // Not taught in this tier
+
+          // Find qualified teachers who teach this subject
+          const qualified = teachers.filter(t => t.subjects.includes(s.id));
+          const candidatePool = qualified.length > 0 ? qualified : teachers;
+
+          // Pick candidate with lowest load relative to their max capacity
+          const sorted = [...candidatePool].sort((a, b) => {
+            const loadA = teacherLoadMap.get(a.id) || 0;
+            const loadB = teacherLoadMap.get(b.id) || 0;
+            const maxA = (a.maxPerDay || 5) * workingDaysCount;
+            const maxB = (b.maxPerDay || 5) * workingDaysCount;
+            const ratioA = loadA / maxA;
+            const ratioB = loadB / maxB;
+            return ratioA - ratioB;
+          });
+
+          const chosen = sorted[0];
+          if (chosen) {
+            const newAssign: TeachingAssignment = {
+              id: `assign-${c.id}-${s.id}-${Date.now().toString(36)}`,
+              classId: c.id,
+              subjectId: s.id,
+              teacherId: chosen.id,
+              className: c.name,
+              subjectName: s.name,
+              teacherName: chosen.name,
+              weeklyFrequency: freq,
+            };
+            newAssignments.push(newAssign);
+            assignedPairKeys.add(pairKey);
+            const curLoad = teacherLoadMap.get(chosen.id) || 0;
+            teacherLoadMap.set(chosen.id, curLoad + freq);
+            assignedCount++;
+          }
+        });
+      });
+
+      updateActiveSchool(s => ({
+        ...s,
+        assignments: newAssignments,
+      }));
+
+      showToast(`⚡ Smart Auto-Assigned ${assignedCount} class-subject pairs with balanced workloads!`, 'success');
+      return { suggestions: newAssignments, warnings: [] };
     } catch (err: any) {
-      showToast(err?.message || 'Failed to suggest assignments', 'warning');
+      showToast(err?.message || 'Failed to auto-assign faculty', 'warning');
       return null;
     } finally {
       setIsSyncing(false);
@@ -637,6 +854,378 @@ export function useTimetableApp() {
     }
   };
 
+  const addTeacher = async (name: string, subjectIds: string[], maxPerDay: number = 5) => {
+    setIsSyncing(true);
+    try {
+      const res = await api.addTeacher(activeSchool.id, {
+        name,
+        max_periods_per_day: maxPerDay,
+        subject_ids: subjectIds,
+      });
+      const newTeacher: Teacher = {
+        id: res.id,
+        name: res.name,
+        subjects: res.subject_ids || subjectIds,
+        maxPerDay: res.max_periods_per_day || maxPerDay,
+        unavailableDays: res.unavailable_days || [],
+      };
+      updateActiveSchool(s => ({
+        ...s,
+        teachers: [...s.teachers, newTeacher],
+      }));
+      showToast(`Teacher "${name}" saved to database.`, 'success');
+      return newTeacher;
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to add teacher', 'warning');
+      return null;
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const deleteTeacher = async (teacherId: string) => {
+    if (activeSchool.teachers.length <= 1) {
+      showToast('At least one faculty teacher must remain.', 'warning');
+      return;
+    }
+    setIsSyncing(true);
+    try {
+      await api.deleteTeacher(activeSchool.id, teacherId);
+      updateActiveSchool(s => ({
+        ...s,
+        teachers: s.teachers.filter(t => t.id !== teacherId),
+      }));
+      showToast('Teacher removed from database.', 'info');
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to delete teacher', 'warning');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const addSubject = async (data: { name: string; code: string; type: 'academic' | 'activity'; freqPrimary: number; freqSenior: number; color?: string; room?: string }) => {
+    setIsSyncing(true);
+    try {
+      const res = await api.addSubject(activeSchool.id, {
+        name: data.name,
+        code: data.code,
+        type: data.type,
+      });
+      const newSub: Subject = {
+        id: res.id,
+        name: res.name,
+        code: res.code,
+        type: res.type as any,
+        freqPrimary: data.freqPrimary,
+        freqSenior: data.freqSenior,
+        color: data.color || 'bg-indigo-50 border-indigo-200 text-indigo-900',
+        room: data.room || undefined,
+      };
+      updateActiveSchool(s => ({
+        ...s,
+        subjects: [...s.subjects, newSub],
+      }));
+      showToast(`Subject "${data.name}" saved to database.`, 'success');
+      return newSub;
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to add subject', 'warning');
+      return null;
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const deleteSubject = async (subjectId: string) => {
+    if (activeSchool.subjects.length <= 1) {
+      showToast('At least one subject must remain.', 'warning');
+      return;
+    }
+    setIsSyncing(true);
+    try {
+      await api.deleteSubject(activeSchool.id, subjectId);
+      updateActiveSchool(s => ({
+        ...s,
+        subjects: s.subjects.filter(sub => sub.id !== subjectId),
+      }));
+      showToast('Subject removed from database.', 'info');
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to delete subject', 'warning');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const addClass = async (data: { name: string; grade: string; tier: Tier; room: string }) => {
+    setIsSyncing(true);
+    try {
+      const full = await api.getFullSchool(activeSchool.id);
+      const grades = full?.grades || [];
+      const matchGrade = grades.find((g: any) => g.name === data.grade) || grades[0];
+      const res = await api.addClassSection(activeSchool.id, {
+        section: data.name,
+        grade_id: matchGrade ? matchGrade.id : activeSchool.id,
+      });
+      const newClass: ClassSection = {
+        id: res.id,
+        name: res.section || data.name,
+        grade: data.grade,
+        tier: data.tier,
+        room: data.room,
+      };
+      updateActiveSchool(s => {
+        const existingRooms = s.rooms || [];
+        const roomName = (data.room || `Room ${data.name}`).trim();
+        const roomExists = existingRooms.some(r => r.name.toLowerCase() === roomName.toLowerCase());
+        const updatedRooms = roomExists
+          ? existingRooms.map(r =>
+              r.name.toLowerCase() === roomName.toLowerCase()
+                ? { ...r, homeroomForClassId: newClass.id, homeroomForClassName: newClass.name }
+                : r
+            )
+          : [
+              ...existingRooms,
+              {
+                id: `r-${Date.now()}`,
+                name: roomName,
+                type: 'classroom',
+                capacity: 35,
+                homeroomForClassId: newClass.id,
+                homeroomForClassName: newClass.name,
+              },
+            ];
+
+        return {
+          ...s,
+          classes: [...s.classes, newClass],
+          rooms: updatedRooms,
+        };
+      });
+      showToast(`Class "${data.name}" saved and homeroom registered.`, 'success');
+      return newClass;
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to add class', 'warning');
+      return null;
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const addClassesBatch = async (
+    newClassesList: Array<{ name: string; grade: string; tier: Tier; room: string }>,
+    replaceExisting: boolean = false
+  ) => {
+    setIsSyncing(true);
+    try {
+      const generatedSections: ClassSection[] = newClassesList.map((item, idx) => ({
+        id: `c-gen-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 6)}`,
+        name: item.name,
+        grade: item.grade,
+        tier: item.tier,
+        room: item.room,
+      }));
+
+      updateActiveSchool(s => {
+        const baseClasses = replaceExisting ? [] : s.classes;
+        const mergedClasses = [...baseClasses, ...generatedSections];
+
+        // Maintain rooms: for every new class section, ensure its room exists in s.rooms
+        const existingRooms = replaceExisting
+          ? (s.rooms || []).filter(r => r.type !== 'classroom')
+          : [...(s.rooms || [])];
+        const roomMap = new Map<string, Room>();
+        for (const r of existingRooms) {
+          roomMap.set(r.name.toLowerCase().trim(), { ...r });
+        }
+
+        generatedSections.forEach(cls => {
+          const roomKey = cls.room.toLowerCase().trim();
+          if (!roomMap.has(roomKey)) {
+            roomMap.set(roomKey, {
+              id: `r-gen-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+              name: cls.room.trim(),
+              type: 'classroom',
+              capacity: 35,
+              homeroomForClassId: cls.id,
+              homeroomForClassName: cls.name,
+            });
+          } else {
+            const existing = roomMap.get(roomKey)!;
+            roomMap.set(roomKey, {
+              ...existing,
+              homeroomForClassId: cls.id,
+              homeroomForClassName: cls.name,
+            });
+          }
+        });
+
+        return {
+          ...s,
+          classes: mergedClasses,
+          rooms: Array.from(roomMap.values()),
+        };
+      });
+
+      showToast(
+        `Successfully ${replaceExisting ? 'configured' : 'added'} ${generatedSections.length} classes and registered homerooms!`,
+        'success'
+      );
+      return generatedSections;
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to batch generate classes', 'warning');
+      return [];
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const deleteClass = async (classId: string) => {
+    if (activeSchool.classes.length <= 1) {
+      showToast('At least one class section must remain.', 'warning');
+      return;
+    }
+    setIsSyncing(true);
+    try {
+      await api.deleteClassSection(activeSchool.id, classId);
+      updateActiveSchool(s => ({
+        ...s,
+        classes: s.classes.filter(c => c.id !== classId),
+        rooms: (s.rooms || []).map(r =>
+          r.homeroomForClassId === classId
+            ? { ...r, homeroomForClassId: null, homeroomForClassName: null }
+            : r
+        ),
+      }));
+      showToast('Class section removed.', 'info');
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to delete class', 'warning');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const addRoom = async (data: { name: string; type: string; capacity: number; homeroomForClassId?: string }) => {
+    setIsSyncing(true);
+    try {
+      let resId = `r-${Date.now()}`;
+      try {
+        const res = await api.addRoom(activeSchool.id, {
+          name: data.name,
+          type: data.type,
+          capacity: data.capacity,
+        });
+        if (res && res.id) resId = res.id;
+      } catch {
+        // Fallback for offline mode
+      }
+
+      const matchingClass = data.homeroomForClassId ? activeSchool.classes.find(c => c.id === data.homeroomForClassId) : null;
+      const newRoom: Room = {
+        id: resId,
+        name: data.name,
+        type: data.type,
+        capacity: data.capacity,
+        homeroomForClassId: data.homeroomForClassId || null,
+        homeroomForClassName: matchingClass?.name || null,
+      };
+
+      updateActiveSchool(s => {
+        const existingRooms = s.rooms || [];
+        const updatedClasses = data.homeroomForClassId
+          ? s.classes.map(c => c.id === data.homeroomForClassId ? { ...c, room: data.name } : c)
+          : s.classes;
+        return {
+          ...s,
+          rooms: [...existingRooms, newRoom],
+          classes: updatedClasses,
+        };
+      });
+
+      showToast(`Facility "${data.name}" added successfully.`, 'success');
+      return newRoom;
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to add facility', 'warning');
+      return null;
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const updateRoom = async (roomId: string, data: { name: string; type: string; capacity: number; homeroomForClassId?: string }) => {
+    setIsSyncing(true);
+    try {
+      try {
+        await api.updateRoom(activeSchool.id, roomId, {
+          name: data.name,
+          type: data.type,
+          capacity: data.capacity,
+        });
+      } catch {
+        // Fallback for offline mode
+      }
+
+      const matchingClass = data.homeroomForClassId ? activeSchool.classes.find(c => c.id === data.homeroomForClassId) : null;
+
+      updateActiveSchool(s => {
+        const existingRooms = s.rooms || [];
+        const updatedRooms = existingRooms.map(r => {
+          if (r.id !== roomId) return r;
+          return {
+            ...r,
+            name: data.name,
+            type: data.type,
+            capacity: data.capacity,
+            homeroomForClassId: data.homeroomForClassId || null,
+            homeroomForClassName: matchingClass?.name || null,
+          };
+        });
+
+        const updatedClasses = s.classes.map(c => {
+          if (data.homeroomForClassId && c.id === data.homeroomForClassId) {
+            return { ...c, room: data.name };
+          }
+          return c;
+        });
+
+        return {
+          ...s,
+          rooms: updatedRooms,
+          classes: updatedClasses,
+        };
+      });
+
+      showToast(`Facility "${data.name}" updated successfully.`, 'success');
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to update facility', 'warning');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const deleteRoom = async (roomId: string) => {
+    setIsSyncing(true);
+    try {
+      try {
+        await api.deleteRoom(activeSchool.id, roomId);
+      } catch {
+        // Fallback for offline mode
+      }
+
+      updateActiveSchool(s => {
+        const existingRooms = s.rooms || [];
+        return {
+          ...s,
+          rooms: existingRooms.filter(r => r.id !== roomId),
+        };
+      });
+
+      showToast('Facility removed.', 'info');
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to delete facility', 'warning');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   const approveVersion = async (versionId: string) => {
     setIsSyncing(true);
     try {
@@ -731,7 +1320,16 @@ export function useTimetableApp() {
 
     let newSchool: School;
 
-    if (template === 'starter') {
+    if (template === 'greenwood_issues') {
+      newSchool = {
+        ...createGreenwoodIssuesSchool(),
+        id,
+        name: name || 'Greenwood Public School (Dataset 2 — Issues Testbed)',
+        subdomain,
+        term,
+        timezone,
+      };
+    } else if (template === 'starter') {
       const base = INITIAL_SCHOOLS[0];
       newSchool = {
         ...base,
@@ -781,11 +1379,27 @@ export function useTimetableApp() {
     setSchedulesBySchool(prev => ({ ...prev, [id]: schedule }));
     setActiveSchoolId(id);
     showToast(
-      template === 'starter'
+      template === 'greenwood_issues'
+        ? `"${name}" loaded with 55 Sections, 99 Staff, and real-world issues for testing!`
+        : template === 'starter'
         ? `"${name}" launched with starter curriculum & conflict-free timetable!`
         : `"${name}" created with blank slate! Configure in Setup or upload CSV.`,
       'success'
     );
+  };
+
+  const loadTestDataset2 = () => {
+    const dataset2School = createGreenwoodIssuesSchool();
+    setSchools(prev => {
+      const filtered = prev.filter(s => s.id !== dataset2School.id);
+      return [...filtered, dataset2School];
+    });
+    setActiveSchoolId(dataset2School.id);
+    const schedule = generateSchoolTimetable(dataset2School);
+    setSchedulesBySchool(prev => ({ ...prev, [dataset2School.id]: schedule }));
+    setAdminTab('setup');
+    setWizardStep(10);
+    showToast('🧪 Loaded Test Dataset 2: Greenwood Public School with 23 real-world issues!', 'info');
   };
 
   const deleteSchool = (schoolId: string) => {
@@ -945,20 +1559,26 @@ export function useTimetableApp() {
     // state
     schools, activeSchool, activeRole, currentUser, isAuthModalOpen, adminTab, wizardStep, timetableViewMode,
     selectedClass, selectedTeacher, currentSchedule, entries,
-    subjectMap, teacherMap, classMap,
+    subjectMap, teacherMap, classMap, sortedClasses, sortedTeachers,
     editingSlot, overrideSubjectId, overrideTeacherId, overrideConflicts, toast, showToast, isSyncing,
     solverPreferences,
     // setters
     setActiveSchoolId, setAdminTab, setWizardStep, setTimetableViewMode, setIsAuthModalOpen,
-    setSelectedClassId, setSelectedTeacherId, setEditingSlot, setOverrideSubjectId, setOverrideTeacherId,
+    setSelectedClassId: handleSetSelectedClassId, setSelectedTeacherId: handleSetSelectedTeacherId,
+    setEditingSlot, setOverrideSubjectId, setOverrideTeacherId,
     setSolverPreferences, toggleSolverPreference,
     // auth
     login, logout, switchRole,
     // actions
     updateActiveSchool, runSolver, resetDemoData, addSchool, deleteSchool, togglePublish, exportCsv, exportExcel, exportPrintPdf,
+    loadTestDataset2,
     getCandidates, assignSubstitute, autoAssign, addAbsence, removeAbsence, toggleTeacherUnavailable,
     openManualOverride, saveManualOverride,
     upsertAssignment, deleteAssignment, suggestAssignments,
+    addTeacher, deleteTeacher,
+    addSubject, deleteSubject,
+    addClass, addClassesBatch, deleteClass,
+    addRoom, updateRoom, deleteRoom,
     addHoliday, deleteHoliday,
     addPinnedLesson, deletePinnedLesson,
     addBlockedSlot, deleteBlockedSlot,

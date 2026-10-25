@@ -18,6 +18,7 @@ export type AdminTab =
 export type ViewMode = 'class' | 'teacher';
 
 export interface SchoolRules {
+  prePrimaryEndPeriod?: number;
   primaryEndPeriod: number;
   seniorEndPeriod: number;
   maxTeacherPeriodsPerDay: number;
@@ -54,12 +55,51 @@ export interface PeriodSlot {
   note?: string;
 }
 
+export type RoomType =
+  | 'classroom'
+  | 'lab'
+  | 'computer_lab'
+  | 'studio'
+  | 'sports'
+  | 'auditorium'
+  | 'library'
+  | 'other';
+
+export interface Room {
+  id: string;
+  name: string;
+  type: RoomType | string;
+  capacity: number;
+  block?: string;
+  floor?: number;
+  parallelClasses?: number;
+  homeroomForClassId?: string | null;
+  homeroomForClassName?: string | null;
+}
+
+export interface ClassSubjectRequirement {
+  subjectId: string;
+  subjectName?: string;
+  periodsPerWeek: number;
+  doublePeriods?: number;
+  maxPerDay?: number;
+  roomType?: string;
+  roomMandatory?: boolean;
+}
+
 export interface ClassSection {
   id: string;
   name: string;
   grade: string;
   tier: Tier;
   room: string;
+  wing?: string;
+  stream?: string;
+  strength?: number;
+  classTeacherId?: string;
+  classTeacherName?: string;
+  weeklySlots?: number;
+  subjectRequirements?: ClassSubjectRequirement[];
 }
 
 export interface Subject {
@@ -72,6 +112,10 @@ export interface Subject {
   freqPrimary: number;
   freqSenior: number;
   requiresDoublePeriod?: boolean;
+  category?: string;
+  taughtBy?: string;
+  roomType?: string;
+  roomMandatory?: boolean;
 }
 
 export interface TeacherQualification {
@@ -90,6 +134,16 @@ export interface Teacher {
   maxPerWeek?: number;
   maxConsecutive?: number;
   unavailableDays: string[];
+  gender?: string | null;
+  designation?: string | null;
+  primarySubject?: string | null;
+  secondarySubject?: string | null;
+  teachingWings?: string | null;
+  employmentType?: string | null;
+  workingDays?: string | null;
+  status?: string | null;
+  statusTill?: string | null;
+  classTeacherOf?: string | null;
 }
 
 export interface TeachingAssignment {
@@ -101,6 +155,7 @@ export interface TeachingAssignment {
   subjectName?: string;
   teacherName?: string;
   teacherWeeklyLoad?: number;
+  weeklyFrequency?: number;
 }
 
 export interface Holiday {
@@ -227,6 +282,7 @@ export interface School {
   timingConfig?: TimingConfig;
   periodSlots: PeriodSlot[];
   classes: ClassSection[];
+  rooms?: Room[];
   subjects: Subject[];
   teachers: Teacher[];
   assignments?: TeachingAssignment[];

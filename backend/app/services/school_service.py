@@ -1,4 +1,5 @@
 from datetime import date, datetime, timezone
+import re
 import uuid
 from fastapi import HTTPException
 from sqlalchemy import func, select
@@ -16,6 +17,7 @@ from app.schemas.setup import (
     RequirementOut,
     RoomCreate,
     RoomOut,
+    RoomUpdate,
     SchoolCreate,
     SchoolOut,
     SubjectCreate,
@@ -41,6 +43,70 @@ from app.schemas.setup import (
     AuditLogOut,
 )
 from app.core.security import hash_password
+
+
+ROMAN_MAP = {
+    "i": 1, "ii": 2, "iii": 3, "iv": 4, "v": 5, "vi": 6,
+    "vii": 7, "viii": 8, "ix": 9, "x": 10, "xi": 11, "xii": 12,
+}
+STREAM_RANKS = {
+    "general": 0, "science": 1, "commerce": 2, "humanities": 3, "arts": 3,
+}
+
+
+def class_sort_key(name: str, grade: str = "") -> tuple:
+    """Natural educational progression sort key for classes and sections.
+    Handles Nursery/Nur/nur/NURSERY/nursery -> LKG -> UKG -> Class 1..12 -> Section A..Z.
+    """
+    s = f"{name or ''} {grade or ''}".lower().strip()
+    tier_rank = 100
+
+    if re.search(r"(\bpre[- ]?nur|\bplaygroup\b|\binfant\b|\bcreche\b|\btoddler\b)", s):
+        tier_rank = 1
+    elif re.search(r"(\bnursery\b|\bnur\b|\bpre[- ]?k\b|\bpk\b)", s):
+        tier_rank = 2
+    elif re.search(r"(\bl\.?k\.?g\b|\bkg[- ]?1\b|\bprep[- ]?1\b|\bjr\.?[- ]?kg\b|\bjunior[- ]?kg\b)", s):
+        tier_rank = 3
+    elif re.search(r"(\bu\.?k\.?g\b|\bkg[- ]?2\b|\bprep[- ]?2\b|\bsr\.?[- ]?kg\b|\bsenior[- ]?kg\b)", s):
+        tier_rank = 4
+    else:
+        num_m = re.search(r"(?:class|grade)?\s*(\b\d{1,2}\b)", s)
+        if num_m:
+            tier_rank = 10 + int(num_m.group(1))
+        else:
+            roman_m = re.search(r"\b(xii|xi|ix|x|viii|vii|vi|iv|v|iii|ii|i)\b", s)
+            if roman_m and roman_m.group(1) in ROMAN_MAP:
+                tier_rank = 10 + ROMAN_MAP[roman_m.group(1)]
+
+    sec_m = re.search(r"[- /]([A-Za-z])\b|(?:\d|[A-Za-z]+)\s*([A-Za-z])$", (name or "").strip())
+    sec = ""
+    if sec_m:
+        sec = (sec_m.group(1) or sec_m.group(2) or "").upper()
+
+    stream_rank = 0
+    for k, v in STREAM_RANKS.items():
+        if k in s:
+            stream_rank = v
+            break
+
+    return (tier_rank, sec, stream_rank, (name or "").strip().lower())
+
+
+def room_sort_key(name: str) -> list:
+    """Natural alphanumeric sort key for rooms and facilities (e.g. B-105 < B-108 < C-302)."""
+    parts = re.split(r"(\d+)", (name or "").strip().lower())
+    res = []
+    for p in parts:
+        if p.isdigit():
+            res.append(int(p))
+        else:
+            res.append(p)
+    return res
+
+
+def teacher_sort_key(name: str) -> str:
+    """Dictionary pattern (A to Z alphabetical) sort key for teachers."""
+    return (name or "").strip().lower()
 
 
 def create_school(data: SchoolCreate) -> SchoolOut:
@@ -143,8 +209,9 @@ def add_room(school_id: str, data: RoomCreate) -> RoomOut:
         room = models.Room(
             id=uuid.uuid4(),
             school_id=sid,
-            name=data.name,
-            type=data.type,
+            name=data.name.strip(),
+            type=data.type.strip() if data.type else "classroom",
+            capacity=data.capacity if data.capacity else 35,
         )
         session.add(room)
         session.flush()
@@ -153,7 +220,46 @@ def add_room(school_id: str, data: RoomCreate) -> RoomOut:
             school_id=str(sid),
             name=room.name,
             type=room.type,
+            capacity=room.capacity,
         )
+
+
+def update_room(school_id: str, room_id: str, data: RoomUpdate) -> RoomOut:
+    sid = uuid.UUID(school_id)
+    rid = uuid.UUID(room_id)
+    with tenant_session(str(sid)) as session:
+        room = session.get(models.Room, rid)
+        if not room or room.school_id != sid:
+            raise HTTPException(status_code=404, detail="Room not found.")
+        if data.name is not None and data.name.strip():
+            room.name = data.name.strip()
+        if data.type is not None and data.type.strip():
+            room.type = data.type.strip()
+        if data.capacity is not None:
+            room.capacity = data.capacity
+        session.flush()
+        return RoomOut(
+            id=str(room.id),
+            school_id=str(sid),
+            name=room.name,
+            type=room.type,
+            capacity=room.capacity,
+        )
+
+
+def delete_room(school_id: str, room_id: str) -> None:
+    sid = uuid.UUID(school_id)
+    rid = uuid.UUID(room_id)
+    with tenant_session(str(sid)) as session:
+        room = session.get(models.Room, rid)
+        if not room or room.school_id != sid:
+            raise HTTPException(status_code=404, detail="Room not found.")
+        for c in session.scalars(select(models.ClassSection).where(models.ClassSection.home_room_id == rid)).all():
+            c.home_room_id = None
+        for s in session.scalars(select(models.Subject).where(models.Subject.room_id == rid)).all():
+            s.room_id = None
+        session.delete(room)
+        session.flush()
 
 
 def add_class_section(school_id: str, data: ClassSectionCreate) -> ClassSectionOut:
@@ -414,6 +520,7 @@ def get_full_school(school_id: str) -> FullSchoolOut:
             raise HTTPException(status_code=404, detail="School not found")
 
         grades = session.scalars(select(models.GradeLevel).where(models.GradeLevel.school_id == sid)).all()
+        rooms_db = session.scalars(select(models.Room).where(models.Room.school_id == sid)).all()
         classes = session.scalars(
             select(models.ClassSection)
             .where(models.ClassSection.school_id == sid)
@@ -490,6 +597,21 @@ def get_full_school(school_id: str) -> FullSchoolOut:
             }
             for c in classes
         ]
+        formatted_classes.sort(key=lambda c: class_sort_key(c["name"], c.get("grade", "")))
+
+        class_homeroom_map = {c.home_room_id: (str(c.id), c.section) for c in classes if c.home_room_id}
+        formatted_rooms = [
+            {
+                "id": str(r.id),
+                "name": r.name,
+                "type": r.type,
+                "capacity": r.capacity if r.capacity else 35,
+                "homeroomForClassId": class_homeroom_map.get(r.id, (None, None))[0],
+                "homeroomForClassName": class_homeroom_map.get(r.id, (None, None))[1],
+            }
+            for r in rooms_db
+        ]
+        formatted_rooms.sort(key=lambda r: room_sort_key(r["name"]))
 
         formatted_teachers = [
             {
@@ -513,6 +635,7 @@ def get_full_school(school_id: str) -> FullSchoolOut:
             }
             for t in teachers
         ]
+        formatted_teachers.sort(key=lambda t: teacher_sort_key(t["name"]))
 
         # Load teaching assignments
         assignments_db = session.scalars(
@@ -525,6 +648,13 @@ def get_full_school(school_id: str) -> FullSchoolOut:
             )
         ).unique().all()
 
+        freq_map = {(r.grade_id, r.subject_id): r.weekly_frequency for r in requirements}
+        teacher_load: dict[uuid.UUID, int] = {}
+        for a in assignments_db:
+            gid = a.class_section.grade_id if a.class_section else None
+            freq = freq_map.get((gid, a.subject_id), 0) if gid else 0
+            teacher_load[a.teacher_id] = teacher_load.get(a.teacher_id, 0) + freq
+
         formatted_assignments = [
             {
                 "id": str(a.id),
@@ -534,9 +664,12 @@ def get_full_school(school_id: str) -> FullSchoolOut:
                 "className": a.class_section.section if a.class_section else None,
                 "subjectName": a.subject.name if a.subject else None,
                 "teacherName": a.teacher.name if a.teacher else None,
+                "weeklyFrequency": freq_map.get((a.class_section.grade_id, a.subject_id), 0) if a.class_section else 0,
+                "teacherWeeklyLoad": teacher_load.get(a.teacher_id, 0),
             }
             for a in assignments_db
         ]
+        formatted_assignments.sort(key=lambda a: (class_sort_key(a["className"] or ""), (a["subjectName"] or "").lower()))
 
         formatted_absences = [
             {
@@ -632,27 +765,68 @@ def get_full_school(school_id: str) -> FullSchoolOut:
             for v in versions_db
         ]
 
-        period_slots = [
-            {"number": 0, "label": "Zero Period", "time": "08:00 - 08:30", "isBreak": True, "type": "zero"},
-            {"number": 1, "label": "Period 1", "time": "08:30 - 09:15", "isBreak": False},
-            {"number": 2, "label": "Period 2", "time": "09:15 - 10:00", "isBreak": False},
-            {"number": "B1", "label": "Short Break", "time": "10:00 - 10:15", "isBreak": True, "type": "break"},
-            {"number": 3, "label": "Period 3", "time": "10:15 - 11:00", "isBreak": False},
-            {"number": 4, "label": "Period 4", "time": "11:00 - 12:00", "isBreak": False, "note": "Primary Dismissal (12:00)"},
-            {"number": "L1", "label": "Lunch Break", "time": "12:00 - 12:30", "isBreak": True, "type": "lunch", "seniorOnly": True},
-            {"number": 5, "label": "Period 5", "time": "12:30 - 01:15", "isBreak": False, "seniorOnly": True},
-            {"number": 6, "label": "Period 6", "time": "01:15 - 02:00", "isBreak": False, "seniorOnly": True, "note": "Senior Dismissal (02:00)"},
-        ]
+        # Load period slots from DB if present
+        db_slots = session.scalars(
+            select(models.PeriodSlot)
+            .where(models.PeriodSlot.school_id == sid)
+            .order_by(models.PeriodSlot.period_number)
+        ).all()
 
-        return FullSchoolOut(
-            id=str(school.id),
-            name=school.name,
-            subdomain=school.subdomain,
-            timezone=school.timezone,
-            term=school.term,
-            published=school.published,
-            workingDays=school.working_days,
-            rules={
+        max_p_senior = max([ps.period_number for ps in db_slots if ps.period_number] or [6])
+        max_p_primary = max([ps.period_number for ps in db_slots if ps.tier == "primary" and ps.period_number] or [min(4, max_p_senior)])
+
+        if max_p_senior >= 8:
+            # 8-period CBSE/ICSE schedule (40-minute periods, Short Break after P3, Lunch after P6)
+            period_slots = [
+                {"number": 1, "label": "Period 1", "time": "08:00 - 08:40", "isBreak": False},
+                {"number": 2, "label": "Period 2", "time": "08:40 - 09:20", "isBreak": False},
+                {"number": 3, "label": "Period 3", "time": "09:20 - 10:00", "isBreak": False},
+                {"number": "B1", "label": "Short Break", "time": "10:00 - 10:20", "isBreak": True, "type": "break"},
+                {"number": 4, "label": "Period 4", "time": "10:20 - 11:00", "isBreak": False},
+                {"number": 5, "label": "Period 5", "time": "11:00 - 11:40", "isBreak": False},
+                {"number": 6, "label": "Period 6", "time": "11:40 - 12:20", "isBreak": False, "note": "Pre-Primary Dismissal (12:20)"},
+                {"number": "L1", "label": "Lunch Break", "time": "12:20 - 12:50", "isBreak": True, "type": "lunch"},
+                {"number": 7, "label": "Period 7", "time": "12:50 - 13:30", "isBreak": False, "note": "Primary Dismissal (13:30)"},
+                {"number": 8, "label": "Period 8", "time": "13:30 - 14:10", "isBreak": False, "seniorOnly": True, "note": "Senior Dismissal (14:10)"},
+            ]
+            rules_dict = {
+                "primaryEndPeriod": max_p_primary,
+                "seniorEndPeriod": max_p_senior,
+                "maxTeacherPeriodsPerDay": school.max_teacher_periods_per_day,
+                "activityDay": school.activity_day or "None",
+                "activityPeriods": school.activity_periods or [],
+                "zeroPeriodLabel": "Homeroom / Assembly",
+                "lunchAfterPeriod": 6,
+            }
+            timing_dict = {
+                "startTime": "08:00",
+                "periodDurationMinutes": 40,
+                "hasZeroPeriod": False,
+                "zeroPeriodDurationMinutes": 0,
+                "zeroPeriodLabel": "Zero Period",
+                "hasRecessBreak": True,
+                "recessAfterPeriod": 3,
+                "recessDurationMinutes": 20,
+                "recessLabel": "Short Break",
+                "hasLunchBreak": True,
+                "lunchAfterPeriod": 6,
+                "lunchDurationMinutes": 30,
+                "lunchLabel": "Lunch Break",
+                "lunchSeniorOnly": False,
+            }
+        else:
+            period_slots = [
+                {"number": 0, "label": "Zero Period", "time": "08:00 - 08:30", "isBreak": True, "type": "zero"},
+                {"number": 1, "label": "Period 1", "time": "08:30 - 09:15", "isBreak": False},
+                {"number": 2, "label": "Period 2", "time": "09:15 - 10:00", "isBreak": False},
+                {"number": "B1", "label": "Short Break", "time": "10:00 - 10:15", "isBreak": True, "type": "break"},
+                {"number": 3, "label": "Period 3", "time": "10:15 - 11:00", "isBreak": False},
+                {"number": 4, "label": "Period 4", "time": "11:00 - 12:00", "isBreak": False, "note": "Primary Dismissal (12:00)"},
+                {"number": "L1", "label": "Lunch Break", "time": "12:00 - 12:30", "isBreak": True, "type": "lunch", "seniorOnly": True},
+                {"number": 5, "label": "Period 5", "time": "12:30 - 01:15", "isBreak": False, "seniorOnly": True},
+                {"number": 6, "label": "Period 6", "time": "01:15 - 02:00", "isBreak": False, "seniorOnly": True, "note": "Senior Dismissal (02:00)"},
+            ]
+            rules_dict = {
                 "primaryEndPeriod": 4,
                 "seniorEndPeriod": 6,
                 "maxTeacherPeriodsPerDay": school.max_teacher_periods_per_day,
@@ -660,8 +834,8 @@ def get_full_school(school_id: str) -> FullSchoolOut:
                 "activityPeriods": school.activity_periods,
                 "zeroPeriodLabel": "Zero Period (Homeroom / Assembly)",
                 "lunchAfterPeriod": 4,
-            },
-            timingConfig={
+            }
+            timing_dict = {
                 "startTime": "08:00",
                 "periodDurationMinutes": 45,
                 "hasZeroPeriod": True,
@@ -676,9 +850,21 @@ def get_full_school(school_id: str) -> FullSchoolOut:
                 "lunchDurationMinutes": 30,
                 "lunchLabel": "Lunch Break",
                 "lunchSeniorOnly": False,
-            },
+            }
+
+        return FullSchoolOut(
+            id=str(school.id),
+            name=school.name,
+            subdomain=school.subdomain,
+            timezone=school.timezone,
+            term=school.term,
+            published=school.published,
+            workingDays=school.working_days,
+            rules=rules_dict,
+            timingConfig=timing_dict,
             periodSlots=period_slots,
             classes=formatted_classes,
+            rooms=formatted_rooms,
             subjects=formatted_subjects,
             teachers=formatted_teachers,
             assignments=formatted_assignments,
@@ -716,7 +902,7 @@ def list_assignments(school_id: str) -> list[AssignmentOut]:
             freq = freq_map.get((grade_id, a.subject_id), 0) if grade_id else 0
             teacher_load[a.teacher_id] = teacher_load.get(a.teacher_id, 0) + freq
 
-        return [
+        results = [
             AssignmentOut(
                 id=str(a.id),
                 school_id=str(a.school_id),
@@ -730,6 +916,8 @@ def list_assignments(school_id: str) -> list[AssignmentOut]:
             )
             for a in assignments
         ]
+        results.sort(key=lambda a: (class_sort_key(a.class_name or ""), (a.subject_name or "").lower()))
+        return results
 
 
 def upsert_assignment(school_id: str, data: AssignmentCreate) -> AssignmentOut:
@@ -796,6 +984,58 @@ def upsert_assignment(school_id: str, data: AssignmentCreate) -> AssignmentOut:
             teacher_name=teacher.name if teacher else None,
             teacher_weekly_load=total_load,
         )
+
+
+def delete_teacher(school_id: str, teacher_id: str) -> bool:
+    """Delete a teacher and cascade delete related qualifications/assignments."""
+    sid = uuid.UUID(school_id)
+    tid = uuid.UUID(teacher_id)
+    with tenant_session(school_id) as session:
+        t = session.scalar(select(models.Teacher).where(models.Teacher.id == tid, models.Teacher.school_id == sid))
+        if not t:
+            raise HTTPException(status_code=404, detail="Teacher not found.")
+        session.delete(t)
+        session.commit()
+        return True
+
+
+def delete_room(school_id: str, room_id: str) -> bool:
+    """Delete a room."""
+    sid = uuid.UUID(school_id)
+    rid = uuid.UUID(room_id)
+    with tenant_session(school_id) as session:
+        r = session.scalar(select(models.Room).where(models.Room.id == rid, models.Room.school_id == sid))
+        if not r:
+            raise HTTPException(status_code=404, detail="Room not found.")
+        session.delete(r)
+        session.commit()
+        return True
+
+
+def delete_subject(school_id: str, subject_id: str) -> bool:
+    """Delete a subject and related requirements."""
+    sid = uuid.UUID(school_id)
+    sub_id = uuid.UUID(subject_id)
+    with tenant_session(school_id) as session:
+        s = session.scalar(select(models.Subject).where(models.Subject.id == sub_id, models.Subject.school_id == sid))
+        if not s:
+            raise HTTPException(status_code=404, detail="Subject not found.")
+        session.delete(s)
+        session.commit()
+        return True
+
+
+def delete_class_section(school_id: str, class_id: str) -> bool:
+    """Delete a class section."""
+    sid = uuid.UUID(school_id)
+    cid = uuid.UUID(class_id)
+    with tenant_session(school_id) as session:
+        c = session.scalar(select(models.ClassSection).where(models.ClassSection.id == cid, models.ClassSection.school_id == sid))
+        if not c:
+            raise HTTPException(status_code=404, detail="Class section not found.")
+        session.delete(c)
+        session.commit()
+        return True
 
 
 def delete_assignment(school_id: str, assignment_id: str) -> bool:

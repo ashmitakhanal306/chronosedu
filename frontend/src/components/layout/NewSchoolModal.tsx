@@ -15,7 +15,7 @@ export function NewSchoolModal({ app, isOpen, onClose }: Props) {
   const [subdomain, setSubdomain] = useState('');
   const [term, setTerm] = useState('Academic Year 2026–27 (Term 1)');
   const [timezone, setTimezone] = useState('IST (UTC+5:30)');
-  const [template, setTemplate] = useState<'starter' | 'blank'>('starter');
+  const [template, setTemplate] = useState<'starter' | 'blank' | 'greenwood_issues'>('starter');
 
   if (!isOpen) return null;
 
@@ -93,6 +93,24 @@ export function NewSchoolModal({ app, isOpen, onClose }: Props) {
               placeholder="e.g. St. Xavier's International School"
               className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white font-semibold text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition shadow-2xs"
             />
+            <div className="flex flex-wrap items-center gap-1.5 pt-1">
+              <span className="text-[10px] text-slate-400 font-semibold uppercase">Presets:</span>
+              {["Greenwood Public School", "St. Xavier's International", "Delhi Public Academy", "Kendriya Vidyalaya No. 1"].map(s => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => {
+                    handleNameChange(s);
+                    if (s === "Greenwood Public School") {
+                      setTemplate('greenwood_issues');
+                    }
+                  }}
+                  className="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-600 text-[10px] font-semibold border border-slate-200 transition cursor-pointer"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Subdomain & Timezone Grid */}
@@ -157,7 +175,7 @@ export function NewSchoolModal({ app, isOpen, onClose }: Props) {
             />
           </div>
 
-          {/* Starter Template vs Blank */}
+          {/* Starter Template vs Blank vs Dataset 2 */}
           <div className="space-y-2">
             <label className="block font-bold text-slate-700">Choose Starting Configuration</label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -173,7 +191,7 @@ export function NewSchoolModal({ app, isOpen, onClose }: Props) {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5 font-bold text-slate-900 text-xs">
                     <Sparkles className="w-4 h-4 text-indigo-600" />
-                    <span>Starter Curriculum</span>
+                    <span>Complete K-12 Template</span>
                   </div>
                   {template === 'starter' && (
                     <span className="w-4 h-4 rounded-full bg-indigo-600 text-white flex items-center justify-center">
@@ -182,10 +200,10 @@ export function NewSchoolModal({ app, isOpen, onClose }: Props) {
                   )}
                 </div>
                 <p className="text-[11px] text-slate-600 leading-relaxed">
-                  Pre-populates with standard classes (4A, 5B, 9A, 10A), 8 core subjects, and faculty. Conflict-free timetable solves automatically.
+                  Standard cohorts, CBSE curriculum, rooms, and balanced faculty. 100% solver ready with zero conflicts.
                 </p>
                 <span className="inline-block text-[10px] font-bold text-indigo-700 uppercase tracking-wider bg-indigo-100/80 px-2 py-0.5 rounded-md mt-1">
-                  Recommended for Testing
+                  1-Click Ready
                 </span>
               </div>
 
@@ -210,11 +228,49 @@ export function NewSchoolModal({ app, isOpen, onClose }: Props) {
                   )}
                 </div>
                 <p className="text-[11px] text-slate-600 leading-relaxed">
-                  Empty classes, faculty, and subjects with standard bell schedule. Ideal for CSV bulk onboarding or custom setup from scratch.
+                  Empty cohorts and staff. Step through our 1-click batch generators in Setup Wizard to build from scratch.
                 </p>
                 <span className="inline-block text-[10px] font-bold text-slate-600 uppercase tracking-wider bg-slate-100 px-2 py-0.5 rounded-md mt-1">
-                  Clean Slate
+                  Wizard Onboarding
                 </span>
+              </div>
+
+              {/* Dataset 2 Testbed */}
+              <div
+                onClick={() => {
+                  setTemplate('greenwood_issues');
+                  if (!name || name === "St. Xavier's International" || name === 'Delhi Public Academy') {
+                    handleNameChange('Greenwood Public School');
+                  }
+                }}
+                className={`col-span-1 sm:col-span-2 p-3.5 rounded-2xl border-2 transition cursor-pointer space-y-1 relative ${
+                  template === 'greenwood_issues'
+                    ? 'border-amber-600 bg-amber-50/80 shadow-xs'
+                    : 'border-slate-200 bg-white hover:border-slate-300'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 font-bold text-slate-900 text-xs">
+                    <span className="text-amber-600">🧪</span>
+                    <span>Greenwood Public School (Dataset 2 — Real-World Issues Testbed)</span>
+                  </div>
+                  {template === 'greenwood_issues' && (
+                    <span className="w-4 h-4 rounded-full bg-amber-600 text-white flex items-center justify-center">
+                      <Check className="w-2.5 h-2.5 stroke-[3]" />
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-slate-600 leading-relaxed">
+                  55 Sections, 99 Staff, 67 Rooms with 23 real-world challenges: teacher maternity leave, physics shortage, computer lab overbooking, room overcrowding, and cross-subject balancing.
+                </p>
+                <div className="flex flex-wrap items-center gap-2 mt-1">
+                  <span className="inline-block text-[10px] font-bold text-amber-800 uppercase tracking-wider bg-amber-100 px-2 py-0.5 rounded-md">
+                    23 Testbed Issues
+                  </span>
+                  <span className="text-[10px] font-semibold text-slate-500">
+                    Perfect for testing Step 10 Pre-Flight Feasibility &amp; 1-Click Auto-Fixes
+                  </span>
+                </div>
               </div>
             </div>
           </div>

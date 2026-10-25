@@ -53,9 +53,9 @@ def seed_demo_school_if_empty() -> str:
         room_102 = models.Room(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, name="Room 102", type="classroom")
         room_201 = models.Room(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, name="Room 201", type="classroom")
         room_202 = models.Room(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, name="Room 202", type="classroom")
-        room_mus = models.Room(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, name="Music Studio", type="activity")
-        room_art = models.Room(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, name="Art Atelier", type="activity")
-        room_game = models.Room(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, name="Sports Arena", type="activity")
+        room_mus = models.Room(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, name="Music Studio", type="activity", capacity=2)
+        room_art = models.Room(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, name="Art Atelier", type="activity", capacity=2)
+        room_game = models.Room(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, name="Sports Arena", type="activity", capacity=4)
 
         session.add_all([room_101, room_102, room_201, room_202, room_mus, room_art, room_game])
 
@@ -170,6 +170,46 @@ def seed_demo_school_if_empty() -> str:
             models.TeacherSubject(school_id=DEMO_SCHOOL_ID, teacher_id=t12.id, subject_id=sub_mus.id),
         ]
         session.add_all(teacher_subjects)
+
+        # 7b. Teaching Assignments (ONE dedicated teacher per class-subject pair)
+        teaching_assignments = [
+            # Grade 4A
+            models.TeachingAssignment(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, class_id=c_4a.id, subject_id=sub_math.id, teacher_id=t1.id),
+            models.TeachingAssignment(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, class_id=c_4a.id, subject_id=sub_eng.id, teacher_id=t3.id),
+            models.TeachingAssignment(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, class_id=c_4a.id, subject_id=sub_sci.id, teacher_id=t5.id),
+            models.TeachingAssignment(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, class_id=c_4a.id, subject_id=sub_sst.id, teacher_id=t7.id),
+            models.TeachingAssignment(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, class_id=c_4a.id, subject_id=sub_mus.id, teacher_id=t9.id),
+            models.TeachingAssignment(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, class_id=c_4a.id, subject_id=sub_art.id, teacher_id=t10.id),
+
+            # Grade 5B
+            models.TeachingAssignment(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, class_id=c_5b.id, subject_id=sub_math.id, teacher_id=t2.id),
+            models.TeachingAssignment(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, class_id=c_5b.id, subject_id=sub_eng.id, teacher_id=t4.id),
+            models.TeachingAssignment(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, class_id=c_5b.id, subject_id=sub_sci.id, teacher_id=t6.id),
+            models.TeachingAssignment(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, class_id=c_5b.id, subject_id=sub_sst.id, teacher_id=t8.id),
+            models.TeachingAssignment(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, class_id=c_5b.id, subject_id=sub_mus.id, teacher_id=t9.id),
+            models.TeachingAssignment(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, class_id=c_5b.id, subject_id=sub_art.id, teacher_id=t10.id),
+
+            # Grade 9A
+            models.TeachingAssignment(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, class_id=c_9a.id, subject_id=sub_math.id, teacher_id=t1.id),
+            models.TeachingAssignment(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, class_id=c_9a.id, subject_id=sub_eng.id, teacher_id=t3.id),
+            models.TeachingAssignment(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, class_id=c_9a.id, subject_id=sub_sci.id, teacher_id=t5.id),
+            models.TeachingAssignment(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, class_id=c_9a.id, subject_id=sub_sst.id, teacher_id=t7.id),
+            models.TeachingAssignment(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, class_id=c_9a.id, subject_id=sub_cs.id, teacher_id=t2.id),
+            models.TeachingAssignment(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, class_id=c_9a.id, subject_id=sub_lang.id, teacher_id=t4.id),
+            models.TeachingAssignment(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, class_id=c_9a.id, subject_id=sub_mus.id, teacher_id=t12.id),
+            models.TeachingAssignment(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, class_id=c_9a.id, subject_id=sub_game.id, teacher_id=t11.id),
+
+            # Grade 10A
+            models.TeachingAssignment(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, class_id=c_10a.id, subject_id=sub_math.id, teacher_id=t2.id),
+            models.TeachingAssignment(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, class_id=c_10a.id, subject_id=sub_eng.id, teacher_id=t4.id),
+            models.TeachingAssignment(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, class_id=c_10a.id, subject_id=sub_sci.id, teacher_id=t6.id),
+            models.TeachingAssignment(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, class_id=c_10a.id, subject_id=sub_sst.id, teacher_id=t8.id),
+            models.TeachingAssignment(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, class_id=c_10a.id, subject_id=sub_cs.id, teacher_id=t6.id),
+            models.TeachingAssignment(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, class_id=c_10a.id, subject_id=sub_lang.id, teacher_id=t8.id),
+            models.TeachingAssignment(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, class_id=c_10a.id, subject_id=sub_mus.id, teacher_id=t12.id),
+            models.TeachingAssignment(id=uuid.uuid4(), school_id=DEMO_SCHOOL_ID, class_id=c_10a.id, subject_id=sub_game.id, teacher_id=t11.id),
+        ]
+        session.add_all(teaching_assignments)
 
         # 8. Demo User Accounts (Admin, all Teachers, all Class Sections)
         admin_user = models.AppUser(

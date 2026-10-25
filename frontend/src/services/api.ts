@@ -494,4 +494,64 @@ export const api = {
   async listAuditLogs(schoolId: string): Promise<ApiAuditLog[]> {
     return request<ApiAuditLog[]>(`/schools/${schoolId}/audit-logs`);
   },
+
+  // ── Setup CRUD methods (Phase 3) ───────────────────────────────────────────
+  async addTeacher(schoolId: string, data: { name: string; email?: string; max_periods_per_day?: number; subject_ids?: string[] }): Promise<any> {
+    return request(`/schools/${schoolId}/teachers`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async deleteTeacher(schoolId: string, teacherId: string): Promise<void> {
+    return request<void>(`/schools/${schoolId}/teachers/${teacherId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  async addRoom(schoolId: string, data: { name: string; type?: string; capacity?: number }): Promise<any> {
+    return request(`/schools/${schoolId}/rooms`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async updateRoom(schoolId: string, roomId: string, data: { name?: string; type?: string; capacity?: number }): Promise<any> {
+    return request(`/schools/${schoolId}/rooms/${roomId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async deleteRoom(schoolId: string, roomId: string): Promise<void> {
+    return request<void>(`/schools/${schoolId}/rooms/${roomId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  async addSubject(schoolId: string, data: { name: string; code: string; type?: string; room_id?: string | null }): Promise<any> {
+    return request(`/schools/${schoolId}/subjects`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async deleteSubject(schoolId: string, subjectId: string): Promise<void> {
+    return request<void>(`/schools/${schoolId}/subjects/${subjectId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  async addClassSection(schoolId: string, data: { section: string; grade_id: string; home_room_id?: string | null }): Promise<any> {
+    return request(`/schools/${schoolId}/classes`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async deleteClassSection(schoolId: string, classId: string): Promise<void> {
+    return request<void>(`/schools/${schoolId}/classes/${classId}`, {
+      method: 'DELETE',
+    });
+  },
 };

@@ -51,5 +51,10 @@ frontend/node_modules/
 *.sublime-project
 *.sublime-workspace
 .DS_Store
-Thumbs.db
 *.log
+
+# Scratch & Temporary Dumps
+*_dump.json
+*.dump.json
+scripts/requirements_dump.json
+frontend/src/data/dataset2_dump.json

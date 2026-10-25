@@ -19,6 +19,7 @@ from app.schemas.setup import (
     RequirementOut,
     RoomCreate,
     RoomOut,
+    RoomUpdate,
     SchoolCreate,
     SchoolOut,
     SubjectCreate,
@@ -103,6 +104,18 @@ def add_room(
     return school_service.add_room(school_id, data)
 
 
+@router.put("/{school_id}/rooms/{room_id}", response_model=RoomOut)
+def update_room(
+    school_id: str,
+    room_id: str,
+    data: RoomUpdate,
+    auth: AuthContext = Depends(require_roles(["admin"])),
+):
+    """Update a room. Admin only."""
+    verify_tenant_access(school_id, auth)
+    return school_service.update_room(school_id, room_id, data)
+
+
 @router.post("/{school_id}/classes", response_model=ClassSectionOut, status_code=201)
 def add_class_section(
     school_id: str,
@@ -156,6 +169,54 @@ def add_user(
     """Register an authenticated user for a school tenant. Admin only."""
     verify_tenant_access(school_id, auth)
     return school_service.create_user(school_id, data)
+
+
+@router.delete("/{school_id}/teachers/{teacher_id}", status_code=204)
+def delete_teacher(
+    school_id: str,
+    teacher_id: str,
+    auth: AuthContext = Depends(require_roles(["admin"])),
+):
+    """Delete a teacher. Admin only."""
+    verify_tenant_access(school_id, auth)
+    school_service.delete_teacher(school_id, teacher_id)
+    return None
+
+
+@router.delete("/{school_id}/rooms/{room_id}", status_code=204)
+def delete_room(
+    school_id: str,
+    room_id: str,
+    auth: AuthContext = Depends(require_roles(["admin"])),
+):
+    """Delete a room. Admin only."""
+    verify_tenant_access(school_id, auth)
+    school_service.delete_room(school_id, room_id)
+    return None
+
+
+@router.delete("/{school_id}/subjects/{subject_id}", status_code=204)
+def delete_subject(
+    school_id: str,
+    subject_id: str,
+    auth: AuthContext = Depends(require_roles(["admin"])),
+):
+    """Delete a subject. Admin only."""
+    verify_tenant_access(school_id, auth)
+    school_service.delete_subject(school_id, subject_id)
+    return None
+
+
+@router.delete("/{school_id}/classes/{class_id}", status_code=204)
+def delete_class_section(
+    school_id: str,
+    class_id: str,
+    auth: AuthContext = Depends(require_roles(["admin"])),
+):
+    """Delete a class section. Admin only."""
+    verify_tenant_access(school_id, auth)
+    school_service.delete_class_section(school_id, class_id)
+    return None
 
 
 # ── Teaching Assignment endpoints (Phase 1) ───────────────────────────────────

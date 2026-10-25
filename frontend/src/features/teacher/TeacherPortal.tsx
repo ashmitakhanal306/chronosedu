@@ -25,6 +25,7 @@ export function TeacherPortal({ app }: { app: TimetableApp }) {
     addAbsence,
     currentUser,
     exportPrintPdf,
+    sortedTeachers,
   } = app;
 
   const [isAbsenceModalOpen, setIsAbsenceModalOpen] = useState(false);
@@ -81,25 +82,22 @@ export function TeacherPortal({ app }: { app: TimetableApp }) {
                 )}
               </div>
 
-              <div className="flex items-center gap-3 mt-1">
-                {isSelf ? (
-                  <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">
-                    {selectedTeacher?.name}
-                  </h1>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-slate-500 font-semibold">Teacher:</span>
-                    <select
-                      value={selectedTeacher?.id}
-                      onChange={(e) => setSelectedTeacherId(e.target.value)}
-                      className="px-3 py-1.5 rounded-xl border border-slate-300 text-base font-bold bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs"
-                    >
-                      {activeSchool.teachers.map(t => (
-                        <option key={t.id} value={t.id}>{t.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
+              <div className="flex flex-wrap items-center gap-3 mt-1">
+                <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">
+                  {selectedTeacher?.name}
+                </h1>
+                <div className="flex items-center gap-1.5 text-xs text-slate-600 bg-slate-50 px-3 py-1 rounded-xl border border-slate-200 shadow-2xs">
+                  <span className="font-semibold text-slate-500">Faculty:</span>
+                  <select
+                    value={selectedTeacher?.id}
+                    onChange={(e) => setSelectedTeacherId(e.target.value)}
+                    className="bg-transparent font-bold text-indigo-700 focus:outline-none cursor-pointer"
+                  >
+                    {(sortedTeachers || activeSchool.teachers).map(t => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <p className="text-xs text-slate-500 mt-1">

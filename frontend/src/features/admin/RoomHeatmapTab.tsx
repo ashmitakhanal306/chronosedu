@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { DoorOpen, Sparkles, CheckCircle2, AlertTriangle, ShieldCheck, RefreshCw, Layers } from 'lucide-react';
 import type { TimetableApp } from '../../hooks/useTimetableApp';
+import { sortRooms } from '../../utils/sorting';
 
 export function RoomHeatmapTab({ app }: { app: TimetableApp }) {
   const { activeSchool, currentSchedule } = app;
@@ -8,7 +9,7 @@ export function RoomHeatmapTab({ app }: { app: TimetableApp }) {
   const [whatIfScenario, setWhatIfScenario] = useState<'none' | 'lab_closure' | 'teacher_leave'>('none');
   const [isSimulating, setIsSimulating] = useState(false);
 
-  // Extract all distinct rooms
+  // Extract all distinct rooms, sorted by natural alphanumeric room name
   const classRooms = activeSchool.classes.map(c => ({
     name: c.room,
     type: 'Classroom',
@@ -23,7 +24,7 @@ export function RoomHeatmapTab({ app }: { app: TimetableApp }) {
     { name: 'Sports Field', type: 'Outdoor Complex', capacity: 80, tag: 'PHE' },
   ];
 
-  const allRooms = [...classRooms, ...specialRooms];
+  const allRooms = [...sortRooms(classRooms), ...specialRooms];
 
   // Helper to find who occupies a room in a given day and period
   const getRoomOccupant = (roomName: string, day: string, periodNumber: number) => {
