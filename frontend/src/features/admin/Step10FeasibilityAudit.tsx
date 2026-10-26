@@ -33,6 +33,7 @@ interface Props {
   onRunSolver: () => void;
   showToast: (msg: string, type?: 'success' | 'warning' | 'info') => void;
   onLoadDataset2?: () => void;
+  onLoadDataset1?: () => void;
   setIsBulkModalOpen: (val: boolean) => void;
 }
 
@@ -42,6 +43,7 @@ export function Step10FeasibilityAudit({
   onRunSolver,
   showToast,
   onLoadDataset2,
+  onLoadDataset1,
   setIsBulkModalOpen,
 }: Props) {
   const [resolvedFixTypes, setResolvedFixTypes] = useState<Set<string>>(new Set());
@@ -108,7 +110,7 @@ export function Step10FeasibilityAudit({
   }, [issues, selectedFilter]);
 
   // Is dataset 2 active?
-  const isDataset2 = school.id.includes('issues') || school.name.toLowerCase().includes('issues') || school.classes.length >= 50;
+  const isDataset2 = school.id.includes('issues') || school.name.toLowerCase().includes('issues');
 
   return (
     <div className="bg-white rounded-3xl border border-slate-200 p-6 space-y-6 shadow-xs animate-in fade-in duration-200">
@@ -140,7 +142,16 @@ export function Step10FeasibilityAudit({
 
         {/* Header Action Buttons */}
         <div className="flex flex-wrap items-center gap-2">
-          {onLoadDataset2 && (
+          {isDataset2 && onLoadDataset1 ? (
+            <button
+              type="button"
+              onClick={onLoadDataset1}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-300 font-bold text-xs transition shadow-2xs cursor-pointer"
+              title="Switch to Clean Presentation Dataset 1 (Greenwood Public School)"
+            >
+              <span>✨ Load Clean Dataset 1 (Baseline)</span>
+            </button>
+          ) : !isDataset2 && onLoadDataset2 ? (
             <button
               type="button"
               onClick={onLoadDataset2}
@@ -149,7 +160,7 @@ export function Step10FeasibilityAudit({
             >
               <span>🧪 Load Dataset 2 (Issues Testbed)</span>
             </button>
-          )}
+          ) : null}
 
           <button
             type="button"

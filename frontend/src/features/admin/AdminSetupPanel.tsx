@@ -1171,15 +1171,28 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
-          {app?.loadTestDataset2 && (
-            <button
-              type="button"
-              onClick={app.loadTestDataset2}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold transition shadow-2xs cursor-pointer"
-              title="Load Greenwood Public School (Dataset 2 with 23 real-world issues)"
-            >
-              <span>🧪 Load Dataset 2 (Issues Testbed)</span>
-            </button>
+          {school.id.includes('issues') || school.name.toLowerCase().includes('issues') ? (
+            app?.loadCleanDataset1 && (
+              <button
+                type="button"
+                onClick={app.loadCleanDataset1}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-300 text-xs font-bold transition shadow-2xs cursor-pointer"
+                title="Switch back to Clean Baseline Dataset 1 (Greenwood Public School)"
+              >
+                <span>✨ Load Clean Dataset 1 (Baseline)</span>
+              </button>
+            )
+          ) : (
+            app?.loadTestDataset2 && (
+              <button
+                type="button"
+                onClick={app.loadTestDataset2}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold transition shadow-2xs cursor-pointer"
+                title="Load Greenwood Public School (Dataset 2 with 23 real-world issues)"
+              >
+                <span>🧪 Load Dataset 2 (Issues Testbed)</span>
+              </button>
+            )
           )}
 
           <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold">
@@ -3321,6 +3334,7 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
               onRunSolver={onRunSolver}
               showToast={(msg, type) => app?.showToast(msg, type)}
               onLoadDataset2={app?.loadTestDataset2}
+              onLoadDataset1={app?.loadCleanDataset1}
               setIsBulkModalOpen={setIsBulkModalOpen}
             />
           )}

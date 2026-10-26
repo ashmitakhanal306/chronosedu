@@ -25,6 +25,7 @@ import type {
 } from '../domain/types';
 import { slotKey, DEFAULT_TIMING_CONFIG, DEFAULT_SOLVER_PREFERENCES } from '../domain/types';
 import { INITIAL_SCHOOLS, DEMO_SCHOOL_ID } from '../data/demoSchools';
+import { createGreenwoodCleanSchool, getGreenwoodCleanInitialSchedule } from '../data/greenwoodCleanSchool';
 import { createGreenwoodIssuesSchool, GREENWOOD_ISSUES_SCHOOL_ID } from '../data/greenwoodIssuesSchool';
 import { computeBellSchedule } from '../engine/bellSchedule';
 import { generateSchoolTimetable } from '../engine/generateTimetable';
@@ -99,7 +100,13 @@ export function useTimetableApp() {
 
   const [schedulesBySchool, setSchedulesBySchool] = useState<Record<string, ScheduleResult>>(() => {
     const initial: Record<string, ScheduleResult> = {};
-    INITIAL_SCHOOLS.forEach(s => { initial[s.id] = generateSchoolTimetable(s); });
+    INITIAL_SCHOOLS.forEach(s => {
+      if (s.id === DEMO_SCHOOL_ID) {
+        initial[s.id] = getGreenwoodCleanInitialSchedule();
+      } else {
+        initial[s.id] = generateSchoolTimetable(s);
+      }
+    });
     return initial;
   });
 
@@ -1303,9 +1310,15 @@ export function useTimetableApp() {
   const resetDemoData = () => {
     setSchools(INITIAL_SCHOOLS);
     const fresh: Record<string, ScheduleResult> = {};
-    INITIAL_SCHOOLS.forEach(s => { fresh[s.id] = generateSchoolTimetable(s); });
+    INITIAL_SCHOOLS.forEach(s => {
+      if (s.id === DEMO_SCHOOL_ID) {
+        fresh[s.id] = getGreenwoodCleanInitialSchedule();
+      } else {
+        fresh[s.id] = generateSchoolTimetable(s);
+      }
+    });
     setSchedulesBySchool(fresh);
-    showToast('Reset to balanced conflict-free staffing data!', 'success');
+    showToast('✨ Reset to balanced conflict-free Greenwood Public School dataset!', 'success');
   };
 
   const addSchool = (options: string | CreateSchoolOptions) => {
@@ -1400,6 +1413,20 @@ export function useTimetableApp() {
     setAdminTab('setup');
     setWizardStep(10);
     showToast('🧪 Loaded Test Dataset 2: Greenwood Public School with 23 real-world issues!', 'info');
+  };
+
+  const loadCleanDataset1 = () => {
+    const cleanSchool = createGreenwoodCleanSchool();
+    setSchools(prev => {
+      const filtered = prev.filter(s => s.id !== cleanSchool.id);
+      return [cleanSchool, ...filtered];
+    });
+    setActiveSchoolId(cleanSchool.id);
+    const schedule = getGreenwoodCleanInitialSchedule();
+    setSchedulesBySchool(prev => ({ ...prev, [cleanSchool.id]: schedule }));
+    setAdminTab('setup');
+    setWizardStep(1);
+    showToast('✨ Loaded Clean Dataset 1: Greenwood Public School (Balanced & Conflict-Free)!', 'success');
   };
 
   const deleteSchool = (schoolId: string) => {
@@ -1571,7 +1598,7 @@ export function useTimetableApp() {
     login, logout, switchRole,
     // actions
     updateActiveSchool, runSolver, resetDemoData, addSchool, deleteSchool, togglePublish, exportCsv, exportExcel, exportPrintPdf,
-    loadTestDataset2,
+    loadTestDataset2, loadCleanDataset1,
     getCandidates, assignSubstitute, autoAssign, addAbsence, removeAbsence, toggleTeacherUnavailable,
     openManualOverride, saveManualOverride,
     upsertAssignment, deleteAssignment, suggestAssignments,

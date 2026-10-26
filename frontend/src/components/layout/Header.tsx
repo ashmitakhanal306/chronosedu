@@ -143,14 +143,25 @@ export function Header({ app }: { app: TimetableApp }) {
               <span className="hidden sm:inline">Reset Demo</span>
             </button>
 
-            <button
-              type="button"
-              onClick={app.loadTestDataset2}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/30 text-amber-200 hover:text-white text-xs font-semibold transition cursor-pointer"
-              title="Load Test Dataset 2: Greenwood Public School with Real-World Issues"
-            >
-              <span>🧪 Test Dataset 2</span>
-            </button>
+            {app.activeSchool.id.includes('issues') || app.activeSchool.name.toLowerCase().includes('issues') ? (
+              <button
+                type="button"
+                onClick={app.loadCleanDataset1}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/30 text-emerald-200 hover:text-white text-xs font-semibold transition cursor-pointer"
+                title="Switch back to Clean Baseline Dataset 1 (Greenwood Public School)"
+              >
+                <span>✨ Clean Dataset 1</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={app.loadTestDataset2}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/30 text-amber-200 hover:text-white text-xs font-semibold transition cursor-pointer"
+                title="Load Test Dataset 2: Greenwood Public School with Real-World Issues"
+              >
+                <span>🧪 Test Dataset 2</span>
+              </button>
+            )}
 
             <button
               type="button"

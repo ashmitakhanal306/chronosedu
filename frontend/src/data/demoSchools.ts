@@ -1,130 +1,15 @@
 // DATA LAYER — demo tenants. In production this is replaced by API calls (services/api.ts).
 import type { School } from '../domain/types';
+import { createGreenwoodCleanSchool, DEMO_SCHOOL_ID } from './greenwoodCleanSchool';
 
-export const DEMO_SCHOOL_ID = 'a0000000-0000-0000-0000-000000000001';
+export { DEMO_SCHOOL_ID };
 
 // ==========================================
 // INITIAL MULTI-TENANT DEMO DATA
 // ==========================================
 export const INITIAL_SCHOOLS: School[] = [
-  {
-    id: DEMO_SCHOOL_ID,
-    name: 'Greenwood High School',
-    subdomain: 'greenwood.chronos.edu',
-    timezone: 'IST (UTC+5:30)',
-    term: 'Academic Year 2026-27',
-    published: true,
-    workingDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-    rules: {
-      primaryEndPeriod: 7, // Ends at 13:30 (Periods 1..7 + Breaks)
-      seniorEndPeriod: 8,  // Ends at 14:10 (Periods 1..8 + Breaks)
-      maxTeacherPeriodsPerDay: 6,
-      activityDay: 'None',
-      activityPeriods: [],
-      zeroPeriodLabel: 'Homeroom / Assembly',
-      lunchAfterPeriod: 6,
-    },
-    timingConfig: {
-      startTime: '08:00',
-      periodDurationMinutes: 40,
-      hasZeroPeriod: false,
-      zeroPeriodDurationMinutes: 0,
-      zeroPeriodLabel: 'Zero Period',
-      recessAfterPeriod: 3,
-      recessDurationMinutes: 20,
-      recessLabel: 'Short Break',
-      lunchAfterPeriod: 6,
-      lunchDurationMinutes: 30,
-      lunchLabel: 'Lunch Break',
-      lunchSeniorOnly: false,
-    },
-    periodSlots: [
-      { number: 1, label: 'Period 1', time: '08:00 - 08:40', isBreak: false },
-      { number: 2, label: 'Period 2', time: '08:40 - 09:20', isBreak: false },
-      { number: 3, label: 'Period 3', time: '09:20 - 10:00', isBreak: false },
-      { number: 'B1', label: 'Short Break', time: '10:00 - 10:20', isBreak: true, type: 'break' },
-      { number: 4, label: 'Period 4', time: '10:20 - 11:00', isBreak: false },
-      { number: 5, label: 'Period 5', time: '11:00 - 11:40', isBreak: false },
-      { number: 6, label: 'Period 6', time: '11:40 - 12:20', isBreak: false, note: 'Pre-Primary Dismissal (12:20)' },
-      { number: 'L1', label: 'Lunch Break', time: '12:20 - 12:50', isBreak: true, type: 'lunch' },
-      { number: 7, label: 'Period 7', time: '12:50 - 13:30', isBreak: false, note: 'Primary Dismissal (13:30)' },
-      { number: 8, label: 'Period 8', time: '13:30 - 14:10', isBreak: false, seniorOnly: true, note: 'Senior Dismissal (14:10)' },
-    ],
-    classes: [
-      { id: 'c-4a', name: '4A', grade: 'Grade 4', tier: 'Primary', room: 'Room 101' },
-      { id: 'c-5b', name: '5B', grade: 'Grade 5', tier: 'Primary', room: 'Room 102' },
-      { id: 'c-9a', name: '9A', grade: 'Grade 9', tier: 'Senior', room: 'Room 201' },
-      { id: 'c-10a', name: '10A', grade: 'Grade 10', tier: 'Senior', room: 'Room 202' },
-    ],
-    // Primary has 5 days * 4 periods = 20 total slots/week (2 activity + 18 academic)
-    // Senior has 5 days * 6 periods = 30 total slots/week (2 activity + 28 academic)
-    subjects: [
-      // Academic Subjects
-      { id: 'sub-math', name: 'Mathematics', code: 'MATH', type: 'academic', color: 'bg-blue-50 text-blue-700 border-blue-200', freqPrimary: 5, freqSenior: 6 },
-      { id: 'sub-eng', name: 'English Lit', code: 'ENG', type: 'academic', color: 'bg-indigo-50 text-indigo-700 border-indigo-200', freqPrimary: 5, freqSenior: 5 },
-      { id: 'sub-sci', name: 'General Science', code: 'SCI', type: 'academic', color: 'bg-emerald-50 text-emerald-700 border-emerald-200', freqPrimary: 4, freqSenior: 6, requiresDoublePeriod: true },
-      { id: 'sub-sst', name: 'Social Studies', code: 'SST', type: 'academic', color: 'bg-amber-50 text-amber-700 border-amber-200', freqPrimary: 4, freqSenior: 5 },
-      { id: 'sub-cs', name: 'Computer Sci', code: 'CS', type: 'academic', color: 'bg-cyan-50 text-cyan-700 border-cyan-200', freqPrimary: 0, freqSenior: 3 },
-      { id: 'sub-hin', name: 'Second Language', code: 'LANG', type: 'academic', color: 'bg-rose-50 text-rose-700 border-rose-200', freqPrimary: 0, freqSenior: 3 },
-      // Activity Subjects (2 periods/week locked in Activity Block)
-      { id: 'sub-mus', name: 'Dance & Music', code: 'MUS', type: 'activity', room: 'Music Studio', color: 'bg-purple-100 text-purple-800 border-purple-300', freqPrimary: 1, freqSenior: 1 },
-      { id: 'sub-art', name: 'Art & Craft', code: 'ART', type: 'activity', room: 'Art Atelier', color: 'bg-pink-100 text-pink-800 border-pink-300', freqPrimary: 1, freqSenior: 0 },
-      { id: 'sub-gam', name: 'Sports & Games', code: 'GAME', type: 'activity', room: 'Sports Arena', color: 'bg-lime-100 text-lime-800 border-lime-300', freqPrimary: 0, freqSenior: 1 },
-    ],
-    teachers: [
-      { id: 't-1', name: 'Dr. Aris Thorne', subjects: ['sub-math'], maxPerDay: 5, unavailableDays: [] },
-      { id: 't-2', name: 'Ms. Priya Nair', subjects: ['sub-math', 'sub-cs'], maxPerDay: 5, unavailableDays: [] },
-      { id: 't-3', name: 'Mr. David Miller', subjects: ['sub-eng'], maxPerDay: 5, unavailableDays: [] },
-      { id: 't-4', name: 'Mrs. Kavita Rao', subjects: ['sub-eng', 'sub-hin'], maxPerDay: 5, unavailableDays: [] },
-      { id: 't-5', name: 'Dr. Neha Verma', subjects: ['sub-sci'], maxPerDay: 5, unavailableDays: [] },
-      { id: 't-6', name: 'Mr. Rohan Joshi', subjects: ['sub-sci', 'sub-cs'], maxPerDay: 5, unavailableDays: [] },
-      { id: 't-7', name: 'Ms. Sarah Jenkins', subjects: ['sub-sst'], maxPerDay: 5, unavailableDays: [] },
-      { id: 't-8', name: 'Mr. Vikram Singh', subjects: ['sub-sst', 'sub-hin'], maxPerDay: 5, unavailableDays: [] },
-      // Specialist Activity Teachers (4 specialists for 4 simultaneous classes in Wednesday Activity Block)
-      { id: 't-9', name: 'Maestro Carlos (Music)', subjects: ['sub-mus'], maxPerDay: 5, unavailableDays: [] },
-      { id: 't-10', name: 'Ms. Elena Rostova (Art)', subjects: ['sub-art', 'sub-mus'], maxPerDay: 5, unavailableDays: [] },
-      { id: 't-11', name: 'Coach Marcus Vance (Sports)', subjects: ['sub-gam', 'sub-art'], maxPerDay: 5, unavailableDays: [] },
-      { id: 't-12', name: 'Ms. Tara Sharma (Physical Ed & Activity)', subjects: ['sub-gam', 'sub-art', 'sub-mus'], maxPerDay: 5, unavailableDays: [] },
-    ],
-    absences: [
-      // Pre-populated example absence so user can immediately see Substitute Ranking in action
-      { id: 'abs-1', teacherId: 't-1', day: 'Tuesday', reason: 'Medical Leave' }
-    ],
-    assignments: [
-      { id: 'asgn-1', classId: 'c-4a', subjectId: 'sub-math', teacherId: 't-1' },
-      { id: 'asgn-2', classId: 'c-4a', subjectId: 'sub-eng', teacherId: 't-3' },
-      { id: 'asgn-3', classId: 'c-4a', subjectId: 'sub-sci', teacherId: 't-5' },
-      { id: 'asgn-4', classId: 'c-4a', subjectId: 'sub-sst', teacherId: 't-7' },
-      { id: 'asgn-5', classId: 'c-4a', subjectId: 'sub-mus', teacherId: 't-9' },
-      { id: 'asgn-6', classId: 'c-4a', subjectId: 'sub-art', teacherId: 't-10' },
+  createGreenwoodCleanSchool(),
 
-      { id: 'asgn-7', classId: 'c-5b', subjectId: 'sub-math', teacherId: 't-2' },
-      { id: 'asgn-8', classId: 'c-5b', subjectId: 'sub-eng', teacherId: 't-4' },
-      { id: 'asgn-9', classId: 'c-5b', subjectId: 'sub-sci', teacherId: 't-6' },
-      { id: 'asgn-10', classId: 'c-5b', subjectId: 'sub-sst', teacherId: 't-8' },
-      { id: 'asgn-11', classId: 'c-5b', subjectId: 'sub-mus', teacherId: 't-9' },
-      { id: 'asgn-12', classId: 'c-5b', subjectId: 'sub-art', teacherId: 't-10' },
-
-      { id: 'asgn-13', classId: 'c-9a', subjectId: 'sub-math', teacherId: 't-1' },
-      { id: 'asgn-14', classId: 'c-9a', subjectId: 'sub-eng', teacherId: 't-3' },
-      { id: 'asgn-15', classId: 'c-9a', subjectId: 'sub-sci', teacherId: 't-5' },
-      { id: 'asgn-16', classId: 'c-9a', subjectId: 'sub-sst', teacherId: 't-7' },
-      { id: 'asgn-17', classId: 'c-9a', subjectId: 'sub-cs', teacherId: 't-2' },
-      { id: 'asgn-18', classId: 'c-9a', subjectId: 'sub-hin', teacherId: 't-4' },
-      { id: 'asgn-19', classId: 'c-9a', subjectId: 'sub-mus', teacherId: 't-12' },
-      { id: 'asgn-20', classId: 'c-9a', subjectId: 'sub-gam', teacherId: 't-11' },
-
-      { id: 'asgn-21', classId: 'c-10a', subjectId: 'sub-math', teacherId: 't-2' },
-      { id: 'asgn-22', classId: 'c-10a', subjectId: 'sub-eng', teacherId: 't-4' },
-      { id: 'asgn-23', classId: 'c-10a', subjectId: 'sub-sci', teacherId: 't-6' },
-      { id: 'asgn-24', classId: 'c-10a', subjectId: 'sub-sst', teacherId: 't-8' },
-      { id: 'asgn-25', classId: 'c-10a', subjectId: 'sub-cs', teacherId: 't-6' },
-      { id: 'asgn-26', classId: 'c-10a', subjectId: 'sub-hin', teacherId: 't-8' },
-      { id: 'asgn-27', classId: 'c-10a', subjectId: 'sub-mus', teacherId: 't-12' },
-      { id: 'asgn-28', classId: 'c-10a', subjectId: 'sub-gam', teacherId: 't-11' },
-    ],
-    substitutions: {} // key: `${day}-${period}-${classId}` -> substituteTeacherId
-  },
   {
     id: 'school-2',
     name: "St. Xavier's International",

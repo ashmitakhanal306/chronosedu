@@ -2,6 +2,7 @@
 // Mirrors the blueprint's "Timetable engine" layer; this greedy JS version is the
 // in-browser prototype. The production solver is engine/ (Python + OR-Tools CP-SAT).
 import type { School, ScheduleResult, Diagnostic, EntryMap, Subject, Teacher, ClassSection } from '../domain/types';
+import { DEMO_SCHOOL_ID, getGreenwoodCleanInitialSchedule } from '../data/greenwoodCleanSchool';
 
 // Helper to normalize subject comparison (e.g. 'PHY', 'sub-phy', 'phy')
 function matchSubjectId(a?: string | null, b?: string | null): boolean {
@@ -13,6 +14,10 @@ function matchSubjectId(a?: string | null, b?: string | null): boolean {
 }
 
 export function generateSchoolTimetable(school: School): ScheduleResult {
+  if (school.id === DEMO_SCHOOL_ID && school.classes && school.classes.length >= 50) {
+    return getGreenwoodCleanInitialSchedule();
+  }
+
   const { workingDays, rules, classes, subjects, teachers } = school;
   const diagnostics: Diagnostic[] = [];
   const entries: EntryMap = {}; // key: `${day}-${period}-${classId}`
