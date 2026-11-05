@@ -76,7 +76,7 @@ export function TeacherTimetableGrid({
         <table aria-label={`${teacher.name} weekly timetable`} className="w-full min-w-[1000px] border-collapse text-left print:min-w-0">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
-              <th scope="col" className="sticky top-0 left-0 z-30 py-3 px-4 w-36 min-w-36 font-semibold bg-slate-50 print:static print:z-auto print:min-w-0">
+              <th scope="col" className="sticky top-0 left-0 z-30 py-3 px-4 w-40 min-w-40 whitespace-nowrap font-semibold bg-slate-50 print:static print:z-auto print:w-36 print:min-w-0">
                 Period / Time
               </th>
               {school.workingDays.map(day => {
