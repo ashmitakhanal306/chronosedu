@@ -72,7 +72,7 @@ export function TeacherTimetableGrid({
         </div>
       </div>
 
-      <div role="region" aria-label={`Weekly timetable for ${teacher.name}`} tabIndex={0} className="w-full min-w-0 max-w-full max-h-[75vh] overflow-auto overscroll-contain focus-visible:outline-2 focus-visible:outline-brand-600 print:max-h-none print:overflow-visible print:static">
+      <div role="region" aria-label={`Weekly timetable for ${teacher.name}`} tabIndex={0} className="w-full min-w-0 max-w-full max-h-[75vh] overflow-auto overscroll-x-contain overscroll-y-auto focus-visible:outline-2 focus-visible:outline-brand-600 print:max-h-none print:overflow-visible print:static">
         <table aria-label={`${teacher.name} weekly timetable`} className="w-full min-w-[1000px] border-collapse text-left print:min-w-0">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
