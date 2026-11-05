@@ -20,16 +20,15 @@ export function OverviewTab({ app }: { app: TimetableApp }) {
         <div className="relative z-10 max-w-3xl space-y-3">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 text-xs font-semibold">
             <Sparkles className="w-3.5 h-3.5 text-indigo-300" />
-            <span>Human-Centric Constraint Solving Architecture</span>
+            <span>AI-Powered Timetable Engine</span>
           </div>
 
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-            ChronosEdu Academic Timetable Engine
+            ChronosEdu
           </h1>
 
           <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-            Not everything can or should be automated. ChronosEdu separates school timetable generation into three distinct layers:
-            Admin Enters Facts (Layer A), Mathematical Solver Places Lessons (Layer B), and Admin Reviews, Locks & Publishes (Layer C).
+            Automate your school's timetable with conflict-free scheduling. Set up your school data, run the solver, then review and publish — all in one place.
           </p>
 
           <div className="flex flex-wrap items-center gap-3 pt-3">
@@ -40,7 +39,7 @@ export function OverviewTab({ app }: { app: TimetableApp }) {
               }}
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs sm:text-sm font-semibold shadow-md transition cursor-pointer"
             >
-              <span>Setup Wizard (Step 8: Teacher Matrix)</span>
+              <span>Open Setup Wizard</span>
               <ArrowRight className="w-4 h-4" />
             </button>
 
@@ -50,7 +49,7 @@ export function OverviewTab({ app }: { app: TimetableApp }) {
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs sm:text-sm font-semibold transition cursor-pointer disabled:opacity-50"
             >
               <Cpu className="w-4 h-4 text-indigo-400" />
-              <span>{isSyncing ? 'Solving...' : 'Run Google OR-Tools CP-SAT Solver'}</span>
+              <span>{isSyncing ? 'Solving...' : 'Generate Timetable'}</span>
             </button>
           </div>
         </div>
@@ -135,11 +134,8 @@ export function OverviewTab({ app }: { app: TimetableApp }) {
       <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 shadow-2xs">
         <div className="flex items-center justify-between">
           <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider">
-            {activeSchool.name} • Operational Setup Status
+            {activeSchool.name} — Setup Status
           </h3>
-          <span className="text-xs text-slate-500 font-mono">
-            {activeSchool.subdomain}.chronos.edu
-          </span>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
@@ -152,19 +148,19 @@ export function OverviewTab({ app }: { app: TimetableApp }) {
           <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
             <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold block">Faculty</span>
             <span className="text-xl font-bold text-slate-900">{totalTeachers}</span>
-            <span className="text-[10px] text-slate-500 block mt-0.5">Qualified teachers</span>
+            <span className="text-[10px] text-slate-500 block mt-0.5">Teaching Staff</span>
           </div>
 
           <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
             <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold block">Subjects</span>
             <span className="text-xl font-bold text-slate-900">{totalSubjects}</span>
-            <span className="text-[10px] text-slate-500 block mt-0.5">Labs &amp; Activities</span>
+            <span className="text-[10px] text-slate-500 block mt-0.5">Subjects &amp; Labs</span>
           </div>
 
           <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
             <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold block">Assignments</span>
             <span className="text-xl font-bold text-indigo-600">{totalAssignments}</span>
-            <span className="text-[10px] text-slate-500 block mt-0.5">Step 8 Bound</span>
+            <span className="text-[10px] text-slate-500 block mt-0.5">Teacher Bindings</span>
           </div>
 
           <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">

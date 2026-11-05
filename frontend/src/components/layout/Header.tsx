@@ -32,7 +32,7 @@ export function Header({ app }: { app: TimetableApp }) {
               <div className="flex items-center gap-2">
                 <span className="font-bold tracking-tight text-base text-white">ChronosEdu</span>
                 <span className="text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 font-semibold">
-                  v2.6 Engine
+                  v2.6
                 </span>
               </div>
               <div className="text-xs text-slate-400 flex items-center gap-1.5 flex-wrap">
@@ -63,21 +63,21 @@ export function Header({ app }: { app: TimetableApp }) {
             <div className="flex items-center gap-1.5">
               <span className={`w-2 h-2 rounded-full ${isSetupReady ? 'bg-emerald-400' : 'bg-amber-400'}`} />
               <span className="text-slate-300">
-                <strong className="text-white">Layer A:</strong> Facts Setup ({isSetupReady ? '10/10 Ready' : 'Needs Setup'})
+                <strong className="text-white">Setup:</strong> Facts &amp; Data ({isSetupReady ? 'Ready' : 'Needs Input'})
               </span>
             </div>
             <span className="text-slate-600">→</span>
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-indigo-400" />
               <span className="text-slate-300">
-                <strong className="text-white">Layer B:</strong> Rule Solver ({currentSchedule.entries && Object.keys(currentSchedule.entries).length > 0 ? '96% Quality' : 'Standby'})
+                <strong className="text-white">Solver:</strong> {currentSchedule.entries && Object.keys(currentSchedule.entries).length > 0 ? 'Optimal' : 'Idle'}
               </span>
             </div>
             <span className="text-slate-600">→</span>
             <div className="flex items-center gap-1.5">
               <span className={`w-2 h-2 rounded-full ${activeSchool.published ? 'bg-emerald-400' : 'bg-amber-400'}`} />
               <span className="text-slate-300">
-                <strong className="text-white">Layer C:</strong> {versionLabel}
+                <strong className="text-white">Published:</strong> {versionLabel}
               </span>
             </div>
           </div>
@@ -85,7 +85,6 @@ export function Header({ app }: { app: TimetableApp }) {
           {/* Role Switcher & Global Actions */}
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center bg-slate-800 p-1 rounded-xl border border-slate-700">
-              <span className="text-[11px] text-slate-400 px-2 font-medium">Role:</span>
               <button
                 type="button"
                 onClick={() => switchRole('admin')}
@@ -117,7 +116,7 @@ export function Header({ app }: { app: TimetableApp }) {
                     : 'text-slate-300 hover:text-white hover:bg-slate-700/60'
                 }`}
               >
-                Student / Parent
+                Student
               </button>
             </div>
 
@@ -125,7 +124,7 @@ export function Header({ app }: { app: TimetableApp }) {
               type="button"
               onClick={() => showToast('All hard rules (H1–H7) conflict-free. Zero blockers.', 'info')}
               className="relative px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium flex items-center gap-1.5 text-slate-200 transition cursor-pointer"
-              title="System Alerts & Notifications"
+              title="Notifications"
             >
               <Bell className="w-3.5 h-3.5 text-slate-300" />
               <span className="px-1.5 py-0.2 bg-amber-500 text-slate-950 rounded-full text-[10px] font-bold">
@@ -140,7 +139,7 @@ export function Header({ app }: { app: TimetableApp }) {
               title="Reset to default sample data"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Reset Demo</span>
+              <span className="hidden sm:inline">Reset Data</span>
             </button>
 
             {app.activeSchool.id.includes('issues') || app.activeSchool.name.toLowerCase().includes('issues') ? (
@@ -148,18 +147,18 @@ export function Header({ app }: { app: TimetableApp }) {
                 type="button"
                 onClick={app.loadCleanDataset1}
                 className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/30 text-emerald-200 hover:text-white text-xs font-semibold transition cursor-pointer"
-                title="Switch back to Clean Baseline Dataset 1 (Greenwood Public School)"
+                title="Switch to Clean Dataset"
               >
-                <span>✨ Clean Dataset 1</span>
+                <span>✨ Clean Data</span>
               </button>
             ) : (
               <button
                 type="button"
                 onClick={app.loadTestDataset2}
                 className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/30 text-amber-200 hover:text-white text-xs font-semibold transition cursor-pointer"
-                title="Load Test Dataset 2: Greenwood Public School with Real-World Issues"
+                title="Load Test Scenario with Scheduling Issues"
               >
-                <span>🧪 Test Dataset 2</span>
+                <span>🧪 Test Scenario</span>
               </button>
             )}
 
@@ -167,7 +166,7 @@ export function Header({ app }: { app: TimetableApp }) {
               type="button"
               onClick={() => setIsNewSchoolOpen(true)}
               className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-500/40 text-indigo-200 hover:text-white text-xs font-medium transition cursor-pointer"
-              title="Add School Tenant"
+              title="Add School"
             >
               <Plus className="w-3.5 h-3.5" />
               <span className="hidden md:inline">School</span>
@@ -177,7 +176,7 @@ export function Header({ app }: { app: TimetableApp }) {
               type="button"
               onClick={() => setIsAuthModalOpen(true)}
               className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
-              title="JWT Switch User / Login"
+              title="Switch User"
             >
               <Key className="w-4 h-4 text-indigo-400" />
             </button>

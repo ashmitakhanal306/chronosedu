@@ -1077,71 +1077,71 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
     {
       num: 1,
       title: 'School Profile',
-      subtitle: `${school.workingDays.length} Days • Term Setup`,
+      subtitle: `${school.workingDays.length} Working Days`,
       icon: Building2,
       isDone: school.workingDays.length > 0 && !!school.name,
     },
     {
       num: 2,
-      title: 'Time Structure',
-      subtitle: `${school.rules.primaryEndPeriod}p Primary • ${school.rules.seniorEndPeriod}p Senior`,
+      title: 'Bell Schedule',
+      subtitle: `Primary & Senior Tiers`,
       icon: Clock,
       isDone: !!school.timingConfig && school.rules.primaryEndPeriod > 0,
     },
     {
       num: 3,
-      title: 'Grades & Classes',
-      subtitle: `${school.classes.length} Cohorts & Homerooms`,
+      title: 'Classes & Sections',
+      subtitle: `${school.classes.length} Sections Configured`,
       icon: GraduationCap,
       isDone: school.classes.length > 0,
     },
     {
       num: 4,
-      title: 'Rooms & Labs',
-      subtitle: `${(school.rooms || []).length} Facilities & Suites`,
+      title: 'Rooms & Facilities',
+      subtitle: `${(school.rooms || []).length} Rooms Registered`,
       icon: DoorOpen,
       isDone: (school.rooms || []).length > 0,
     },
     {
       num: 5,
-      title: 'Subjects Catalog',
-      subtitle: `${school.subjects.length} Subjects & Blocks`,
+      title: 'Subject Catalog',
+      subtitle: `${school.subjects.length} Subjects Defined`,
       icon: BookOpen,
       isDone: school.subjects.length > 0,
     },
     {
       num: 6,
-      title: 'Weekly Periods',
-      subtitle: 'Cohort × Subject Matrix',
+      title: 'Period Allocation',
+      subtitle: 'Periods per Subject per Class',
       icon: CalendarRange,
       isDone: primaryDiff === 0 && seniorDiff === 0,
     },
     {
       num: 7,
-      title: 'Faculty Roster',
-      subtitle: `${school.teachers.length} Staff & Workloads`,
+      title: 'Teaching Staff',
+      subtitle: `${school.teachers.length} Teachers Registered`,
       icon: Users,
       isDone: school.teachers.length > 0,
     },
     {
       num: 8,
-      title: 'Teacher Assignment',
-      subtitle: 'Class + Subject → 1 Teacher ⭐',
+      title: 'Teaching Assignments',
+      subtitle: 'Assign Teachers to Classes',
       icon: Layers,
       isDone: (school.assignments || []).length > 0,
       badge: (school.assignments || []).length === 0 ? 'Action' : undefined,
     },
     {
       num: 9,
-      title: 'Special Rules',
-      subtitle: 'Pins, Blocks & Activities',
+      title: 'Scheduling Rules',
+      subtitle: 'Constraints & Blocked Slots',
       icon: ShieldCheck,
       isDone: true,
     },
     {
       num: 10,
-      title: 'Review & Check',
-      subtitle: 'Pre-Flight Feasibility Audit',
+      title: 'Feasibility Audit',
+      subtitle: 'Check Before Generating',
       icon: Sparkles,
       isDone: true,
       badge: 'Audit',
@@ -1338,8 +1338,7 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                   <div>
                     <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
                       <Building2 className="w-4 h-4 text-indigo-600" />
-                      <span>Step 1: School Identity &amp; Operating Profile</span>
-                    </h3>
+                      <span>Step 1: School Identity &amp; Operating Profile</span>                    </h3>
                     <p className="text-xs text-slate-500 mt-0.5">
                       Define multi-tenant school identity, term dates, and active working days.
                     </p>
@@ -1462,7 +1461,7 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                 <div>
                   <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
                     <Clock className="w-4 h-4 text-indigo-600" />
-                    <span>Step 2: Time Structure &amp; Bell Schedule</span>
+                    <span>Step 2: Bell Schedule &amp; Period Timings</span>
                   </h3>
                   <p className="text-xs text-slate-500 mt-0.5">
                     Configure school hours, period durations, primary/senior dismissal times, and breaks.
@@ -1961,7 +1960,7 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                 <div>
                   <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
                     <Layers className="w-4 h-4 text-indigo-600" />
-                    <span>Step 3: Grades, Sections &amp; Classrooms ({school.classes.length})</span>
+                    <span>Step 3: Classes &amp; Sections ({school.classes.length})</span>
                   </h3>
                   <p className="text-xs text-slate-500 mt-0.5">
                     Manage student cohorts, grade levels, and assigned homeroom classrooms.
@@ -2225,7 +2224,7 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                 <div>
                   <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
                     <DoorOpen className="w-4 h-4 text-indigo-600" />
-                    <span>Step 4: Rooms, Labs &amp; Specialized Facilities</span>
+                    <span>Step 4: Rooms &amp; Facilities</span>
                   </h3>
                   <p className="text-xs text-slate-500 mt-0.5">
                     Physical inventory of classrooms, science labs, and computer suites with room capacities and homeroom assignments.
@@ -2506,7 +2505,7 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                 <div>
                   <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
                     <BookOpen className="w-4 h-4 text-indigo-600" />
-                    <span>Step 5: Subject Catalog &amp; Specialist Requirements ({school.subjects.length})</span>
+                    <span>Step 5: Subject Catalog ({school.subjects.length})</span>
                   </h3>
                   <p className="text-xs text-slate-500 mt-0.5">
                     Configure curriculum subjects, practical double-period blocks, and card themes.
@@ -2762,7 +2761,7 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                 <div>
                   <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
                     <Layers className="w-4 h-4 text-indigo-600" />
-                    <span>Step 6: Weekly Period Budget &amp; Frequency Allocator</span>
+                    <span>Step 6: Period Allocation &amp; Frequency</span>
                   </h3>
                   <p className="text-xs text-slate-500 mt-0.5">
                     Calibrate periods per week for every subject to fit school-day capacity.
@@ -2945,7 +2944,7 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                 <div>
                   <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
                     <Users className="w-4 h-4 text-indigo-600" />
-                    <span>Step 7: Faculty Roster &amp; Workload Limits ({school.teachers.length})</span>
+                    <span>Step 7: Teaching Staff ({school.teachers.length})</span>
                   </h3>
                   <p className="text-xs text-slate-500 mt-0.5">
                     Multi-tier instructor directory, qualified subjects, and weekly teaching workload caps.
@@ -3312,21 +3311,21 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
             </div>
           )}
 
-          {/* STEP 8: Teacher Assignments (Primary Architectural Layer) */}
+          {/* STEP 8: Teaching Assignments */}
           {currentStep === 8 && (
             <div className="space-y-4">
               <TeacherAssignmentsCard school={school} app={app} />
             </div>
           )}
 
-          {/* STEP 9: Special Rules & Blocks */}
+          {/* STEP 9: Scheduling Rules & Constraints */}
           {currentStep === 9 && (
             <div className="space-y-4">
               <SpecialRulesCard school={school} app={app} />
             </div>
           )}
 
-          {/* STEP 10: Review & Check (Pre-Generation Feasibility & Conflict Audit) */}
+          {/* STEP 10: Feasibility Audit */}
           {currentStep === 10 && (
             <Step10FeasibilityAudit
               school={school}

@@ -22,18 +22,18 @@ export function AdminPortal({ app }: { app: TimetableApp }) {
 
   // Canonical tabs definition mirroring chronosedu-gray.vercel.app
   const TABS: { id: AdminTab; label: string; icon: any; badge?: number }[] = [
-    { id: 'overview', label: '1. Overview & Architecture', icon: LayoutDashboard },
-    { id: 'wizard', label: '2. Setup Wizard (10 Steps)', icon: Sliders },
-    { id: 'studio', label: '3. Timetable Studio & Solver', icon: Calendar },
+    { id: 'overview', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'wizard', label: 'Setup Wizard', icon: Sliders },
+    { id: 'studio', label: 'Timetable', icon: Calendar },
     {
       id: 'substitutes',
-      label: '4. Absences & Substitutes',
+      label: 'Absences',
       icon: UserCheck,
       badge: activeSchool.absences.length > 0 ? activeSchool.absences.length : undefined,
     },
-    { id: 'versions', label: '5. Publish, Versions & Audit', icon: ShieldCheck },
-    { id: 'analytics', label: '6. Room Heatmap & What-If', icon: BarChart3 },
-    { id: 'exports', label: '7. Exports & Print Views', icon: Printer },
+    { id: 'versions', label: 'Versions', icon: ShieldCheck },
+    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+    { id: 'exports', label: 'Exports', icon: Printer },
   ];
 
   // Map legacy tab IDs to canonical ones

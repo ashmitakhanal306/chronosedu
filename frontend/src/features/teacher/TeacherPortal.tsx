@@ -72,7 +72,7 @@ export function TeacherPortal({ app }: { app: TimetableApp }) {
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80">
-                  Faculty Portal
+                  Teacher View
                 </span>
                 {isSelf && (
                   <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -87,7 +87,7 @@ export function TeacherPortal({ app }: { app: TimetableApp }) {
                   {selectedTeacher?.name}
                 </h1>
                 <div className="flex items-center gap-1.5 text-xs text-slate-600 bg-slate-50 px-3 py-1 rounded-xl border border-slate-200 shadow-2xs">
-                  <span className="font-semibold text-slate-500">Faculty:</span>
+                  <span className="font-semibold text-slate-500">Teacher:</span>
                   <select
                     value={selectedTeacher?.id}
                     onChange={(e) => setSelectedTeacherId(e.target.value)}
@@ -153,13 +153,13 @@ export function TeacherPortal({ app }: { app: TimetableApp }) {
               <span className="text-xs font-normal text-slate-500"> max periods</span>
             </div>
             <div className="text-[11px] text-emerald-600 font-semibold mt-0.5">
-              {maxPeriodsInAnyDay <= (selectedTeacher?.maxPerDay || 5) ? '✓ Fully within fatigue limits' : '⚠ Cap exceeded'}
+              {maxPeriodsInAnyDay <= (selectedTeacher?.maxPerDay || 5) ? '✓ Within daily limit' : '⚠ Cap exceeded'}
             </div>
           </div>
 
           <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 sm:col-span-2">
             <div className="text-xs text-slate-500 font-medium mb-1.5 flex items-center justify-between">
-              <span>Teaching Qualifications</span>
+              <span>Qualified Subjects</span>
               <span className="text-[10px] text-slate-400">{selectedTeacher?.subjects.length} subjects qualified</span>
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -184,7 +184,7 @@ export function TeacherPortal({ app }: { app: TimetableApp }) {
         <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
           <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
             <Calendar className="w-4 h-4 text-slate-500" />
-            <span>Standing Weekly Unavailable Days:</span>
+            <span>Unavailable Days:</span>
           </div>
           <div className="flex flex-wrap items-center gap-1.5">
             {activeSchool.workingDays.map(day => {
@@ -226,7 +226,7 @@ export function TeacherPortal({ app }: { app: TimetableApp }) {
             <div className="bg-amber-500 text-white p-5 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <ShieldAlert className="w-5 h-5" />
-                <h3 className="font-bold text-base">Report Faculty Absence</h3>
+                <h3 className="font-bold text-base">Report Absence</h3>
               </div>
               <button
                 type="button"
@@ -244,7 +244,7 @@ export function TeacherPortal({ app }: { app: TimetableApp }) {
 
               <div>
                 <label className="text-xs font-bold text-slate-700 block mb-1">
-                  Absent Teacher:
+                  Teacher:
                 </label>
                 <input
                   type="text"
