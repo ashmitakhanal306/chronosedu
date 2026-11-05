@@ -267,7 +267,7 @@ export function VersionsTab({ app }: { app: TimetableApp }) {
           </span>
         </div>
 
-        <div aria-busy={isLoadingLogs} className="w-full min-w-0 border border-slate-200 rounded-xl overflow-auto overscroll-contain divide-y divide-slate-100 max-h-72">
+        <div aria-busy={isLoadingLogs} className="w-full min-w-0 border border-slate-200 rounded-xl overflow-auto overscroll-x-contain overscroll-y-auto divide-y divide-slate-100 max-h-72">
           {auditLogError ? (
             <Feedback variant="error" message="Audit activity could not be loaded." actionLabel="Retry" onAction={() => setAuditRetry(value => value + 1)} className="m-2" />
           ) : isLoadingLogs ? (

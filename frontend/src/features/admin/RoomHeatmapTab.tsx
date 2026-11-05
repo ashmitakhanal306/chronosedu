@@ -538,7 +538,7 @@ export function RoomHeatmapTab({ app }: { app: TimetableApp }) {
 
         {/* Scrollable Viewport Container with Sticky Headers & Sticky Room Column */}
         {/* Set responsive height so only table content scrolls without scrolling the outer page */}
-        <div className="w-full min-w-0 max-w-full h-[calc(100vh-270px)] min-h-[500px] max-h-[750px] overflow-auto overscroll-contain relative scrollbar-thin scrollbar-thumb-neutral-300">
+        <div className="w-full min-w-0 max-w-full h-[calc(100vh-270px)] min-h-[500px] max-h-[750px] overflow-auto overscroll-x-contain overscroll-y-auto relative scrollbar-thin scrollbar-thumb-neutral-300">
           <table className="w-full text-left border-separate border-spacing-0 min-w-[1100px]">
             <thead>
               <tr className="text-xs font-bold text-neutral-700 uppercase tracking-wider">

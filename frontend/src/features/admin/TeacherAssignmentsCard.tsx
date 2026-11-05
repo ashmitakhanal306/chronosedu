@@ -505,7 +505,7 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
         </div>
       )}
 
-      <div className="relative w-full min-w-0 max-w-full max-h-[560px] overflow-auto overscroll-contain rounded-xl border border-slate-200 bg-white focus-within:ring-2 focus-within:ring-brand-500">
+      <div className="relative w-full min-w-0 max-w-full max-h-[560px] overflow-auto overscroll-x-contain overscroll-y-auto rounded-xl border border-slate-200 bg-white focus-within:ring-2 focus-within:ring-brand-500">
         <table className="w-max min-w-full border-collapse text-left text-xs">
           <thead className="sticky top-0 z-20 border-b border-slate-200 bg-slate-50">
             <tr>
