@@ -22,7 +22,7 @@ export function Header({ app }: { app: TimetableApp }) {
 
   return (
     <>
-      <header className="no-print sticky top-0 z-30 bg-slate-900 text-white border-b border-slate-800 shadow-sm">
+      <header className="no-print relative z-30 bg-slate-900 text-white border-b border-slate-800 shadow-sm">
         <div className="max-w-[1600px] mx-auto px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
           {/* Brand & Active School */}
           <div className="flex items-center gap-3">
