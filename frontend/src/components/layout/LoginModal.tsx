@@ -171,7 +171,7 @@ export function LoginModal({ app }: { app: TimetableApp }) {
                   >
                     <Icon className={`w-5 h-5 mb-1 ${active ? 'text-indigo-600' : 'text-slate-500'}`} />
                     <span className="text-xs font-bold">{r.label}</span>
-                    <span className="text-[10px] text-slate-400">{r.desc}</span>
+                    <span className="text-xs print:text-[10px] text-slate-400">{r.desc}</span>
                   </button>
                 );
               })}
@@ -193,7 +193,7 @@ export function LoginModal({ app }: { app: TimetableApp }) {
                   <option key={t.id} value={t.id}>{t.name}</option>
                 ))}
               </select>
-              <p className="text-[11px] text-indigo-700">
+              <p className="text-xs print:text-[11px] text-indigo-700">
                 Teacher tokens are restricted to their own schedule and self-absence reporting.
               </p>
             </div>
@@ -213,7 +213,7 @@ export function LoginModal({ app }: { app: TimetableApp }) {
                   <option key={c.id} value={c.id}>{c.name} ({c.grade} • {c.tier})</option>
                 ))}
               </select>
-              <p className="text-[11px] text-emerald-700">
+              <p className="text-xs print:text-[11px] text-emerald-700">
                 Student tokens are restricted to viewing only their assigned class schedule.
               </p>
             </div>
@@ -224,7 +224,7 @@ export function LoginModal({ app }: { app: TimetableApp }) {
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
                 <span>Account Email</span>
-                <span className="text-[10px] text-slate-400 font-normal">Tenant verified</span>
+                <span className="text-xs print:text-[10px] text-slate-400 font-normal">Tenant verified</span>
               </label>
               <input
                 type="email"
@@ -240,7 +240,7 @@ export function LoginModal({ app }: { app: TimetableApp }) {
                   <Lock className="w-3 h-3 text-slate-500" />
                   <span>Password</span>
                 </span>
-                <span className="text-[10px] text-slate-400 font-normal">Encrypted</span>
+                <span className="text-xs print:text-[10px] text-slate-400 font-normal">Encrypted</span>
               </label>
               <input
                 type="password"

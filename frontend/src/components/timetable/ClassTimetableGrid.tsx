@@ -75,7 +75,7 @@ export function ClassTimetableGrid({
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-left">
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-50 text-[11px] uppercase tracking-wider text-slate-500">
+            <tr className="border-b border-slate-200 bg-slate-50 text-xs print:text-[11px] uppercase tracking-wider text-slate-500">
               <th className="py-3 px-4 w-36 font-semibold">Period / Time</th>
               {school.workingDays.map(day => {
                 const isSat = day === 'Saturday';
@@ -88,17 +88,17 @@ export function ClassTimetableGrid({
                       <div>
                         <div className={isSat ? 'text-amber-800' : ''}>{day}</div>
                         {isSat && (
-                          <div className="text-[9px] font-normal normal-case tracking-normal text-amber-600 mt-0.5">Saturday school day</div>
+                          <div className="text-xs print:text-[9px] font-normal normal-case tracking-normal text-amber-600 mt-0.5">Saturday school day</div>
                         )}
                       </div>
                       <div className="flex flex-col items-end gap-0.5">
                         {isActivityDay && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 font-bold">
+                          <span className="text-xs print:text-[10px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 font-bold">
                             Activity
                           </span>
                         )}
                         {isSat && (
-                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-200 text-amber-800 font-bold normal-case tracking-normal">
+                          <span className="text-xs print:text-[9px] px-1.5 py-0.5 rounded bg-amber-200 text-amber-800 font-bold normal-case tracking-normal">
                             SAT
                           </span>
                         )}
@@ -117,7 +117,7 @@ export function ClassTimetableGrid({
                   <tr key={slot.label} className="bg-slate-100/70 text-slate-400">
                     <td className="py-2.5 px-4 font-medium">
                       <div>{slot.label}</div>
-                      <div className="text-[10px]">{slot.time}</div>
+                      <div className="text-xs print:text-[10px]">{slot.time}</div>
                     </td>
                     <td colSpan={school.workingDays.length} className="py-2.5 px-4 text-center italic font-medium">
                       Primary Tier Dismissed — Senior Classes Only ({slot.label} • {slot.time})
@@ -132,7 +132,7 @@ export function ClassTimetableGrid({
                   <tr key={slot.label} className="bg-amber-50/40 text-slate-600">
                     <td className="py-2.5 px-4 font-semibold text-slate-700 border-r border-slate-200">
                       <div>{slot.label}</div>
-                      <div className="text-[10px] text-slate-400">{slot.time}</div>
+                      <div className="text-xs print:text-[10px] text-slate-400">{slot.time}</div>
                     </td>
                     <td colSpan={school.workingDays.length} className="py-2.5 px-4 text-center font-semibold tracking-wide text-slate-600">
                       {slot.type === 'zero' ? `🌅 ${slot.label} (${slot.time})` : slot.type === 'lunch' ? `🍱 ${slot.label} (${slot.time})` : `☕ ${slot.label} (${slot.time})`}
@@ -148,9 +148,9 @@ export function ClassTimetableGrid({
                 <tr key={slot.label} className="hover:bg-slate-50/50 transition">
                   <td className="py-3 px-4 border-r border-slate-200 align-top bg-slate-50/30">
                     <div className="font-bold text-slate-800">{slot.label}</div>
-                    <div className="text-[11px] text-slate-500">{slot.time}</div>
+                    <div className="text-xs print:text-[11px] text-slate-500">{slot.time}</div>
                     {slot.note && (
-                      <div className="mt-1 inline-block text-[10px] px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 font-medium">
+                      <div className="mt-1 inline-block text-xs print:text-[10px] px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 font-medium">
                         {slot.note}
                       </div>
                     )}
@@ -233,30 +233,30 @@ export function ClassTimetableGrid({
                               <span className="font-bold text-xs leading-tight">{sub.name}</span>
                               <div className="flex items-center gap-1 shrink-0">
                                 {isPinned && (
-                                  <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-500 text-white flex items-center gap-0.5 shadow-2xs" title="Pinned Slot: Solver will never move this lesson">
+                                  <span className="text-xs print:text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-500 text-white flex items-center gap-0.5 shadow-2xs" title="Pinned Slot: Solver will never move this lesson">
                                     <Pin className="w-2.5 h-2.5" />
                                     <span>Pinned</span>
                                   </span>
                                 )}
                                 {isDoubleBlock && (
-                                  <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-purple-600 text-white flex items-center gap-0.5 shadow-2xs" title="90-Minute Consecutive Lab / Practical Block">
+                                  <span className="text-xs print:text-[9px] font-bold px-1.5 py-0.2 rounded bg-purple-600 text-white flex items-center gap-0.5 shadow-2xs" title="90-Minute Consecutive Lab / Practical Block">
                                     <FlaskConical className="w-2.5 h-2.5" />
                                     <span>90m</span>
                                   </span>
                                 )}
                                 {entry.isActivity && (
-                                  <span className="text-[10px] uppercase font-bold px-1.5 py-0.2 rounded bg-purple-700 text-white shrink-0">
+                                  <span className="text-xs print:text-[10px] uppercase font-bold px-1.5 py-0.2 rounded bg-purple-700 text-white shrink-0">
                                     Activity
                                   </span>
                                 )}
                               </div>
                             </div>
 
-                            <div className="text-[11px] space-y-0.5">
+                            <div className="text-xs print:text-[11px] space-y-0.5">
                               {subTeacher ? (
                                 <div className="text-amber-900 bg-amber-200/80 px-1.5 py-0.5 rounded font-semibold">
                                   Sub: {subTeacher.name}
-                                  <span className="block text-[10px] line-through opacity-75">{teacher?.name}</span>
+                                  <span className="block text-xs print:text-[10px] line-through opacity-75">{teacher?.name}</span>
                                 </div>
                               ) : isAbsent ? (
                                 <div className="text-rose-700 bg-rose-100 px-1.5 py-0.5 rounded font-semibold">
@@ -265,7 +265,7 @@ export function ClassTimetableGrid({
                               ) : (
                                 <div className="font-medium opacity-90">{teacher?.name}</div>
                               )}
-                              <div className="text-[10px] opacity-75 flex items-center justify-between">
+                              <div className="text-xs print:text-[10px] opacity-75 flex items-center justify-between">
                                 <span>📍 {entry.room}</span>
                                 {entry.isManualOverride && <span className="underline">Edited</span>}
                               </div>
@@ -277,16 +277,16 @@ export function ClassTimetableGrid({
                               isFilterActive ? 'opacity-20' : ''
                             }`}
                           >
-                            <span className="text-[10px] font-bold text-rose-800 flex items-center gap-1">
+                            <span className="text-xs print:text-[10px] font-bold text-rose-800 flex items-center gap-1">
                               🚫 {blockedSlot.label}
                             </span>
-                            <span className="text-[9px] font-semibold text-rose-500 capitalize">
+                            <span className="text-xs print:text-[9px] font-semibold text-rose-500 capitalize">
                               {blockedSlot.scope} Blocked
                             </span>
                           </div>
                         ) : (
                           <div
-                            className={`h-16 rounded-xl border border-dashed border-slate-200 flex items-center justify-center text-slate-400 text-[11px] transition-opacity ${
+                            className={`h-16 rounded-xl border border-dashed border-slate-200 flex items-center justify-center text-slate-400 text-xs print:text-[11px] transition-opacity ${
                               isFilterActive ? 'opacity-20' : ''
                             }`}
                           >

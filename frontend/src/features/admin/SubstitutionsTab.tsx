@@ -146,11 +146,11 @@ export function SubstitutionsTab({ app }: { app: TimetableApp }) {
                                           >
                                             <div className="flex items-center gap-1.5 font-bold">
                                               {idx === 0 && !isSelected && (
-                                                <span className="px-1.5 py-0.2 bg-indigo-600 text-white rounded text-[10px]">#1 Best</span>
+                                                <span className="px-1.5 py-0.2 bg-indigo-600 text-white rounded text-xs print:text-[10px]">#1 Best</span>
                                               )}
                                               <span>{cand.name}</span>
                                             </div>
-                                            <div className={`text-[11px] mt-0.5 ${isSelected ? 'text-emerald-100' : 'text-slate-500'}`}>
+                                            <div className={`text-xs print:text-[11px] mt-0.5 ${isSelected ? 'text-emerald-100' : 'text-slate-500'}`}>
                                               <strong>{cand.freePeriodsToday} free periods</strong> today ({cand.assignedToday}/5 used)
                                             </div>
                                           </button>

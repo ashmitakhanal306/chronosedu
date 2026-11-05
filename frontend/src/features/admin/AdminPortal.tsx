@@ -63,7 +63,7 @@ export function AdminPortal({ app }: { app: TimetableApp }) {
               >
                 <span>{tab.label}</span>
                 {tab.badge !== undefined && (
-                  <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-rose-500 text-white font-bold">
+                  <span className="px-1.5 py-0.2 rounded-full text-xs print:text-[10px] bg-rose-500 text-white font-bold">
                     {tab.badge}
                   </span>
                 )}

@@ -118,11 +118,11 @@ export function Step10FeasibilityAudit({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+            <span className="text-xs print:text-[10px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
               Pre-Flight Solver Check
             </span>
             {isDataset2 && (
-              <span className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1">
+              <span className="text-xs print:text-[10px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1">
                 <span>🧪 Dataset 2 Testbed</span>
               </span>
             )}
@@ -203,7 +203,7 @@ export function Step10FeasibilityAudit({
                     : `⚠️ ${metrics.criticalCount} Critical Bottlenecks Detected`}
                 </h4>
                 <span
-                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                  className={`text-xs print:text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
                     metrics.criticalCount === 0
                       ? 'bg-emerald-200/80 text-emerald-800'
                       : 'bg-rose-200/80 text-rose-800'
@@ -236,27 +236,27 @@ export function Step10FeasibilityAudit({
         {/* Metrics Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2.5 pt-4 mt-4 border-t border-slate-200/60 text-xs">
           <div className="bg-white/80 rounded-xl p-2.5 border border-slate-200/80">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Sections</span>
+            <span className="text-xs print:text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Sections</span>
             <span className="font-extrabold text-sm text-slate-900">{metrics.totalSections} Classes</span>
           </div>
           <div className="bg-white/80 rounded-xl p-2.5 border border-slate-200/80">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Faculty Roll</span>
+            <span className="text-xs print:text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Faculty Roll</span>
             <span className="font-extrabold text-sm text-slate-900">{metrics.totalTeachers} Staff</span>
           </div>
           <div className="bg-white/80 rounded-xl p-2.5 border border-slate-200/80">
-            <span className="text-[10px] font-bold text-rose-500 uppercase tracking-wider block">Critical Deficits</span>
+            <span className="text-xs print:text-[10px] font-bold text-rose-500 uppercase tracking-wider block">Critical Deficits</span>
             <span className="font-extrabold text-sm text-rose-700">{metrics.criticalCount} Bottlenecks</span>
           </div>
           <div className="bg-white/80 rounded-xl p-2.5 border border-slate-200/80">
-            <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider block">Capacity Alerts</span>
+            <span className="text-xs print:text-[10px] font-bold text-amber-600 uppercase tracking-wider block">Capacity Alerts</span>
             <span className="font-extrabold text-sm text-amber-800">{metrics.warningCount} Warnings</span>
           </div>
           <div className="bg-white/80 rounded-xl p-2.5 border border-slate-200/80">
-            <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider block">Smart Balances</span>
+            <span className="text-xs print:text-[10px] font-bold text-emerald-600 uppercase tracking-wider block">Smart Balances</span>
             <span className="font-extrabold text-sm text-emerald-800">{metrics.opportunityCount} Surplus</span>
           </div>
           <div className="bg-white/80 rounded-xl p-2.5 border border-slate-200/80">
-            <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider block">Issues Fixed</span>
+            <span className="text-xs print:text-[10px] font-bold text-indigo-600 uppercase tracking-wider block">Issues Fixed</span>
             <span className="font-extrabold text-sm text-indigo-800">{metrics.resolvedCount} Resolved</span>
           </div>
         </div>
@@ -284,7 +284,7 @@ export function Step10FeasibilityAudit({
           >
             <span>{tab.label}</span>
             <span
-              className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
+              className={`text-xs print:text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
                 selectedFilter === tab.key
                   ? 'bg-white/20 text-white'
                   : 'bg-slate-200 text-slate-800'
@@ -318,12 +318,12 @@ export function Step10FeasibilityAudit({
                 <div className="space-y-1.5 flex-1">
                   {/* Badges & ID */}
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-mono font-bold text-[10px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
+                    <span className="font-mono font-bold text-xs print:text-[10px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
                       {issue.id}
                     </span>
 
                     <span
-                      className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                      className={`text-xs print:text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
                         isResolved
                           ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
                           : issue.severity === 'High'
@@ -348,7 +348,7 @@ export function Step10FeasibilityAudit({
                         : 'CAPACITY ALERT'}
                     </span>
 
-                    <span className="text-[11px] font-semibold text-slate-500">
+                    <span className="text-xs print:text-[11px] font-semibold text-slate-500">
                       Area: <strong className="text-slate-800">{issue.area}</strong>
                     </span>
                   </div>
@@ -373,7 +373,7 @@ export function Step10FeasibilityAudit({
                   </p>
 
                   {/* Evidence & Impact Block */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-[11px]">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-xs print:text-[11px]">
                     <div className="p-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-700">
                       <strong className="text-slate-900 block mb-0.5">📊 Numbers &amp; Evidence:</strong>
                       <span>{issue.evidence}</span>
@@ -385,7 +385,7 @@ export function Step10FeasibilityAudit({
                   </div>
 
                   {/* Guidance */}
-                  <p className="text-[11px] text-slate-500 italic pt-0.5">
+                  <p className="text-xs print:text-[11px] text-slate-500 italic pt-0.5">
                     💡 <strong>Suggested Solution:</strong> {issue.advice}
                   </p>
                 </div>
@@ -446,7 +446,7 @@ export function Step10FeasibilityAudit({
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                 <div>
                   <div className="font-bold text-slate-900">{check.title}</div>
-                  <div className="text-[11px] text-slate-600 mt-0.5">{check.detail}</div>
+                  <div className="text-xs print:text-[11px] text-slate-600 mt-0.5">{check.detail}</div>
                 </div>
               </div>
             ))}

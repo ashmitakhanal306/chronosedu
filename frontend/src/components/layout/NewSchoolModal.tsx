@@ -61,7 +61,7 @@ export function NewSchoolModal({ app, isOpen, onClose }: Props) {
             <div>
               <h2 className="text-lg font-bold tracking-tight text-white flex items-center gap-2">
                 <span>Create New School</span>
-                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/30 text-indigo-200 border border-indigo-400/30">
+                <span className="text-xs print:text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/30 text-indigo-200 border border-indigo-400/30">
                   Tenant
                 </span>
               </h2>
@@ -94,7 +94,7 @@ export function NewSchoolModal({ app, isOpen, onClose }: Props) {
               className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white font-semibold text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition shadow-2xs"
             />
             <div className="flex flex-wrap items-center gap-1.5 pt-1">
-              <span className="text-[10px] text-slate-400 font-semibold uppercase">Presets:</span>
+              <span className="text-xs print:text-[10px] text-slate-400 font-semibold uppercase">Presets:</span>
               {["Greenwood Public School", "St. Xavier's International", "Delhi Public Academy", "Kendriya Vidyalaya No. 1"].map(s => (
                 <button
                   key={s}
@@ -105,7 +105,7 @@ export function NewSchoolModal({ app, isOpen, onClose }: Props) {
                       setTemplate('greenwood_issues');
                     }
                   }}
-                  className="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-600 text-[10px] font-semibold border border-slate-200 transition cursor-pointer"
+                  className="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-600 text-xs print:text-[10px] font-semibold border border-slate-200 transition cursor-pointer"
                 >
                   {s}
                 </button>
@@ -128,7 +128,7 @@ export function NewSchoolModal({ app, isOpen, onClose }: Props) {
                   placeholder="st-xaviers"
                   className="flex-1 px-3 py-2 rounded-l-xl border border-r-0 border-slate-300 bg-white text-slate-800 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
-                <span className="px-2.5 py-2 rounded-r-xl border border-slate-300 bg-slate-100 text-slate-500 font-semibold text-[11px] whitespace-nowrap">
+                <span className="px-2.5 py-2 rounded-r-xl border border-slate-300 bg-slate-100 text-slate-500 font-semibold text-xs print:text-[11px] whitespace-nowrap">
                   .chronos.edu
                 </span>
               </div>
@@ -199,10 +199,10 @@ export function NewSchoolModal({ app, isOpen, onClose }: Props) {
                     </span>
                   )}
                 </div>
-                <p className="text-[11px] text-slate-600 leading-relaxed">
+                <p className="text-xs print:text-[11px] text-slate-600 leading-relaxed">
                   Standard cohorts, CBSE curriculum, rooms, and balanced faculty. 100% solver ready with zero conflicts.
                 </p>
-                <span className="inline-block text-[10px] font-bold text-indigo-700 uppercase tracking-wider bg-indigo-100/80 px-2 py-0.5 rounded-md mt-1">
+                <span className="inline-block text-xs print:text-[10px] font-bold text-indigo-700 uppercase tracking-wider bg-indigo-100/80 px-2 py-0.5 rounded-md mt-1">
                   1-Click Ready
                 </span>
               </div>
@@ -227,10 +227,10 @@ export function NewSchoolModal({ app, isOpen, onClose }: Props) {
                     </span>
                   )}
                 </div>
-                <p className="text-[11px] text-slate-600 leading-relaxed">
+                <p className="text-xs print:text-[11px] text-slate-600 leading-relaxed">
                   Empty cohorts and staff. Step through our 1-click batch generators in Setup Wizard to build from scratch.
                 </p>
-                <span className="inline-block text-[10px] font-bold text-slate-600 uppercase tracking-wider bg-slate-100 px-2 py-0.5 rounded-md mt-1">
+                <span className="inline-block text-xs print:text-[10px] font-bold text-slate-600 uppercase tracking-wider bg-slate-100 px-2 py-0.5 rounded-md mt-1">
                   Wizard Onboarding
                 </span>
               </div>
@@ -260,14 +260,14 @@ export function NewSchoolModal({ app, isOpen, onClose }: Props) {
                     </span>
                   )}
                 </div>
-                <p className="text-[11px] text-slate-600 leading-relaxed">
+                <p className="text-xs print:text-[11px] text-slate-600 leading-relaxed">
                   55 Sections, 99 Staff, 67 Rooms with 23 real-world challenges: teacher maternity leave, physics shortage, computer lab overbooking, room overcrowding, and cross-subject balancing.
                 </p>
                 <div className="flex flex-wrap items-center gap-2 mt-1">
-                  <span className="inline-block text-[10px] font-bold text-amber-800 uppercase tracking-wider bg-amber-100 px-2 py-0.5 rounded-md">
+                  <span className="inline-block text-xs print:text-[10px] font-bold text-amber-800 uppercase tracking-wider bg-amber-100 px-2 py-0.5 rounded-md">
                     23 Testbed Issues
                   </span>
-                  <span className="text-[10px] font-semibold text-slate-500">
+                  <span className="text-xs print:text-[10px] font-semibold text-slate-500">
                     Perfect for testing Step 10 Pre-Flight Feasibility &amp; 1-Click Auto-Fixes
                   </span>
                 </div>

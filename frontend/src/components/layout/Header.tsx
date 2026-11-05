@@ -31,7 +31,7 @@ export function Header({ app }: { app: TimetableApp }) {
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-bold tracking-tight text-base text-white">ChronosEdu</span>
-                <span className="text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 font-semibold">
+                <span className="text-xs print:text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 font-semibold">
                   v2.6
                 </span>
               </div>
@@ -127,7 +127,7 @@ export function Header({ app }: { app: TimetableApp }) {
               title="Notifications"
             >
               <Bell className="w-3.5 h-3.5 text-slate-300" />
-              <span className="px-1.5 py-0.2 bg-amber-500 text-slate-950 rounded-full text-[10px] font-bold">
+              <span className="px-1.5 py-0.2 bg-amber-500 text-slate-950 rounded-full text-xs print:text-[10px] font-bold">
                 {activeSchool.absences.length > 0 ? activeSchool.absences.length : 1}
               </span>
             </button>

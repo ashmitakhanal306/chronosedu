@@ -74,11 +74,11 @@ export function FacultyWorkloadHeatmap({ school, entries, subjectMap, onSelectTe
           <div>
             <h4 className="font-bold text-xs text-slate-900 flex items-center gap-2">
               <span>Faculty Workload Visual Heatmap</span>
-              <span className="px-1.5 py-0.2 rounded-md text-[10px] bg-indigo-100 text-indigo-700 font-semibold">
+              <span className="px-1.5 py-0.2 rounded-md text-xs print:text-[10px] bg-indigo-100 text-indigo-700 font-semibold">
                 {school.teachers.length} Faculty
               </span>
             </h4>
-            <p className="text-[10px] text-slate-500">
+            <p className="text-xs print:text-[10px] text-slate-500">
               Fatigue cap: <strong>≤ {maxCap} periods/day</strong> • Average load: <strong>{averageLoadPerDay} periods/day</strong>
             </p>
           </div>
@@ -86,7 +86,7 @@ export function FacultyWorkloadHeatmap({ school, entries, subjectMap, onSelectTe
 
         <div className="flex items-center gap-3 text-xs">
           {/* Legend */}
-          <div className="hidden sm:flex items-center gap-2 text-[10px]">
+          <div className="hidden sm:flex items-center gap-2 text-xs print:text-[10px]">
             <span className="flex items-center gap-1 text-slate-600">
               <span className="w-2 h-2 rounded-xs bg-emerald-400" />
               <span>1–3 Light</span>
@@ -113,7 +113,7 @@ export function FacultyWorkloadHeatmap({ school, entries, subjectMap, onSelectTe
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left text-xs">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50/50 text-[10px] uppercase tracking-wider text-slate-500">
+              <tr className="border-b border-slate-200 bg-slate-50/50 text-xs print:text-[10px] uppercase tracking-wider text-slate-500">
                 <th className="py-2 px-4 font-semibold w-48">Instructor</th>
                 {school.workingDays.map(d => (
                   <th key={d} className="py-2 px-2.5 font-semibold text-center w-20">
@@ -138,7 +138,7 @@ export function FacultyWorkloadHeatmap({ school, entries, subjectMap, onSelectTe
                       <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition">
                         {r.teacher.name}
                       </div>
-                      <div className="text-[10px] text-slate-400 truncate max-w-[180px]">
+                      <div className="text-xs print:text-[10px] text-slate-400 truncate max-w-[180px]">
                         {qualifiedNames || 'General Faculty'}
                       </div>
                     </td>
@@ -148,7 +148,7 @@ export function FacultyWorkloadHeatmap({ school, entries, subjectMap, onSelectTe
                       return (
                         <td key={d} className="py-2 px-2.5 text-center">
                           <span
-                            className={`inline-block px-2 py-0.5 rounded-md border text-[11px] min-w-[30px] ${getBadgeStyle(count)}`}
+                            className={`inline-block px-2 py-0.5 rounded-md border text-xs print:text-[11px] min-w-[30px] ${getBadgeStyle(count)}`}
                           >
                             {count}
                           </span>
@@ -160,21 +160,21 @@ export function FacultyWorkloadHeatmap({ school, entries, subjectMap, onSelectTe
                       <span className="font-bold text-slate-800 text-xs">
                         {r.totalWeekly}
                       </span>
-                      <span className="text-[9px] text-slate-400 block -mt-0.5">periods</span>
+                      <span className="text-xs print:text-[9px] text-slate-400 block -mt-0.5">periods</span>
                     </td>
 
                     <td className="py-2 px-4 text-right">
                       {r.isOverCap ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 border border-rose-200 text-rose-700 font-bold text-[10px]">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 border border-rose-200 text-rose-700 font-bold text-xs print:text-[10px]">
                           <AlertCircle className="w-3 h-3" />
                           <span>Exceeds Cap</span>
                         </span>
                       ) : r.isAtCap ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-amber-700 font-bold text-[10px]">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-amber-700 font-bold text-xs print:text-[10px]">
                           <span>At Cap (5/5)</span>
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 font-medium text-[10px]">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 font-medium text-xs print:text-[10px]">
                           <CheckCircle2 className="w-3 h-3" />
                           <span>Optimal (Sub Ready)</span>
                         </span>

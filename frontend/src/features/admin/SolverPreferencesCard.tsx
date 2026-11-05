@@ -108,7 +108,7 @@ export function SolverPreferencesCard({
                 <h3 className="font-bold text-sm sm:text-base text-white">
                   Constraint Engine Soft Optimization Preferences
                 </h3>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/30 text-indigo-200 border border-indigo-400/30 flex items-center gap-1">
+                <span className="text-xs print:text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/30 text-indigo-200 border border-indigo-400/30 flex items-center gap-1">
                   <Sparkles className="w-3 h-3" />
                   Google OR-Tools CP-SAT
                 </span>
@@ -171,7 +171,7 @@ export function SolverPreferencesCard({
                       <h4 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
                         {opt.name}
                       </h4>
-                      <span className={`text-[10px] font-semibold px-2 py-0.2 rounded-full border ${opt.badgeBg}`}>
+                      <span className={`text-xs print:text-[10px] font-semibold px-2 py-0.2 rounded-full border ${opt.badgeBg}`}>
                         {opt.tag}
                       </span>
                     </div>
@@ -181,7 +181,7 @@ export function SolverPreferencesCard({
                     </p>
 
                     <div className="flex items-center gap-2 mt-2">
-                      <span className="text-[11px] font-mono text-slate-500">
+                      <span className="text-xs print:text-[11px] font-mono text-slate-500">
                         {opt.weightLabel}
                       </span>
                     </div>
