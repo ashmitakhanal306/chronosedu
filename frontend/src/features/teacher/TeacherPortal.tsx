@@ -71,11 +71,11 @@ export function TeacherPortal({ app }: { app: TimetableApp }) {
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80">
+                <span className="text-xs print:text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80">
                   Teacher View
                 </span>
                 {isSelf && (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <span className="inline-flex items-center gap-1 text-xs print:text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                     <CheckCircle className="w-3 h-3" />
                     Verified Session
                   </span>
@@ -138,7 +138,7 @@ export function TeacherPortal({ app }: { app: TimetableApp }) {
             <div className="text-lg font-extrabold text-slate-900 mt-1">
               {totalWeeklyPeriods} <span className="text-xs font-normal text-slate-500">periods / week</span>
             </div>
-            <div className="text-[11px] text-slate-400 mt-0.5">
+            <div className="text-xs print:text-[11px] text-slate-400 mt-0.5">
               Avg {(totalWeeklyPeriods / (activeSchool.workingDays.length || 1)).toFixed(1)} periods/day
             </div>
           </div>
@@ -152,7 +152,7 @@ export function TeacherPortal({ app }: { app: TimetableApp }) {
               {maxPeriodsInAnyDay} / {selectedTeacher?.maxPerDay || 5}
               <span className="text-xs font-normal text-slate-500"> max periods</span>
             </div>
-            <div className="text-[11px] text-emerald-600 font-semibold mt-0.5">
+            <div className="text-xs print:text-[11px] text-emerald-600 font-semibold mt-0.5">
               {maxPeriodsInAnyDay <= (selectedTeacher?.maxPerDay || 5) ? '✓ Within daily limit' : '⚠ Cap exceeded'}
             </div>
           </div>
@@ -160,7 +160,7 @@ export function TeacherPortal({ app }: { app: TimetableApp }) {
           <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 sm:col-span-2">
             <div className="text-xs text-slate-500 font-medium mb-1.5 flex items-center justify-between">
               <span>Qualified Subjects</span>
-              <span className="text-[10px] text-slate-400">{selectedTeacher?.subjects.length} subjects qualified</span>
+              <span className="text-xs print:text-[10px] text-slate-400">{selectedTeacher?.subjects.length} subjects qualified</span>
             </div>
             <div className="flex flex-wrap gap-1.5">
               {selectedTeacher?.subjects.map(sid => {
@@ -172,7 +172,7 @@ export function TeacherPortal({ app }: { app: TimetableApp }) {
                   >
                     <span className="w-2 h-2 rounded-full bg-indigo-500" />
                     <span>{sub?.name || sid}</span>
-                    <span className="text-[10px] text-slate-400 uppercase">({sub?.code || 'SUB'})</span>
+                    <span className="text-xs print:text-[10px] text-slate-400 uppercase">({sub?.code || 'SUB'})</span>
                   </span>
                 );
               })}

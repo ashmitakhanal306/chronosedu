@@ -74,7 +74,7 @@ export function OverrideModal({ app }: { app: TimetableApp }) {
             <button
               type="button"
               onClick={handleTogglePinOnly}
-              className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-lg bg-amber-200/80 hover:bg-amber-200 text-amber-900 transition cursor-pointer"
+              className="inline-flex items-center gap-1 text-xs print:text-[11px] font-bold px-2 py-1 rounded-lg bg-amber-200/80 hover:bg-amber-200 text-amber-900 transition cursor-pointer"
             >
               <Unlock className="w-3 h-3" />
               <span>Unlock</span>
@@ -89,7 +89,7 @@ export function OverrideModal({ app }: { app: TimetableApp }) {
             <button
               type="button"
               onClick={handleTogglePinOnly}
-              className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 transition cursor-pointer"
+              className="inline-flex items-center gap-1 text-xs print:text-[11px] font-bold px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 transition cursor-pointer"
             >
               <Pin className="w-3 h-3" />
               <span>Lock Now</span>

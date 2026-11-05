@@ -81,12 +81,12 @@ export function TimetableTab({ app }: { app: TimetableApp }) {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold text-indigo-700 uppercase tracking-wider bg-indigo-100/70 px-2 py-0.5 rounded-full">
+              <span className="text-xs print:text-[10px] font-bold text-indigo-700 uppercase tracking-wider bg-indigo-100/70 px-2 py-0.5 rounded-full">
                 Layer B • Automated Engine
               </span>
               <h2 className="text-sm font-bold text-slate-900">Timetable Studio &amp; Constraint Solver</h2>
             </div>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-xs print:text-[11px] text-slate-500">
               Google OR-Tools CP-SAT multi-objective solver enforces 100% hard constraints (H1–H7) and soft preferences.
             </p>
           </div>
@@ -105,7 +105,7 @@ export function TimetableTab({ app }: { app: TimetableApp }) {
           >
             <Cpu className="w-3.5 h-3.5 text-indigo-600" />
             <span>Tune Solver</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-indigo-100 text-indigo-700 font-bold">
+            <span className="px-1.5 py-0.2 rounded-full text-xs print:text-[10px] bg-indigo-100 text-indigo-700 font-bold">
               {activePrefsCount}/5
             </span>
           </button>
@@ -178,16 +178,16 @@ export function TimetableTab({ app }: { app: TimetableApp }) {
                 </div>
                 <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                   {errors.length > 0 && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-600 text-white">
+                    <span className="inline-flex items-center gap-1 text-xs print:text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-600 text-white">
                       {errors.length} High-Level Conflict{errors.length > 1 ? 's' : ''}
                     </span>
                   )}
                   {warnings.length > 0 && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500 text-white">
+                    <span className="inline-flex items-center gap-1 text-xs print:text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500 text-white">
                       {warnings.length} Warning{warnings.length > 1 ? 's' : ''}
                     </span>
                   )}
-                  <span className="text-[11px] text-slate-600">
+                  <span className="text-xs print:text-[11px] text-slate-600">
                     Friendly root-cause explanations and 1-click solutions below
                   </span>
                 </div>
@@ -224,7 +224,7 @@ export function TimetableTab({ app }: { app: TimetableApp }) {
                         <span className="font-bold text-xs text-slate-900 flex items-center gap-1.5">
                           {d.type === 'error' ? '🔴' : '🟡'} {d.title}
                         </span>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0 ${
+                        <span className={`text-xs print:text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0 ${
                           d.type === 'error' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800'
                         }`}>
                           {d.type === 'error' ? 'Shortage / Bottleneck' : 'Warning'}
@@ -234,13 +234,13 @@ export function TimetableTab({ app }: { app: TimetableApp }) {
                     </div>
 
                     <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between">
-                      <span className="text-[11px] text-slate-500 font-medium">Resolution available</span>
+                      <span className="text-xs print:text-[11px] text-slate-500 font-medium">Resolution available</span>
                       <button
                         onClick={() => {
                           setAdminTab('setup');
                           setWizardStep(10);
                         }}
-                        className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 hover:underline transition cursor-pointer inline-flex items-center gap-1"
+                        className="text-xs print:text-[11px] font-bold text-indigo-600 hover:text-indigo-800 hover:underline transition cursor-pointer inline-flex items-center gap-1"
                       >
                         <span>Resolve in Step 10 →</span>
                       </button>
@@ -259,7 +259,7 @@ export function TimetableTab({ app }: { app: TimetableApp }) {
               <strong>All Hard Constraints &amp; Soft Preferences Satisfied:</strong> Zero clashes, Primary dismissal {bellSchedule.primaryDismissalTime}, Senior dismissal {bellSchedule.seniorDismissalTime}, {activeSchool.rules.activityDay} activity block locked, teacher caps strictly honored.
             </span>
           </div>
-          <span className="text-emerald-700 font-mono text-[11px]">Last solved: {currentSchedule.generatedAt || '—'}</span>
+          <span className="text-emerald-700 font-mono text-xs print:text-[11px]">Last solved: {currentSchedule.generatedAt || '—'}</span>
         </div>
       )}
 
@@ -298,7 +298,7 @@ export function TimetableTab({ app }: { app: TimetableApp }) {
               {/* Wing Filter Pills & Class Search */}
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
                 <div className="flex flex-wrap items-center gap-1">
-                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1">Wing:</span>
+                  <span className="text-xs print:text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1">Wing:</span>
                   {[
                     { id: 'all', label: `All Wings (${sortedClasses.length})` },
                     { id: 'pre_primary', label: '🟡 Pre-Primary' },
@@ -356,7 +356,7 @@ export function TimetableTab({ app }: { app: TimetableApp }) {
                     }`}
                   >
                     <span>{cls.name}</span>
-                    <span className="opacity-75 font-normal text-[10px]">({cls.tier})</span>
+                    <span className="opacity-75 font-normal text-xs print:text-[10px]">({cls.tier})</span>
                   </button>
                 ))}
                 {filteredSelectorClasses.length === 0 && (
@@ -408,7 +408,7 @@ export function TimetableTab({ app }: { app: TimetableApp }) {
         </div>
 
         <div className="flex flex-wrap items-center gap-1.5 text-xs">
-          <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mr-1">Filter:</span>
+          <span className="text-xs print:text-[11px] font-semibold text-slate-400 uppercase tracking-wider mr-1">Filter:</span>
           {[
             { id: 'all' as const, label: 'All Slots' },
             { id: 'substitutions' as const, label: '⚡ Substitutions', badge: Object.keys(activeSchool.substitutions).length },
@@ -428,7 +428,7 @@ export function TimetableTab({ app }: { app: TimetableApp }) {
               >
                 <span>{f.label}</span>
                 {(f.badge ?? 0) > 0 && (
-                  <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                  <span className={`px-1.5 py-0.2 rounded-full text-xs print:text-[10px] ${
                     active ? 'bg-amber-400 text-slate-950 font-bold' : 'bg-amber-100 text-amber-800'
                   }`}>
                     {f.badge}
@@ -451,7 +451,7 @@ export function TimetableTab({ app }: { app: TimetableApp }) {
 
       {/* Bell Schedule Summary */}
       <div className="bg-white rounded-2xl border border-slate-200 px-4 py-2.5 flex flex-wrap items-center gap-3 shadow-2xs text-xs">
-        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+        <span className="text-xs print:text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
           <Clock className="w-3.5 h-3.5 text-indigo-500" />
           Today's Bell
         </span>
@@ -459,14 +459,14 @@ export function TimetableTab({ app }: { app: TimetableApp }) {
           Starts <strong className="text-slate-900">{timing.startTime}</strong>
         </span>
         <span className="text-slate-300">|</span>
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-[11px] font-bold text-emerald-800">
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs print:text-[11px] font-bold text-emerald-800">
           Primary out {bellSchedule.primaryDismissalTime}
         </span>
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-sky-50 border border-sky-200 text-[11px] font-bold text-sky-800">
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-sky-50 border border-sky-200 text-xs print:text-[11px] font-bold text-sky-800">
           Senior out {bellSchedule.seniorDismissalTime}
         </span>
         <span className="text-slate-300">|</span>
-        <span className="text-[11px] text-slate-500">
+        <span className="text-xs print:text-[11px] text-slate-500">
           {activeSchool.workingDays.length} working days • {totalPeriods} periods • {activeSchool.classes.length} class sections
         </span>
       </div>

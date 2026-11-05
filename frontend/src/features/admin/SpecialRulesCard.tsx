@@ -173,7 +173,7 @@ export function SpecialRulesCard({ school, app }: Props) {
                 <span>Pin a Mandatory Lesson to an Exact Slot</span>
               </span>
               {matchingAssignment && (
-                <span className="text-[11px] font-semibold text-purple-700 bg-purple-100/70 px-2 py-0.5 rounded-md">
+                <span className="text-xs print:text-[11px] font-semibold text-purple-700 bg-purple-100/70 px-2 py-0.5 rounded-md">
                   Assigned: {matchingAssignment.teacherName || 'Teacher assigned'}
                 </span>
               )}
@@ -181,7 +181,7 @@ export function SpecialRulesCard({ school, app }: Props) {
 
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Class Section</label>
+                <label className="block text-xs print:text-[11px] font-bold text-slate-600 mb-1">Class Section</label>
                 <select
                   value={pinClassId}
                   onChange={e => handleClassChange(e.target.value)}
@@ -194,7 +194,7 @@ export function SpecialRulesCard({ school, app }: Props) {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Subject</label>
+                <label className="block text-xs print:text-[11px] font-bold text-slate-600 mb-1">Subject</label>
                 <select
                   value={pinSubjectId}
                   onChange={e => handleSubjectChange(e.target.value)}
@@ -207,7 +207,7 @@ export function SpecialRulesCard({ school, app }: Props) {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Teacher</label>
+                <label className="block text-xs print:text-[11px] font-bold text-slate-600 mb-1">Teacher</label>
                 <select
                   value={matchingAssignment ? matchingAssignment.teacherId : pinTeacherId}
                   onChange={e => setPinTeacherId(e.target.value)}
@@ -223,7 +223,7 @@ export function SpecialRulesCard({ school, app }: Props) {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Day</label>
+                <label className="block text-xs print:text-[11px] font-bold text-slate-600 mb-1">Day</label>
                 <select
                   value={pinDay}
                   onChange={e => setPinDay(e.target.value)}
@@ -236,7 +236,7 @@ export function SpecialRulesCard({ school, app }: Props) {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Period</label>
+                <label className="block text-xs print:text-[11px] font-bold text-slate-600 mb-1">Period</label>
                 <select
                   value={pinPeriod}
                   onChange={e => setPinPeriod(Number(e.target.value))}
@@ -280,10 +280,10 @@ export function SpecialRulesCard({ school, app }: Props) {
                         <span className="text-slate-400">&bull;</span>
                         <span className="font-semibold text-xs text-slate-700">{p.subjectName || p.subjectId}</span>
                       </div>
-                      <div className="text-[11px] text-slate-500">
+                      <div className="text-xs print:text-[11px] text-slate-500">
                         {p.teacherName || p.teacherId}
                       </div>
-                      <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 text-[10px] font-bold">
+                      <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 text-xs print:text-[10px] font-bold">
                         <span>{p.day}</span>
                         <span>Period {p.period}</span>
                       </div>
@@ -316,7 +316,7 @@ export function SpecialRulesCard({ school, app }: Props) {
 
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Applies To (Scope)</label>
+                <label className="block text-xs print:text-[11px] font-bold text-slate-600 mb-1">Applies To (Scope)</label>
                 <select
                   value={blockScope}
                   onChange={e => setBlockScope(e.target.value as any)}
@@ -330,7 +330,7 @@ export function SpecialRulesCard({ school, app }: Props) {
 
               {blockScope !== 'school' && (
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                  <label className="block text-xs print:text-[11px] font-bold text-slate-600 mb-1">
                     {blockScope === 'grade' ? 'Select Grade' : 'Select Class'}
                   </label>
                   {blockScope === 'grade' ? (
@@ -360,7 +360,7 @@ export function SpecialRulesCard({ school, app }: Props) {
               )}
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Day</label>
+                <label className="block text-xs print:text-[11px] font-bold text-slate-600 mb-1">Day</label>
                 <select
                   value={blockDay}
                   onChange={e => setBlockDay(e.target.value)}
@@ -373,7 +373,7 @@ export function SpecialRulesCard({ school, app }: Props) {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Period</label>
+                <label className="block text-xs print:text-[11px] font-bold text-slate-600 mb-1">Period</label>
                 <select
                   value={blockPeriod}
                   onChange={e => setBlockPeriod(Number(e.target.value))}
@@ -386,7 +386,7 @@ export function SpecialRulesCard({ school, app }: Props) {
               </div>
 
               <div className={blockScope === 'school' ? 'sm:col-span-2' : ''}>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Activity Label</label>
+                <label className="block text-xs print:text-[11px] font-bold text-slate-600 mb-1">Activity Label</label>
                 <input
                   type="text"
                   value={blockLabel}
@@ -426,11 +426,11 @@ export function SpecialRulesCard({ school, app }: Props) {
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-xs text-rose-900">{b.label}</span>
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">
+                        <span className="px-2 py-0.5 rounded-full text-xs print:text-[10px] font-bold bg-rose-100 text-rose-800">
                           {b.scope === 'school' ? 'All-School' : b.scope === 'grade' ? `Grade: ${b.scopeId || 'All'}` : `Class: ${b.scopeId || 'Class'}`}
                         </span>
                       </div>
-                      <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-600">
+                      <div className="inline-flex items-center gap-1 text-xs print:text-[11px] font-semibold text-slate-600">
                         <span>{b.day}</span>
                         <span>&bull;</span>
                         <span>Period {b.period}</span>

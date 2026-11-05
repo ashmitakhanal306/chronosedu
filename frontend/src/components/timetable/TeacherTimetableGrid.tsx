@@ -72,7 +72,7 @@ export function TeacherTimetableGrid({
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-left">
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-50 text-[11px] uppercase tracking-wider text-slate-500">
+            <tr className="border-b border-slate-200 bg-slate-50 text-xs print:text-[11px] uppercase tracking-wider text-slate-500">
               <th className="py-3 px-4 w-36 font-semibold">Period / Time</th>
               {school.workingDays.map(day => {
                 const isSat = day === 'Saturday';
@@ -82,7 +82,7 @@ export function TeacherTimetableGrid({
                   }`}>
                     <div className={isSat ? 'text-amber-800' : ''}>{day}</div>
                     {isSat && (
-                      <div className="text-[9px] font-normal normal-case tracking-normal text-amber-600 mt-0.5">Saturday school day</div>
+                      <div className="text-xs print:text-[9px] font-normal normal-case tracking-normal text-amber-600 mt-0.5">Saturday school day</div>
                     )}
                   </th>
                 );
@@ -96,7 +96,7 @@ export function TeacherTimetableGrid({
                 <tr key={slot.label}>
                   <td className="py-3 px-4 border-r border-slate-200 bg-slate-50/40">
                     <div className="font-bold text-slate-800">{slot.label}</div>
-                    <div className="text-[11px] text-slate-500">{slot.time}</div>
+                    <div className="text-xs print:text-[11px] text-slate-500">{slot.time}</div>
                   </td>
                   {school.workingDays.map(day => {
                     const isSatCol = day === 'Saturday';
@@ -166,7 +166,7 @@ export function TeacherTimetableGrid({
                             }`}
                           >
                             <span className="font-semibold text-xs">Free Period</span>
-                            <span className="text-[10px] opacity-75">Available for Sub</span>
+                            <span className="text-xs print:text-[10px] opacity-75">Available for Sub</span>
                           </div>
                         </td>
                       );
@@ -214,22 +214,22 @@ export function TeacherTimetableGrid({
                             <span className="font-bold text-xs">Class {cls?.name}</span>
                             <div className="flex items-center gap-1 shrink-0">
                               {isDoubleBlock && (
-                                <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-purple-600 text-white flex items-center gap-0.5 shadow-2xs" title="90-Minute Consecutive Lab / Practical Block">
+                                <span className="text-xs print:text-[9px] font-bold px-1.5 py-0.2 rounded bg-purple-600 text-white flex items-center gap-0.5 shadow-2xs" title="90-Minute Consecutive Lab / Practical Block">
                                   <FlaskConical className="w-2.5 h-2.5" />
                                   <span>90m</span>
                                 </span>
                               )}
                               {isSubbing && (
-                                <span className="px-1.5 py-0.2 rounded bg-amber-700 text-white text-[10px] font-bold">
+                                <span className="px-1.5 py-0.2 rounded bg-amber-700 text-white text-xs print:text-[10px] font-bold">
                                   SUB DUTY
                                 </span>
                               )}
                             </div>
                           </div>
                           <div className="font-medium mt-1">{sub?.name}</div>
-                          <div className="text-[10px] opacity-75 mt-0.5">📍 {matchedEntry.room}</div>
+                          <div className="text-xs print:text-[10px] opacity-75 mt-0.5">📍 {matchedEntry.room}</div>
                           {coveredBySub && (
-                            <div className="text-[10px] text-rose-600 font-semibold no-underline mt-1">
+                            <div className="text-xs print:text-[10px] text-rose-600 font-semibold no-underline mt-1">
                               Covered by {coveredBySub.name}
                             </div>
                           )}

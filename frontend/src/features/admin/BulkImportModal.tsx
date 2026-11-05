@@ -286,7 +286,7 @@ export function BulkImportModal({ isOpen, onClose, school, updateSchool, onRunSo
                       {importMode === 'classes' ? (
                         <>
                           <span className="text-slate-500">({item.grade})</span>
-                          <span className={`px-1.5 py-0.2 rounded text-[10px] font-semibold ${
+                          <span className={`px-1.5 py-0.2 rounded text-xs print:text-[10px] font-semibold ${
                             item.tier === 'Primary' ? 'bg-emerald-100 text-emerald-800' : 'bg-sky-100 text-sky-800'
                           }`}>
                             {item.tier}
@@ -302,12 +302,12 @@ export function BulkImportModal({ isOpen, onClose, school, updateSchool, onRunSo
 
                     <div>
                       {item.isDuplicate ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md">
+                        <span className="inline-flex items-center gap-1 text-xs print:text-[11px] font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md">
                           <AlertTriangle className="w-3 h-3" />
                           <span>Already Exists</span>
                         </span>
                       ) : item.isValid ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
+                        <span className="inline-flex items-center gap-1 text-xs print:text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
                           <CheckCircle2 className="w-3 h-3" />
                           <span>Valid</span>
                         </span>

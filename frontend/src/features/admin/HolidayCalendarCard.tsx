@@ -66,13 +66,13 @@ export function HolidayCalendarCard({ school, app }: Props) {
   const getTypeBadge = (hType?: string) => {
     switch (hType) {
       case 'national':
-        return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">National / Public</span>;
+        return <span className="px-2 py-0.5 rounded-full text-xs print:text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">National / Public</span>;
       case 'exam':
-        return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">Exam Period</span>;
+        return <span className="px-2 py-0.5 rounded-full text-xs print:text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">Exam Period</span>;
       case 'staff_day':
-        return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">Staff Training</span>;
+        return <span className="px-2 py-0.5 rounded-full text-xs print:text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">Staff Training</span>;
       default:
-        return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">School Break</span>;
+        return <span className="px-2 py-0.5 rounded-full text-xs print:text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">School Break</span>;
     }
   };
 
@@ -83,7 +83,7 @@ export function HolidayCalendarCard({ school, app }: Props) {
           <Calendar className="w-4 h-4 text-emerald-600" />
           <span>Holiday Calendar &amp; School Closures</span>
         </h3>
-        <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">
+        <span className="text-xs print:text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">
           {holidays.length} Event{holidays.length === 1 ? '' : 's'} Configured
         </span>
       </div>
@@ -96,7 +96,7 @@ export function HolidayCalendarCard({ school, app }: Props) {
       <form onSubmit={handleAdd} className="bg-slate-50 rounded-xl p-3 border border-slate-200 space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
           <div className="sm:col-span-2">
-            <label className="block text-[11px] font-bold text-slate-600 mb-1">Holiday / Closure Name</label>
+            <label className="block text-xs print:text-[11px] font-bold text-slate-600 mb-1">Holiday / Closure Name</label>
             <input
               type="text"
               value={name}
@@ -108,7 +108,7 @@ export function HolidayCalendarCard({ school, app }: Props) {
           </div>
 
           <div>
-            <label className="block text-[11px] font-bold text-slate-600 mb-1">Start Date</label>
+            <label className="block text-xs print:text-[11px] font-bold text-slate-600 mb-1">Start Date</label>
             <input
               type="date"
               value={startDate}
@@ -119,7 +119,7 @@ export function HolidayCalendarCard({ school, app }: Props) {
           </div>
 
           <div>
-            <label className="block text-[11px] font-bold text-slate-600 mb-1">End Date</label>
+            <label className="block text-xs print:text-[11px] font-bold text-slate-600 mb-1">End Date</label>
             <input
               type="date"
               value={endDate}
@@ -132,7 +132,7 @@ export function HolidayCalendarCard({ school, app }: Props) {
 
         <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
           <div className="flex items-center gap-2">
-            <label className="text-[11px] font-bold text-slate-600">Category:</label>
+            <label className="text-xs print:text-[11px] font-bold text-slate-600">Category:</label>
             <select
               value={type}
               onChange={e => setType(e.target.value as any)}
@@ -174,7 +174,7 @@ export function HolidayCalendarCard({ school, app }: Props) {
                     <span className="font-semibold text-xs text-slate-900">{h.name}</span>
                     {getTypeBadge(h.type)}
                   </div>
-                  <div className="flex items-center gap-2 text-[11px] text-slate-500">
+                  <div className="flex items-center gap-2 text-xs print:text-[11px] text-slate-500">
                     <Clock className="w-3 h-3 text-slate-400" />
                     <span>{h.startDate} &rarr; {h.endDate}</span>
                     <span className="text-slate-400">&bull;</span>

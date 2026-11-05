@@ -46,11 +46,11 @@ export function StudentPortal({ app }: { app: TimetableApp }) {
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                <span className="text-xs print:text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80">
                   Student & Parent Portal
                 </span>
                 {isStudentRole && (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <span className="inline-flex items-center gap-1 text-xs print:text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                     <CheckCircle className="w-3 h-3" />
                     Enrolled Student
                   </span>
@@ -112,7 +112,7 @@ export function StudentPortal({ app }: { app: TimetableApp }) {
                       : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
                   }`}
                 >
-                  {cls.name} <span className="text-[10px] opacity-80">({cls.tier})</span>
+                  {cls.name} <span className="text-xs print:text-[10px] opacity-80">({cls.tier})</span>
                 </button>
               );
             })}
@@ -126,7 +126,7 @@ export function StudentPortal({ app }: { app: TimetableApp }) {
               <BookOpen className="w-3.5 h-3.5 text-indigo-500" />
               <span>Curriculum Breakdown ({classEntries.length} total periods scheduled / week):</span>
             </span>
-            <span className="text-[11px] text-slate-400">
+            <span className="text-xs print:text-[11px] text-slate-400">
               {activeSchool.rules.activityDay} Activity Block: Periods {activeSchool.rules.activityPeriods.join(', ')}
             </span>
           </div>
@@ -146,7 +146,7 @@ export function StudentPortal({ app }: { app: TimetableApp }) {
                 >
                   <span className={`w-2 h-2 rounded-full ${isAct ? 'bg-purple-500' : 'bg-indigo-500'}`} />
                   <span>{sub?.name || sid}</span>
-                  <span className="px-1.5 py-0.5 rounded-md bg-white border border-slate-200 text-[10px] font-bold text-slate-600">
+                  <span className="px-1.5 py-0.5 rounded-md bg-white border border-slate-200 text-xs print:text-[10px] font-bold text-slate-600">
                     {count}x / wk
                   </span>
                 </div>

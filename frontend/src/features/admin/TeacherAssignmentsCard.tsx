@@ -278,7 +278,7 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
               <UserCheck className="w-4 h-4 text-indigo-600" />
               <span>Teacher Workload Balancer</span>
             </span>
-            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+            <span className="text-xs print:text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
               {teacherMetrics.total} Faculty
             </span>
           </div>
@@ -288,7 +288,7 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
             <button
               type="button"
               onClick={() => setTeacherFilter('all')}
-              className={`px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer text-[11px] ${
+              className={`px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer text-xs print:text-[11px] ${
                 teacherFilter === 'all'
                   ? 'bg-slate-900 text-white shadow-2xs'
                   : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
@@ -299,7 +299,7 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
             <button
               type="button"
               onClick={() => setTeacherFilter('near-cap')}
-              className={`px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer text-[11px] ${
+              className={`px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer text-xs print:text-[11px] ${
                 teacherFilter === 'near-cap'
                   ? 'bg-amber-600 text-white shadow-2xs'
                   : 'bg-amber-50 border border-amber-200 text-amber-800 hover:bg-amber-100'
@@ -311,7 +311,7 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
               <button
                 type="button"
                 onClick={() => setTeacherFilter('overloaded')}
-                className={`px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer text-[11px] ${
+                className={`px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer text-xs print:text-[11px] ${
                   teacherFilter === 'overloaded'
                     ? 'bg-rose-600 text-white shadow-2xs'
                     : 'bg-rose-50 border border-rose-200 text-rose-800 hover:bg-rose-100'
@@ -323,7 +323,7 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
             <button
               type="button"
               onClick={() => setTeacherFilter('available')}
-              className={`px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer text-[11px] ${
+              className={`px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer text-xs print:text-[11px] ${
                 teacherFilter === 'available'
                   ? 'bg-emerald-600 text-white shadow-2xs'
                   : 'bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100'
@@ -348,7 +348,7 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
             <button
               type="button"
               onClick={() => setIsBalancerExpanded(prev => !prev)}
-              className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 bg-white border border-slate-200 px-2.5 py-1 rounded-lg transition flex items-center gap-1 cursor-pointer shadow-2xs"
+              className="text-xs print:text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 bg-white border border-slate-200 px-2.5 py-1 rounded-lg transition flex items-center gap-1 cursor-pointer shadow-2xs"
             >
               {isBalancerExpanded ? (
                 <>
@@ -387,17 +387,17 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
                 }`}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <span className="font-bold text-slate-800 truncate text-[11px]" title={t.name}>
+                  <span className="font-bold text-slate-800 truncate text-xs print:text-[11px]" title={t.name}>
                     {t.name}
                   </span>
                   {wl.overloaded && (
-                    <span className="text-[9px] font-bold text-rose-600 bg-rose-100 px-1 rounded-sm">
+                    <span className="text-xs print:text-[9px] font-bold text-rose-600 bg-rose-100 px-1 rounded-sm">
                       OVER
                     </span>
                   )}
                 </div>
 
-                <div className="flex items-center justify-between text-[10px] text-slate-500 mb-1.5">
+                <div className="flex items-center justify-between text-xs print:text-[10px] text-slate-500 mb-1.5">
                   <span>{wl.assigned} / {wl.max} p/wk</span>
                   <span className={`font-bold ${wl.overloaded ? 'text-rose-600' : wl.pct > 75 ? 'text-amber-600' : 'text-slate-600'}`}>
                     {wl.pct}%
@@ -450,7 +450,7 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
             <button
               type="button"
               onClick={() => setClassTierFilter('all')}
-              className={`px-2 py-0.5 rounded-md font-semibold text-[11px] transition cursor-pointer ${
+              className={`px-2 py-0.5 rounded-md font-semibold text-xs print:text-[11px] transition cursor-pointer ${
                 classTierFilter === 'all' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
@@ -459,7 +459,7 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
             <button
               type="button"
               onClick={() => setClassTierFilter('Primary')}
-              className={`px-2 py-0.5 rounded-md font-semibold text-[11px] transition cursor-pointer ${
+              className={`px-2 py-0.5 rounded-md font-semibold text-xs print:text-[11px] transition cursor-pointer ${
                 classTierFilter === 'Primary' ? 'bg-white text-emerald-800 shadow-2xs' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
@@ -468,7 +468,7 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
             <button
               type="button"
               onClick={() => setClassTierFilter('Senior')}
-              className={`px-2 py-0.5 rounded-md font-semibold text-[11px] transition cursor-pointer ${
+              className={`px-2 py-0.5 rounded-md font-semibold text-xs print:text-[11px] transition cursor-pointer ${
                 classTierFilter === 'Senior' ? 'bg-white text-sky-800 shadow-2xs' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
@@ -488,7 +488,7 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
           </div>
         </div>
 
-        <span className="text-[11px] text-slate-400 hidden lg:inline">
+        <span className="text-xs print:text-[11px] text-slate-400 hidden lg:inline">
           Showing {filteredMatrixClasses.length} of {school.classes.length} classes • Scroll table horizontally &amp; vertically
         </span>
       </div>
@@ -506,7 +506,7 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
                   <div className="flex items-center gap-1.5">
                     <span className={`w-2 h-2 rounded-full ${sub.color ? sub.color.split(' ')[0] : 'bg-indigo-500'}`} />
                     <span className="truncate" title={sub.name}>{sub.name}</span>
-                    <span className="text-[10px] text-slate-400 font-normal">({sub.code})</span>
+                    <span className="text-xs print:text-[10px] text-slate-400 font-normal">({sub.code})</span>
                   </div>
                 </th>
               ))}
@@ -520,7 +520,7 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
                   <div className="flex items-center gap-2">
                     <span>{cls.name}</span>
                     <span
-                      className={`text-[10px] font-semibold px-1.5 py-0.2 rounded-md ${
+                      className={`text-xs print:text-[10px] font-semibold px-1.5 py-0.2 rounded-md ${
                         cls.tier === 'Primary'
                           ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                           : 'bg-sky-50 text-sky-700 border border-sky-200'
@@ -544,7 +544,7 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
                   if (!isRequired) {
                     return (
                       <td key={sub.id} className="py-2 px-2.5 text-center text-slate-300 bg-slate-50/30">
-                        <span className="text-[11px]">—</span>
+                        <span className="text-xs print:text-[11px]">—</span>
                       </td>
                     );
                   }
@@ -578,7 +578,7 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
                         </div>
 
                         {/* Status caption under cell */}
-                        <div className="flex items-center justify-between text-[10px] px-0.5">
+                        <div className="flex items-center justify-between text-xs print:text-[10px] px-0.5">
                           <span className="text-slate-400">{freq} p/wk</span>
                           {!currentAsgn ? (
                             <span className="text-amber-600 font-bold flex items-center gap-0.5">

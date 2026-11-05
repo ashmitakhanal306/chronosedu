@@ -147,23 +147,23 @@ export function VersionsTab({ app }: { app: TimetableApp }) {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
             <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Scheduled Lessons</span>
+              <span className="text-xs print:text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Scheduled Lessons</span>
               <span className="text-lg font-bold text-slate-900 font-mono mt-0.5 block">{latestVersion.entryCount} entries</span>
-              <span className="text-[10px] text-slate-500">100% hard rule conflict-free</span>
+              <span className="text-xs print:text-[10px] text-slate-500">100% hard rule conflict-free</span>
             </div>
 
             <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Effective Calendar Date</span>
+              <span className="text-xs print:text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Effective Calendar Date</span>
               <span className="text-lg font-bold text-slate-900 mt-0.5 block">{latestVersion.effectiveFrom || 'Immediate'}</span>
-              <span className="text-[10px] text-slate-500">Active timetable start date</span>
+              <span className="text-xs print:text-[10px] text-slate-500">Active timetable start date</span>
             </div>
 
             <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Live Portal Visibility</span>
+              <span className="text-xs print:text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Live Portal Visibility</span>
               <span className={`text-lg font-bold mt-0.5 block ${latestVersion.state === 'published' ? 'text-emerald-600' : 'text-amber-600'}`}>
                 {latestVersion.state === 'published' ? 'Live to Teachers & Students' : 'Restricted to Admins (Draft)'}
               </span>
-              <span className="text-[10px] text-slate-500">Multi-tenant role filter active</span>
+              <span className="text-xs print:text-[10px] text-slate-500">Multi-tenant role filter active</span>
             </div>
           </div>
         </div>
@@ -192,7 +192,7 @@ export function VersionsTab({ app }: { app: TimetableApp }) {
                 <span className="font-mono font-extrabold text-slate-900 text-sm">
                   v{v.versionNumber}
                 </span>
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                <span className={`px-2 py-0.5 rounded-full text-xs print:text-[10px] font-bold uppercase tracking-wider ${
                   v.state === 'published'
                     ? 'bg-emerald-100 text-emerald-800'
                     : v.state === 'approved'
@@ -267,12 +267,12 @@ export function VersionsTab({ app }: { app: TimetableApp }) {
             auditLogs.map(log => (
               <div key={log.id} className="p-3 text-xs flex flex-wrap items-center justify-between gap-2 hover:bg-slate-50">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold uppercase tracking-wider text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-mono">
+                  <span className="font-bold uppercase tracking-wider text-xs print:text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-mono">
                     {log.action}
                   </span>
                   <span className="text-slate-700 font-medium">{log.detail || log.entity_type}</span>
                 </div>
-                <span className="text-[11px] text-slate-400 font-mono">
+                <span className="text-xs print:text-[11px] text-slate-400 font-mono">
                   {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </span>
               </div>

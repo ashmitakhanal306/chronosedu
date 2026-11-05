@@ -26,11 +26,11 @@ export function QualityReportCard({ report, onClose }: Props) {
           <div>
             <div className="flex items-center gap-2">
               <h3 className="font-bold text-sm tracking-wide">Schedule Quality & Workload Audit</h3>
-              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+              <span className="text-xs print:text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
                 CP-SAT Optimal
               </span>
             </div>
-            <p className="text-[11px] text-indigo-200/80">
+            <p className="text-xs print:text-[11px] text-indigo-200/80">
               Generated via Google OR-Tools CP-SAT with soft constraint multi-objective optimization
             </p>
           </div>
@@ -63,44 +63,44 @@ export function QualityReportCard({ report, onClose }: Props) {
       <div className="p-4 grid grid-cols-2 sm:grid-cols-4 gap-3 bg-indigo-50/20 border-b border-indigo-100/60">
         <div className="bg-white p-3 rounded-xl border border-slate-200/80 shadow-2xs">
           <div className="flex items-center justify-between text-slate-500 mb-1">
-            <span className="text-[11px] font-semibold uppercase tracking-wider">Placed Lessons</span>
+            <span className="text-xs print:text-[11px] font-semibold uppercase tracking-wider">Placed Lessons</span>
             <CheckCircle2 className="w-4 h-4 text-emerald-600" />
           </div>
           <div className="text-xl font-bold text-slate-900">{report.total_entries}</div>
-          <div className="text-[10px] text-slate-500 mt-0.5">Satisfies 100% hard constraints</div>
+          <div className="text-xs print:text-[10px] text-slate-500 mt-0.5">Satisfies 100% hard constraints</div>
         </div>
 
         <div className="bg-white p-3 rounded-xl border border-slate-200/80 shadow-2xs">
           <div className="flex items-center justify-between text-slate-500 mb-1">
-            <span className="text-[11px] font-semibold uppercase tracking-wider">Empty Periods</span>
+            <span className="text-xs print:text-[11px] font-semibold uppercase tracking-wider">Empty Periods</span>
             <Gauge className="w-4 h-4 text-indigo-600" />
           </div>
           <div className="text-xl font-bold text-slate-900">{report.empty_period_count}</div>
-          <div className="text-[10px] text-slate-500 mt-0.5">
+          <div className="text-xs print:text-[10px] text-slate-500 mt-0.5">
             {report.empty_period_count === 0 ? 'Full grid coverage' : 'Free/unassigned slots'}
           </div>
         </div>
 
         <div className="bg-white p-3 rounded-xl border border-slate-200/80 shadow-2xs">
           <div className="flex items-center justify-between text-slate-500 mb-1">
-            <span className="text-[11px] font-semibold uppercase tracking-wider">Faculty Fairness</span>
+            <span className="text-xs print:text-[11px] font-semibold uppercase tracking-wider">Faculty Fairness</span>
             <Users className="w-4 h-4 text-sky-600" />
           </div>
           <div className="text-xl font-bold text-slate-900">
             {totalTeachers > 0 ? `${Math.round((balancedTeachers / totalTeachers) * 100)}%` : '100%'}
           </div>
-          <div className="text-[10px] text-slate-500 mt-0.5">
+          <div className="text-xs print:text-[10px] text-slate-500 mt-0.5">
             {balancedTeachers}/{totalTeachers} in optimal 50–85% band
           </div>
         </div>
 
         <div className="bg-white p-3 rounded-xl border border-slate-200/80 shadow-2xs">
           <div className="flex items-center justify-between text-slate-500 mb-1">
-            <span className="text-[11px] font-semibold uppercase tracking-wider">Soft Penalty Score</span>
+            <span className="text-xs print:text-[11px] font-semibold uppercase tracking-wider">Soft Penalty Score</span>
             <TrendingUp className="w-4 h-4 text-violet-600" />
           </div>
           <div className="text-xl font-bold text-slate-900">{report.soft_score}</div>
-          <div className="text-[10px] text-slate-500 mt-0.5">
+          <div className="text-xs print:text-[10px] text-slate-500 mt-0.5">
             {report.soft_score === 0 ? 'Zero preference penalty' : 'Weighted soft penalty'}
           </div>
         </div>
@@ -110,10 +110,10 @@ export function QualityReportCard({ report, onClose }: Props) {
       {isExpanded && (
         <div className="p-4 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-            <span className="font-bold text-slate-800 uppercase tracking-wider text-[11px]">
+            <span className="font-bold text-slate-800 uppercase tracking-wider text-xs print:text-[11px]">
               Faculty Weekly Workload Distribution ({totalTeachers} Staff Members)
             </span>
-            <div className="flex items-center gap-3 text-[11px] text-slate-600">
+            <div className="flex items-center gap-3 text-xs print:text-[11px] text-slate-600">
               <span className="inline-flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-emerald-500" /> Optimal ({balancedTeachers})
               </span>
@@ -131,7 +131,7 @@ export function QualityReportCard({ report, onClose }: Props) {
           <div className="overflow-x-auto border border-slate-200 rounded-xl">
             <table className="w-full border-collapse text-left text-xs">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50 text-[10px] uppercase tracking-wider text-slate-500 font-bold">
+                <tr className="border-b border-slate-200 bg-slate-50 text-xs print:text-[10px] uppercase tracking-wider text-slate-500 font-bold">
                   <th className="py-2.5 px-3">Teacher</th>
                   <th className="py-2.5 px-3">Periods Assigned</th>
                   <th className="py-2.5 px-3">Weekly Max</th>
@@ -143,7 +143,7 @@ export function QualityReportCard({ report, onClose }: Props) {
                 {report.teacher_workload.map(tw => {
                   let barColor = 'bg-emerald-500';
                   let statusBadge = (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                    <span className="px-2 py-0.5 rounded-full text-xs print:text-[10px] font-bold bg-emerald-100 text-emerald-800">
                       Optimal
                     </span>
                   );
@@ -151,21 +151,21 @@ export function QualityReportCard({ report, onClose }: Props) {
                   if (tw.pct > 100) {
                     barColor = 'bg-rose-500';
                     statusBadge = (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">
+                      <span className="px-2 py-0.5 rounded-full text-xs print:text-[10px] font-bold bg-rose-100 text-rose-800">
                         Overloaded
                       </span>
                     );
                   } else if (tw.pct > 85) {
                     barColor = 'bg-amber-500';
                     statusBadge = (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                      <span className="px-2 py-0.5 rounded-full text-xs print:text-[10px] font-bold bg-amber-100 text-amber-800">
                         Full Load
                       </span>
                     );
                   } else if (tw.pct < 50) {
                     barColor = 'bg-sky-400';
                     statusBadge = (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800">
+                      <span className="px-2 py-0.5 rounded-full text-xs print:text-[10px] font-bold bg-sky-100 text-sky-800">
                         Light
                       </span>
                     );
@@ -184,7 +184,7 @@ export function QualityReportCard({ report, onClose }: Props) {
                               style={{ width: `${Math.min(100, tw.pct)}%` }}
                             />
                           </div>
-                          <span className="text-[11px] font-mono text-slate-600 w-10 text-right">{tw.pct}%</span>
+                          <span className="text-xs print:text-[11px] font-mono text-slate-600 w-10 text-right">{tw.pct}%</span>
                         </div>
                       </td>
                       <td className="py-2.5 px-3 text-right">{statusBadge}</td>
@@ -202,7 +202,7 @@ export function QualityReportCard({ report, onClose }: Props) {
                 <AlertTriangle className="w-4 h-4 shrink-0" />
                 <span>Unplaced Lessons ({report.unplaced_lessons.length}):</span>
               </div>
-              <ul className="list-disc pl-5 space-y-0.5 text-amber-700 text-[11px]">
+              <ul className="list-disc pl-5 space-y-0.5 text-amber-700 text-xs print:text-[11px]">
                 {report.unplaced_lessons.map((u, i) => (
                   <li key={i}>{u}</li>
                 ))}

@@ -84,15 +84,15 @@ export function VersionHistoryModal({ app, isOpen, onClose }: Props) {
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs text-slate-600">
               <div className="bg-white p-2.5 rounded-xl border border-slate-200/70">
-                <span className="text-[10px] text-slate-400 font-semibold uppercase block">Scheduled Lessons</span>
+                <span className="text-xs print:text-[10px] text-slate-400 font-semibold uppercase block">Scheduled Lessons</span>
                 <span className="font-bold text-slate-900">{latestVersion.entryCount} entries</span>
               </div>
               <div className="bg-white p-2.5 rounded-xl border border-slate-200/70">
-                <span className="text-[10px] text-slate-400 font-semibold uppercase block">Effective Date</span>
+                <span className="text-xs print:text-[10px] text-slate-400 font-semibold uppercase block">Effective Date</span>
                 <span className="font-bold text-slate-900">{latestVersion.effectiveFrom || 'Immediate'}</span>
               </div>
               <div className="bg-white p-2.5 rounded-xl border border-slate-200/70 col-span-2 sm:col-span-1">
-                <span className="text-[10px] text-slate-400 font-semibold uppercase block">Portal Visibility</span>
+                <span className="text-xs print:text-[10px] text-slate-400 font-semibold uppercase block">Portal Visibility</span>
                 <span className={`font-bold ${latestVersion.state === 'published' ? 'text-emerald-700' : 'text-slate-500'}`}>
                   {latestVersion.state === 'published' ? 'Live to Teachers & Students' : 'Admin Draft Only'}
                 </span>
@@ -154,7 +154,7 @@ export function VersionHistoryModal({ app, isOpen, onClose }: Props) {
                   <div className="font-mono font-bold text-slate-800 text-sm">
                     v{v.versionNumber}
                   </div>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                  <span className={`px-2 py-0.5 rounded-full text-xs print:text-[10px] font-bold uppercase tracking-wider ${
                     v.state === 'published'
                       ? 'bg-emerald-100 text-emerald-800'
                       : v.state === 'approved'
@@ -174,24 +174,24 @@ export function VersionHistoryModal({ app, isOpen, onClose }: Props) {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-slate-400 font-mono">
+                  <span className="text-xs print:text-[11px] text-slate-400 font-mono">
                     {new Date(v.createdAt).toLocaleDateString()}
                   </span>
 
                   {v.id !== latestVersion?.id && (
                     confirmRollbackId === v.id ? (
                       <div className="flex items-center gap-1.5 animate-in fade-in duration-150">
-                        <span className="text-[11px] text-rose-600 font-bold">Revert to v{v.versionNumber}?</span>
+                        <span className="text-xs print:text-[11px] text-rose-600 font-bold">Revert to v{v.versionNumber}?</span>
                         <button
                           onClick={() => handleRollback(v.id)}
                           disabled={isSyncing}
-                          className="px-2.5 py-1 rounded-lg bg-rose-600 text-white text-[11px] font-bold hover:bg-rose-700 transition cursor-pointer"
+                          className="px-2.5 py-1 rounded-lg bg-rose-600 text-white text-xs print:text-[11px] font-bold hover:bg-rose-700 transition cursor-pointer"
                         >
                           Confirm
                         </button>
                         <button
                           onClick={() => setConfirmRollbackId(null)}
-                          className="px-2 py-1 rounded-lg border border-slate-200 text-slate-600 text-[11px] hover:bg-slate-100 transition cursor-pointer"
+                          className="px-2 py-1 rounded-lg border border-slate-200 text-slate-600 text-xs print:text-[11px] hover:bg-slate-100 transition cursor-pointer"
                         >
                           Cancel
                         </button>

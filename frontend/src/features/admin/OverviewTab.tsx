@@ -60,7 +60,7 @@ export function OverviewTab({ app }: { app: TimetableApp }) {
         {/* Layer A */}
         <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3 shadow-2xs">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+            <span className="text-xs print:text-[11px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
               Layer A • Admin Control
             </span>
             <Users className="w-5 h-5 text-emerald-500" />
@@ -84,7 +84,7 @@ export function OverviewTab({ app }: { app: TimetableApp }) {
         {/* Layer B */}
         <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3 shadow-2xs">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
+            <span className="text-xs print:text-[11px] font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
               Layer B • Automated Engine
             </span>
             <Cpu className="w-5 h-5 text-indigo-500" />
@@ -108,7 +108,7 @@ export function OverviewTab({ app }: { app: TimetableApp }) {
         {/* Layer C */}
         <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3 shadow-2xs">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+            <span className="text-xs print:text-[11px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
               Layer C • Human Governance
             </span>
             <ShieldCheck className="w-5 h-5 text-amber-500" />
@@ -140,33 +140,33 @@ export function OverviewTab({ app }: { app: TimetableApp }) {
 
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
-            <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold block">Classes</span>
+            <span className="text-xs print:text-[10px] uppercase tracking-wider text-slate-400 font-bold block">Classes</span>
             <span className="text-xl font-bold text-slate-900">{totalClasses}</span>
-            <span className="text-[10px] text-slate-500 block mt-0.5">Primary &amp; Senior</span>
+            <span className="text-xs print:text-[10px] text-slate-500 block mt-0.5">Primary &amp; Senior</span>
           </div>
 
           <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
-            <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold block">Faculty</span>
+            <span className="text-xs print:text-[10px] uppercase tracking-wider text-slate-400 font-bold block">Faculty</span>
             <span className="text-xl font-bold text-slate-900">{totalTeachers}</span>
-            <span className="text-[10px] text-slate-500 block mt-0.5">Teaching Staff</span>
+            <span className="text-xs print:text-[10px] text-slate-500 block mt-0.5">Teaching Staff</span>
           </div>
 
           <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
-            <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold block">Subjects</span>
+            <span className="text-xs print:text-[10px] uppercase tracking-wider text-slate-400 font-bold block">Subjects</span>
             <span className="text-xl font-bold text-slate-900">{totalSubjects}</span>
-            <span className="text-[10px] text-slate-500 block mt-0.5">Subjects &amp; Labs</span>
+            <span className="text-xs print:text-[10px] text-slate-500 block mt-0.5">Subjects &amp; Labs</span>
           </div>
 
           <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
-            <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold block">Assignments</span>
+            <span className="text-xs print:text-[10px] uppercase tracking-wider text-slate-400 font-bold block">Assignments</span>
             <span className="text-xl font-bold text-indigo-600">{totalAssignments}</span>
-            <span className="text-[10px] text-slate-500 block mt-0.5">Teacher Bindings</span>
+            <span className="text-xs print:text-[10px] text-slate-500 block mt-0.5">Teacher Bindings</span>
           </div>
 
           <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
-            <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold block">Scheduled Slots</span>
+            <span className="text-xs print:text-[10px] uppercase tracking-wider text-slate-400 font-bold block">Scheduled Slots</span>
             <span className="text-xl font-bold text-emerald-600">{totalEntries}</span>
-            <span className="text-[10px] text-slate-500 block mt-0.5">Conflict-free</span>
+            <span className="text-xs print:text-[10px] text-slate-500 block mt-0.5">Conflict-free</span>
           </div>
         </div>
       </div>
