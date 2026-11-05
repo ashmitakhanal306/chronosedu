@@ -3,6 +3,7 @@ import { Pin, Ban, Plus, Trash2, ShieldAlert, Sparkles, Building2, Users, Layers
 import type { School, PinnedLesson, BlockedSlot } from '../../domain/types';
 import type { TimetableApp } from '../../hooks/useTimetableApp';
 import { sortClasses, sortTeachers } from '../../utils/sorting';
+import { Badge, Button, Card, Input, Select } from '../../components/ui/primitives';
 
 interface Props {
   school: School;
@@ -122,182 +123,182 @@ export function SpecialRulesCard({ school, app }: Props) {
   }, [school.classes]);
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 shadow-xs">
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+    <Card className="w-full min-w-0 rounded-card p-4 sm:p-5 space-y-4 shadow-xs">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 pb-3">
         <div className="space-y-0.5">
-          <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
-            <ShieldAlert className="w-4 h-4 text-purple-600" />
+          <h3 className="font-bold text-base text-neutral-900 flex items-center gap-2">
+            <ShieldAlert className="w-4 h-4 text-rule-600" />
             <span>Special Rules &amp; Fixed Constraints (Step 9)</span>
           </h3>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-neutral-500">
             Hard administrative constraints. Pinned lessons force exact placements; blocked slots forbid scheduling.
           </p>
         </div>
 
         {/* Tab switch */}
-        <div className="inline-flex rounded-xl bg-slate-100 p-1">
-          <button
+        <div className="inline-flex rounded-soft bg-neutral-100 p-1">
+          <Button
             type="button"
             onClick={() => setActiveTab('pinned')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-control text-xs font-semibold transition cursor-pointer ${
               activeTab === 'pinned'
-                ? 'bg-white text-purple-700 shadow-2xs font-bold'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-surface text-rule-700 shadow-2xs font-bold'
+                : 'text-neutral-600 hover:text-neutral-900'
             }`}
           >
             <Pin className="w-3.5 h-3.5" />
             <span>Pinned Lessons ({pinnedLessons.length})</span>
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={() => setActiveTab('blocked')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-control text-xs font-semibold transition cursor-pointer ${
               activeTab === 'blocked'
-                ? 'bg-white text-rose-700 shadow-2xs font-bold'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-surface text-danger-700 shadow-2xs font-bold'
+                : 'text-neutral-600 hover:text-neutral-900'
             }`}
           >
             <Ban className="w-3.5 h-3.5" />
             <span>Blocked Slots ({blockedSlots.length})</span>
-          </button>
+          </Button>
         </div>
       </div>
 
       {activeTab === 'pinned' ? (
         <div className="space-y-4">
           {/* Pinned Lesson Form */}
-          <form onSubmit={handleAddPin} className="bg-purple-50/50 rounded-xl p-3.5 border border-purple-100 space-y-3">
+          <form onSubmit={handleAddPin} className="bg-rule-50/50 rounded-soft p-3.5 border border-rule-100 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-purple-900 flex items-center gap-1.5">
-                <Pin className="w-3.5 h-3.5 text-purple-600" />
+              <span className="text-xs font-bold text-rule-900 flex items-center gap-1.5">
+                <Pin className="w-3.5 h-3.5 text-rule-600" />
                 <span>Pin a Mandatory Lesson to an Exact Slot</span>
               </span>
               {matchingAssignment && (
-                <span className="text-xs print:text-[11px] font-semibold text-purple-700 bg-purple-100/70 px-2 py-0.5 rounded-md">
+                <Badge className="text-xs font-semibold text-rule-700 bg-rule-100/70 px-2 py-0.5 rounded-tight">
                   Assigned: {matchingAssignment.teacherName || 'Teacher assigned'}
-                </span>
+                </Badge>
               )}
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
               <div>
-                <label className="block text-xs print:text-[11px] font-bold text-slate-600 mb-1">Class Section</label>
-                <select
+                <label className="block text-xs font-bold text-neutral-600 mb-1">Class Section</label>
+                <Select
                   value={pinClassId}
                   onChange={e => handleClassChange(e.target.value)}
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white font-medium"
+                  className="w-full px-2.5 py-1.5 rounded-control border border-neutral-300 text-xs bg-surface font-medium"
                 >
                   {sortedClasses.map(c => (
                     <option key={c.id} value={c.id}>{c.name} ({c.grade})</option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               <div>
-                <label className="block text-xs print:text-[11px] font-bold text-slate-600 mb-1">Subject</label>
-                <select
+                <label className="block text-xs font-bold text-neutral-600 mb-1">Subject</label>
+                <Select
                   value={pinSubjectId}
                   onChange={e => handleSubjectChange(e.target.value)}
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white font-medium"
+                  className="w-full px-2.5 py-1.5 rounded-control border border-neutral-300 text-xs bg-surface font-medium"
                 >
                   {school.subjects.map(s => (
                     <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               <div>
-                <label className="block text-xs print:text-[11px] font-bold text-slate-600 mb-1">Teacher</label>
-                <select
+                <label className="block text-xs font-bold text-neutral-600 mb-1">Teacher</label>
+                <Select
                   value={matchingAssignment ? matchingAssignment.teacherId : pinTeacherId}
                   onChange={e => setPinTeacherId(e.target.value)}
                   disabled={Boolean(matchingAssignment)}
-                  className={`w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white font-medium ${
-                    matchingAssignment ? 'bg-slate-100 text-slate-600 cursor-not-allowed' : ''
+                  className={`w-full px-2.5 py-1.5 rounded-control border border-neutral-300 text-xs bg-surface font-medium ${
+                    matchingAssignment ? 'bg-neutral-100 text-neutral-600 cursor-not-allowed' : ''
                   }`}
                 >
                   {sortedTeachers.map(t => (
                     <option key={t.id} value={t.id}>{t.name}</option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               <div>
-                <label className="block text-xs print:text-[11px] font-bold text-slate-600 mb-1">Day</label>
-                <select
+                <label className="block text-xs font-bold text-neutral-600 mb-1">Day</label>
+                <Select
                   value={pinDay}
                   onChange={e => setPinDay(e.target.value)}
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white font-medium"
+                  className="w-full px-2.5 py-1.5 rounded-control border border-neutral-300 text-xs bg-surface font-medium"
                 >
                   {school.workingDays.map(d => (
                     <option key={d} value={d}>{d}</option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               <div>
-                <label className="block text-xs print:text-[11px] font-bold text-slate-600 mb-1">Period</label>
-                <select
+                <label className="block text-xs font-bold text-neutral-600 mb-1">Period</label>
+                <Select
                   value={pinPeriod}
                   onChange={e => setPinPeriod(Number(e.target.value))}
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white font-medium"
+                  className="w-full px-2.5 py-1.5 rounded-control border border-neutral-300 text-xs bg-surface font-medium"
                 >
                   {periodOptions.map(p => (
                     <option key={p} value={p}>Period {p}</option>
                   ))}
-                </select>
+                </Select>
               </div>
             </div>
 
             <div className="flex justify-end pt-1">
-              <button
+              <Button
                 type="submit"
                 disabled={isPinSubmitting}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-semibold text-xs shadow-xs transition cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-soft bg-rule-600 hover:bg-rule-700 disabled:opacity-50 text-white font-semibold text-xs shadow-xs transition cursor-pointer"
               >
                 <Pin className="w-3.5 h-3.5" />
                 <span>Pin Lesson (Force Slot)</span>
-              </button>
+              </Button>
             </div>
           </form>
 
           {/* Pinned Lessons List */}
           <div className="space-y-2">
             {pinnedLessons.length === 0 ? (
-              <div className="p-4 rounded-xl border border-dashed border-slate-200 text-center text-xs text-slate-400">
+              <div className="p-4 rounded-soft border border-dashed border-neutral-200 text-center text-xs text-neutral-600">
                 No pinned lessons yet. Lessons are free for the solver to optimize unless pinned above.
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
                 {pinnedLessons.map(p => (
-                  <div
+                  <Card
                     key={p.id}
-                    className="flex items-center justify-between p-3 rounded-xl border border-purple-100 bg-purple-50/20 hover:border-purple-200 transition group"
+                    className="flex items-center justify-between p-3 rounded-soft border border-rule-100 bg-rule-50/20 hover:border-rule-200 transition group"
                   >
                     <div className="space-y-1">
                       <div className="flex items-center gap-1.5">
-                        <span className="font-bold text-xs text-purple-900">{p.className || p.classId}</span>
-                        <span className="text-slate-400">&bull;</span>
-                        <span className="font-semibold text-xs text-slate-700">{p.subjectName || p.subjectId}</span>
+                        <span className="font-bold text-xs text-rule-900">{p.className || p.classId}</span>
+                        <span className="text-neutral-600">&bull;</span>
+                        <span className="font-semibold text-xs text-neutral-700">{p.subjectName || p.subjectId}</span>
                       </div>
-                      <div className="text-xs print:text-[11px] text-slate-500">
+                      <div className="text-xs text-neutral-500">
                         {p.teacherName || p.teacherId}
                       </div>
-                      <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 text-xs print:text-[10px] font-bold">
+                      <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-tight bg-rule-100 text-rule-800 text-xs font-bold">
                         <span>{p.day}</span>
                         <span>Period {p.period}</span>
                       </div>
                     </div>
 
-                    <button
+                    <Button
                       type="button"
                       onClick={() => handleDeletePin(p.id)}
-                      className="opacity-60 group-hover:opacity-100 p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                      className="opacity-60 group-hover:opacity-100 p-1 rounded-control text-neutral-600 hover:text-danger-600 hover:bg-danger-50 transition cursor-pointer"
                       title="Unpin lesson"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                    </Button>
+                  </Card>
                 ))}
               </div>
             )}
@@ -306,152 +307,152 @@ export function SpecialRulesCard({ school, app }: Props) {
       ) : (
         <div className="space-y-4">
           {/* Blocked Slot Form */}
-          <form onSubmit={handleAddBlock} className="bg-rose-50/50 rounded-xl p-3.5 border border-rose-100 space-y-3">
+          <form onSubmit={handleAddBlock} className="bg-danger-50/50 rounded-soft p-3.5 border border-danger-100 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-rose-900 flex items-center gap-1.5">
-                <Ban className="w-3.5 h-3.5 text-rose-600" />
+              <span className="text-xs font-bold text-danger-900 flex items-center gap-1.5">
+                <Ban className="w-3.5 h-3.5 text-danger-600" />
                 <span>Block a Time Slot for Assembly, Sports, or Meetings</span>
               </span>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
               <div>
-                <label className="block text-xs print:text-[11px] font-bold text-slate-600 mb-1">Applies To (Scope)</label>
-                <select
+                <label className="block text-xs font-bold text-neutral-600 mb-1">Applies To (Scope)</label>
+                <Select
                   value={blockScope}
                   onChange={e => setBlockScope(e.target.value as any)}
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white font-medium"
+                  className="w-full px-2.5 py-1.5 rounded-control border border-neutral-300 text-xs bg-surface font-medium"
                 >
                   <option value="school">Whole School</option>
                   <option value="grade">Specific Grade</option>
                   <option value="class">Specific Class</option>
-                </select>
+                </Select>
               </div>
 
               {blockScope !== 'school' && (
                 <div>
-                  <label className="block text-xs print:text-[11px] font-bold text-slate-600 mb-1">
+                  <label className="block text-xs font-bold text-neutral-600 mb-1">
                     {blockScope === 'grade' ? 'Select Grade' : 'Select Class'}
                   </label>
                   {blockScope === 'grade' ? (
-                    <select
+                    <Select
                       value={blockScopeId}
                       onChange={e => setBlockScopeId(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white font-medium"
+                      className="w-full px-2.5 py-1.5 rounded-control border border-neutral-300 text-xs bg-surface font-medium"
                     >
                       <option value="">-- Choose Grade --</option>
                       {grades.map(g => (
                         <option key={g} value={g}>{g}</option>
                       ))}
-                    </select>
+                    </Select>
                   ) : (
-                    <select
+                    <Select
                       value={blockScopeId}
                       onChange={e => setBlockScopeId(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white font-medium"
+                      className="w-full px-2.5 py-1.5 rounded-control border border-neutral-300 text-xs bg-surface font-medium"
                     >
                       <option value="">-- Choose Class --</option>
                       {sortedClasses.map(c => (
                         <option key={c.id} value={c.id}>{c.name}</option>
                       ))}
-                    </select>
+                    </Select>
                   )}
                 </div>
               )}
 
               <div>
-                <label className="block text-xs print:text-[11px] font-bold text-slate-600 mb-1">Day</label>
-                <select
+                <label className="block text-xs font-bold text-neutral-600 mb-1">Day</label>
+                <Select
                   value={blockDay}
                   onChange={e => setBlockDay(e.target.value)}
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white font-medium"
+                  className="w-full px-2.5 py-1.5 rounded-control border border-neutral-300 text-xs bg-surface font-medium"
                 >
                   {school.workingDays.map(d => (
                     <option key={d} value={d}>{d}</option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               <div>
-                <label className="block text-xs print:text-[11px] font-bold text-slate-600 mb-1">Period</label>
-                <select
+                <label className="block text-xs font-bold text-neutral-600 mb-1">Period</label>
+                <Select
                   value={blockPeriod}
                   onChange={e => setBlockPeriod(Number(e.target.value))}
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white font-medium"
+                  className="w-full px-2.5 py-1.5 rounded-control border border-neutral-300 text-xs bg-surface font-medium"
                 >
                   {periodOptions.map(p => (
                     <option key={p} value={p}>Period {p}</option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               <div className={blockScope === 'school' ? 'sm:col-span-2' : ''}>
-                <label className="block text-xs print:text-[11px] font-bold text-slate-600 mb-1">Activity Label</label>
-                <input
+                <label className="block text-xs font-bold text-neutral-600 mb-1">Activity Label</label>
+                <Input
                   type="text"
                   value={blockLabel}
                   onChange={e => setBlockLabel(e.target.value)}
                   placeholder="e.g. All-School Assembly, House Sports"
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white font-medium focus:ring-2 focus:ring-rose-500"
+                  className="w-full px-2.5 py-1.5 rounded-control border border-neutral-300 text-xs bg-surface font-medium focus:ring-2 focus:ring-danger-500"
                   required
                 />
               </div>
             </div>
 
             <div className="flex justify-end pt-1">
-              <button
+              <Button
                 type="submit"
                 disabled={isBlockSubmitting || !blockLabel.trim()}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white font-semibold text-xs shadow-xs transition cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-soft bg-danger-600 hover:bg-danger-700 disabled:opacity-50 text-white font-semibold text-xs shadow-xs transition cursor-pointer"
               >
                 <Ban className="w-3.5 h-3.5" />
                 <span>Block Time Slot</span>
-              </button>
+              </Button>
             </div>
           </form>
 
           {/* Blocked Slots List */}
           <div className="space-y-2">
             {blockedSlots.length === 0 ? (
-              <div className="p-4 rounded-xl border border-dashed border-slate-200 text-center text-xs text-slate-400">
+              <div className="p-4 rounded-soft border border-dashed border-neutral-200 bg-neutral-50/70 text-center text-sm text-neutral-700">
                 No blocked slots defined. All periods are open for regular lessons.
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
                 {blockedSlots.map(b => (
-                  <div
+                  <Card
                     key={b.id}
-                    className="flex items-center justify-between p-3 rounded-xl border border-rose-100 bg-rose-50/20 hover:border-rose-200 transition group"
+                    className="flex items-center justify-between p-3 rounded-soft border border-danger-100 bg-danger-50/20 hover:border-danger-200 transition group"
                   >
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-xs text-rose-900">{b.label}</span>
-                        <span className="px-2 py-0.5 rounded-full text-xs print:text-[10px] font-bold bg-rose-100 text-rose-800">
+                        <span className="font-bold text-xs text-danger-900">{b.label}</span>
+                        <Badge className="px-2 py-0.5 rounded-full text-xs font-bold bg-danger-100 text-danger-800">
                           {b.scope === 'school' ? 'All-School' : b.scope === 'grade' ? `Grade: ${b.scopeId || 'All'}` : `Class: ${b.scopeId || 'Class'}`}
-                        </span>
+                        </Badge>
                       </div>
-                      <div className="inline-flex items-center gap-1 text-xs print:text-[11px] font-semibold text-slate-600">
+                      <div className="inline-flex items-center gap-1 text-xs font-semibold text-neutral-600">
                         <span>{b.day}</span>
                         <span>&bull;</span>
                         <span>Period {b.period}</span>
                       </div>
                     </div>
 
-                    <button
+                    <Button
                       type="button"
                       onClick={() => handleDeleteBlock(b.id)}
-                      className="opacity-60 group-hover:opacity-100 p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                      className="opacity-60 group-hover:opacity-100 p-1 rounded-control text-neutral-600 hover:text-danger-600 hover:bg-danger-50 transition cursor-pointer"
                       title="Remove blocked slot"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                    </Button>
+                  </Card>
                 ))}
               </div>
             )}
           </div>
         </div>
       )}
-    </div>
+    </Card>
   );
 }

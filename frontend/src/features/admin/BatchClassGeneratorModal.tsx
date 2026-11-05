@@ -7,6 +7,7 @@ import {
   Info,
 } from 'lucide-react';
 import type { Tier } from '../../domain/types';
+import { Button } from '../../components/ui/primitives';
 
 interface Props {
   isOpen: boolean;
@@ -160,7 +161,7 @@ export function BatchClassGeneratorModal({ isOpen, onClose, onGenerate, existing
                 <h3 className="font-extrabold text-slate-900 text-base">
                   1-Click Class &amp; Section Generator
                 </h3>
-                <span className="text-xs print:text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
                   Zero-Excel
                 </span>
               </div>
@@ -169,13 +170,14 @@ export function BatchClassGeneratorModal({ isOpen, onClose, onGenerate, existing
               </p>
             </div>
           </div>
-          <button
+          <Button variant="ghost"
             type="button"
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+            aria-label="Close class generator"
+            className="min-h-10 min-w-10"
           >
             <X className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
 
         {/* Modal Scrollable Body */}
@@ -191,28 +193,28 @@ export function BatchClassGeneratorModal({ isOpen, onClose, onGenerate, existing
               <button
                 type="button"
                 onClick={() => applyPreset('all')}
-                className="px-2.5 py-1 rounded-lg bg-white hover:bg-indigo-50 hover:text-indigo-700 border border-slate-200 text-slate-700 font-semibold text-xs print:text-[11px] transition cursor-pointer shadow-2xs"
+                className="px-2.5 py-1 rounded-lg bg-white hover:bg-indigo-50 hover:text-indigo-700 border border-slate-200 text-slate-700 font-semibold text-xs transition cursor-pointer shadow-2xs"
               >
                 All K–12
               </button>
               <button
                 type="button"
                 onClick={() => applyPreset('primary')}
-                className="px-2.5 py-1 rounded-lg bg-white hover:bg-emerald-50 hover:text-emerald-700 border border-slate-200 text-slate-700 font-semibold text-xs print:text-[11px] transition cursor-pointer shadow-2xs"
+                className="px-2.5 py-1 rounded-lg bg-white hover:bg-emerald-50 hover:text-emerald-700 border border-slate-200 text-slate-700 font-semibold text-xs transition cursor-pointer shadow-2xs"
               >
                 Primary (Nur–Gr 5)
               </button>
               <button
                 type="button"
                 onClick={() => applyPreset('middle_high')}
-                className="px-2.5 py-1 rounded-lg bg-white hover:bg-sky-50 hover:text-sky-700 border border-slate-200 text-slate-700 font-semibold text-xs print:text-[11px] transition cursor-pointer shadow-2xs"
+                className="px-2.5 py-1 rounded-lg bg-white hover:bg-sky-50 hover:text-sky-700 border border-slate-200 text-slate-700 font-semibold text-xs transition cursor-pointer shadow-2xs"
               >
                 Grades 6–12
               </button>
               <button
                 type="button"
                 onClick={() => applyPreset('clear')}
-                className="px-2.5 py-1 rounded-lg bg-white hover:bg-rose-50 hover:text-rose-700 border border-slate-200 text-slate-500 font-semibold text-xs print:text-[11px] transition cursor-pointer shadow-2xs"
+                className="px-2.5 py-1 rounded-lg bg-white hover:bg-rose-50 hover:text-rose-700 border border-slate-200 text-slate-500 font-semibold text-xs transition cursor-pointer shadow-2xs"
               >
                 Clear
               </button>
@@ -223,7 +225,7 @@ export function BatchClassGeneratorModal({ isOpen, onClose, onGenerate, existing
           <div className="space-y-3">
             <div className="font-bold text-slate-800 flex items-center justify-between">
               <span>1. Select Grade Levels &amp; Streams ({selectedGradeIds.length} Selected)</span>
-              <span className="text-xs print:text-[11px] text-slate-500 font-normal">Click chips to toggle</span>
+              <span className="text-xs text-slate-500 font-normal">Click chips to toggle</span>
             </div>
 
             <div className="space-y-2.5">
@@ -232,7 +234,7 @@ export function BatchClassGeneratorModal({ isOpen, onClose, onGenerate, existing
                 return (
                   <div key={wing.key} className="p-3 rounded-2xl border border-slate-200/90 bg-white space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className={`text-xs print:text-[11px] font-bold px-2 py-0.5 rounded-md border ${wing.color}`}>
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-md border ${wing.color}`}>
                         {wing.title}
                       </span>
                       <button
@@ -246,7 +248,7 @@ export function BatchClassGeneratorModal({ isOpen, onClose, onGenerate, existing
                             setSelectedGradeIds(prev => Array.from(new Set([...prev, ...newIds])));
                           }
                         }}
-                        className="text-xs print:text-[10px] text-indigo-600 hover:text-indigo-800 font-semibold cursor-pointer"
+                        className="text-xs text-indigo-600 hover:text-indigo-800 font-semibold cursor-pointer"
                       >
                         {wingTemplates.every(t => selectedGradeIds.includes(t.id)) ? 'Deselect Wing' : 'Select All'}
                       </button>
@@ -266,7 +268,7 @@ export function BatchClassGeneratorModal({ isOpen, onClose, onGenerate, existing
                                 : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900'
                             }`}
                           >
-                            <span className="w-3.5 h-3.5 rounded-md border flex items-center justify-center text-xs print:text-[9px] shrink-0 font-bold border-white/60">
+                            <span className="w-3.5 h-3.5 rounded-md border flex items-center justify-center text-xs shrink-0 font-bold border-white/60">
                               {isSelected ? '✓' : ''}
                             </span>
                             <span>{tpl.label}</span>
@@ -307,7 +309,7 @@ export function BatchClassGeneratorModal({ isOpen, onClose, onGenerate, existing
                   );
                 })}
               </div>
-              <p className="text-xs print:text-[11px] text-slate-500">
+              <p className="text-xs text-slate-500">
                 Selected: {sections.join(', ')} ({sections.length} sections per grade cohort).
               </p>
             </div>
@@ -319,7 +321,7 @@ export function BatchClassGeneratorModal({ isOpen, onClose, onGenerate, existing
               </label>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-xs print:text-[10px] font-bold text-slate-500 uppercase">Prefix</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase">Prefix</label>
                   <input
                     type="text"
                     value={roomPrefix}
@@ -329,7 +331,7 @@ export function BatchClassGeneratorModal({ isOpen, onClose, onGenerate, existing
                   />
                 </div>
                 <div>
-                  <label className="text-xs print:text-[10px] font-bold text-slate-500 uppercase">Starting Number</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase">Starting Number</label>
                   <input
                     type="number"
                     value={startRoomNumber}
@@ -339,7 +341,7 @@ export function BatchClassGeneratorModal({ isOpen, onClose, onGenerate, existing
                   />
                 </div>
               </div>
-              <p className="text-xs print:text-[11px] text-slate-500 flex items-center gap-1">
+              <p className="text-xs text-slate-500 flex items-center gap-1">
                 <span>Rooms generated:</span>
                 <strong className="text-slate-800 font-bold">{roomPrefix}{startRoomNumber}</strong>
                 <span>to</span>
@@ -352,7 +354,7 @@ export function BatchClassGeneratorModal({ isOpen, onClose, onGenerate, existing
           {existingCount > 0 && (
             <div className="p-3 rounded-xl bg-amber-50/70 border border-amber-200 text-amber-900 flex items-center gap-2">
               <Info className="w-4 h-4 text-amber-600 shrink-0" />
-              <div className="flex-1 text-xs print:text-[11px]">
+              <div className="flex-1 text-xs">
                 Your school currently has <strong>{existingCount} existing classes</strong>.
               </div>
               <label className="flex items-center gap-1.5 font-bold cursor-pointer select-none">
@@ -382,18 +384,18 @@ export function BatchClassGeneratorModal({ isOpen, onClose, onGenerate, existing
               <button
                 type="button"
                 onClick={() => setPreviewOpen(!previewOpen)}
-                className="text-xs print:text-[11px] font-bold text-indigo-600 hover:text-indigo-800 cursor-pointer"
+                className="text-xs font-bold text-indigo-600 hover:text-indigo-800 cursor-pointer"
               >
                 {previewOpen ? 'Hide Preview' : 'Show List Preview'}
               </button>
             </div>
 
             {previewOpen && (
-              <div className="max-h-40 overflow-y-auto border-t border-indigo-100 pt-2 grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-xs print:text-[11px]">
+              <div className="max-h-40 overflow-y-auto border-t border-indigo-100 pt-2 grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-xs">
                 {generatedPreview.map((item, i) => (
                   <div key={i} className="p-1.5 rounded-lg bg-white border border-indigo-100/80 flex items-center justify-between">
                     <span className="font-bold text-slate-800">{item.name}</span>
-                    <span className="text-xs print:text-[10px] text-slate-500 font-medium">{item.room}</span>
+                    <span className="text-xs text-slate-500 font-medium">{item.room}</span>
                   </div>
                 ))}
               </div>
@@ -403,27 +405,21 @@ export function BatchClassGeneratorModal({ isOpen, onClose, onGenerate, existing
 
         {/* Modal Footer */}
         <div className="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between gap-3">
-          <button
+          <Button variant="secondary"
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl border border-slate-300 font-semibold text-slate-700 hover:bg-slate-100 transition cursor-pointer text-xs"
           >
             Cancel
-          </button>
+          </Button>
           
-          <button
+          <Button variant="primary"
             type="button"
             onClick={handleExecute}
             disabled={generatedPreview.length === 0}
-            className={`px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 shadow-md transition cursor-pointer ${
-              generatedPreview.length > 0
-                ? 'bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-indigo-500/20'
-                : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-            }`}
           >
             <Zap className="w-4 h-4 text-amber-300" />
             <span>Generate {generatedPreview.length} Classes Instantly</span>
-          </button>
+          </Button>
         </div>
 
       </div>

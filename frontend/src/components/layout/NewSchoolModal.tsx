@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Building2, Sparkles, Layers, Globe, Calendar, X, Check, ArrowRight } from 'lucide-react';
 import type { TimetableApp } from '../../hooks/useTimetableApp';
+import { Badge, Button, Card, Input, Select } from '../ui/primitives';
 
 interface Props {
   app: TimetableApp;
@@ -47,8 +48,8 @@ export function NewSchoolModal({ app, isOpen, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/75 backdrop-blur-xs animate-in fade-in duration-200">
-      <div
-        className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-xl overflow-hidden animate-in zoom-in-95 duration-200"
+      <Card
+        className="rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden animate-in zoom-in-95 duration-200"
         role="dialog"
         aria-modal="true"
       >
@@ -61,20 +62,20 @@ export function NewSchoolModal({ app, isOpen, onClose }: Props) {
             <div>
               <h2 className="text-lg font-bold tracking-tight text-white flex items-center gap-2">
                 <span>Create New School</span>
-                <span className="text-xs print:text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/30 text-indigo-200 border border-indigo-400/30">
+                <Badge className="uppercase tracking-wider bg-indigo-500/30 text-indigo-100 border-indigo-400/40">
                   Tenant
-                </span>
+                </Badge>
               </h2>
               <p className="text-xs text-slate-300 mt-0.5">Provision a new dedicated school environment in ChronosEdu</p>
             </div>
           </div>
-          <button
+          <Button variant="ghost"
             onClick={onClose}
             className="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer"
             aria-label="Close modal"
           >
             <X className="w-4 h-4" />
-          </button>
+          </Button>
         </div>
 
         {/* Form Body */}
@@ -84,19 +85,19 @@ export function NewSchoolModal({ app, isOpen, onClose }: Props) {
             <label className="block font-bold text-slate-700 text-xs">
               School Name <span className="text-rose-500">*</span>
             </label>
-            <input
+            <Input
               type="text"
               required
               autoFocus
               value={name}
               onChange={(e) => handleNameChange(e.target.value)}
               placeholder="e.g. St. Xavier's International School"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white font-semibold text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition shadow-2xs"
+              className="px-3.5 py-2.5 rounded-xl font-semibold"
             />
             <div className="flex flex-wrap items-center gap-1.5 pt-1">
-              <span className="text-xs print:text-[10px] text-slate-400 font-semibold uppercase">Presets:</span>
+              <span className="text-xs text-slate-600 font-semibold uppercase">Presets:</span>
               {["Greenwood Public School", "St. Xavier's International", "Delhi Public Academy", "Kendriya Vidyalaya No. 1"].map(s => (
-                <button
+                <Button variant="secondary"
                   key={s}
                   type="button"
                   onClick={() => {
@@ -105,10 +106,10 @@ export function NewSchoolModal({ app, isOpen, onClose }: Props) {
                       setTemplate('greenwood_issues');
                     }
                   }}
-                  className="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-600 text-xs print:text-[10px] font-semibold border border-slate-200 transition cursor-pointer"
+                  className="px-2 rounded-md bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 text-xs font-semibold"
                 >
                   {s}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -121,14 +122,14 @@ export function NewSchoolModal({ app, isOpen, onClose }: Props) {
                 Portal Subdomain
               </label>
               <div className="flex items-center">
-                <input
+                <Input
                   type="text"
                   value={subdomain}
                   onChange={(e) => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
                   placeholder="st-xaviers"
-                  className="flex-1 px-3 py-2 rounded-l-xl border border-r-0 border-slate-300 bg-white text-slate-800 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="flex-1 rounded-l-xl rounded-r-none border-r-0 px-3 py-2 font-mono"
                 />
-                <span className="px-2.5 py-2 rounded-r-xl border border-slate-300 bg-slate-100 text-slate-500 font-semibold text-xs print:text-[11px] whitespace-nowrap">
+                <span className="px-2.5 py-2 rounded-r-xl border border-slate-300 bg-slate-100 text-slate-700 font-semibold text-xs whitespace-nowrap">
                   .chronos.edu
                 </span>
               </div>
@@ -140,10 +141,10 @@ export function NewSchoolModal({ app, isOpen, onClose }: Props) {
                 <Globe className="w-3.5 h-3.5 text-indigo-500" />
                 Timezone
               </label>
-              <select
+              <Select
                 value={timezone}
                 onChange={(e) => setTimezone(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-800 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="px-3 py-2 rounded-xl font-medium"
               >
                 <option value="IST (UTC+5:30)">IST (UTC+5:30) — India</option>
                 <option value="UTC+0">UTC+0 — London / GMT</option>
@@ -156,7 +157,7 @@ export function NewSchoolModal({ app, isOpen, onClose }: Props) {
                 <option value="UTC-5">UTC-5 — New York (EST)</option>
                 <option value="UTC-6">UTC-6 — Chicago (CST)</option>
                 <option value="UTC-8">UTC-8 — Los Angeles (PST)</option>
-              </select>
+              </Select>
             </div>
           </div>
 
@@ -166,12 +167,12 @@ export function NewSchoolModal({ app, isOpen, onClose }: Props) {
               <Calendar className="w-3.5 h-3.5 text-indigo-500" />
               Academic Term / Year
             </label>
-            <input
+            <Input
               type="text"
               value={term}
               onChange={(e) => setTerm(e.target.value)}
               placeholder="e.g. Academic Year 2026–27 (Term 1)"
-              className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="px-3 py-2 rounded-xl"
             />
           </div>
 
@@ -199,12 +200,12 @@ export function NewSchoolModal({ app, isOpen, onClose }: Props) {
                     </span>
                   )}
                 </div>
-                <p className="text-xs print:text-[11px] text-slate-600 leading-relaxed">
+                <p className="text-xs text-slate-700 leading-relaxed">
                   Standard cohorts, CBSE curriculum, rooms, and balanced faculty. 100% solver ready with zero conflicts.
                 </p>
-                <span className="inline-block text-xs print:text-[10px] font-bold text-indigo-700 uppercase tracking-wider bg-indigo-100/80 px-2 py-0.5 rounded-md mt-1">
+                <Badge className="mt-1 border-indigo-200 bg-indigo-100/80 text-indigo-800 uppercase tracking-wider">
                   1-Click Ready
-                </span>
+                </Badge>
               </div>
 
               {/* Blank Slate */}
@@ -227,12 +228,12 @@ export function NewSchoolModal({ app, isOpen, onClose }: Props) {
                     </span>
                   )}
                 </div>
-                <p className="text-xs print:text-[11px] text-slate-600 leading-relaxed">
+                <p className="text-xs text-slate-700 leading-relaxed">
                   Empty cohorts and staff. Step through our 1-click batch generators in Setup Wizard to build from scratch.
                 </p>
-                <span className="inline-block text-xs print:text-[10px] font-bold text-slate-600 uppercase tracking-wider bg-slate-100 px-2 py-0.5 rounded-md mt-1">
+                <Badge className="mt-1 border-slate-200 bg-slate-100 text-slate-700 uppercase tracking-wider">
                   Wizard Onboarding
-                </span>
+                </Badge>
               </div>
 
               {/* Dataset 2 Testbed */}
@@ -255,19 +256,19 @@ export function NewSchoolModal({ app, isOpen, onClose }: Props) {
                     <span>Greenwood Public School (Dataset 2 — Real-World Issues Testbed)</span>
                   </div>
                   {template === 'greenwood_issues' && (
-                    <span className="w-4 h-4 rounded-full bg-amber-600 text-white flex items-center justify-center">
+                    <span className="w-4 h-4 rounded-full bg-amber-700 text-white flex items-center justify-center">
                       <Check className="w-2.5 h-2.5 stroke-[3]" />
                     </span>
                   )}
                 </div>
-                <p className="text-xs print:text-[11px] text-slate-600 leading-relaxed">
+                <p className="text-xs text-slate-700 leading-relaxed">
                   55 Sections, 99 Staff, 67 Rooms with 23 real-world challenges: teacher maternity leave, physics shortage, computer lab overbooking, room overcrowding, and cross-subject balancing.
                 </p>
                 <div className="flex flex-wrap items-center gap-2 mt-1">
-                  <span className="inline-block text-xs print:text-[10px] font-bold text-amber-800 uppercase tracking-wider bg-amber-100 px-2 py-0.5 rounded-md">
+                  <Badge className="border-amber-200 bg-amber-100 text-amber-900 uppercase tracking-wider">
                     23 Testbed Issues
-                  </span>
-                  <span className="text-xs print:text-[10px] font-semibold text-slate-500">
+                  </Badge>
+                  <span className="text-xs font-semibold text-slate-700">
                     Perfect for testing Step 10 Pre-Flight Feasibility &amp; 1-Click Auto-Fixes
                   </span>
                 </div>
@@ -277,14 +278,14 @@ export function NewSchoolModal({ app, isOpen, onClose }: Props) {
 
           {/* Action Buttons */}
           <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
-            <button
+            <Button variant="ghost"
               type="button"
               onClick={onClose}
               className="px-4 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-semibold transition cursor-pointer"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button variant="primary"
               type="submit"
               disabled={!name.trim()}
               className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-bold transition shadow-xs cursor-pointer ${
@@ -295,10 +296,10 @@ export function NewSchoolModal({ app, isOpen, onClose }: Props) {
             >
               <span>Create & Launch School</span>
               <ArrowRight className="w-4 h-4" />
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
+      </Card>
     </div>
   );
 }

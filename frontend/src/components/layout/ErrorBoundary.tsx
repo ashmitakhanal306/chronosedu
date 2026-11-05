@@ -1,5 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { Button, Card } from '../ui/primitives';
 
 interface Props {
   children: ReactNode;
@@ -28,16 +29,16 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center p-6">
-          <div className="bg-slate-800 border border-slate-700 rounded-3xl p-8 max-w-md w-full shadow-2xl text-center space-y-4">
+          <Card className="bg-slate-800 border-slate-700 rounded-3xl p-8 max-w-md w-full shadow-2xl text-center space-y-4 text-white">
             <div className="w-14 h-14 rounded-2xl bg-amber-500/20 text-amber-400 mx-auto flex items-center justify-center">
               <AlertTriangle className="w-8 h-8" />
             </div>
             <h2 className="text-xl font-bold">Something went wrong</h2>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-sm text-slate-300 leading-relaxed">
               {this.state.error?.message || 'An unexpected client error occurred.'}
             </p>
             <div className="pt-2 flex justify-center gap-3">
-              <button
+              <Button variant="primary"
                 type="button"
                 onClick={() => {
                   try {
@@ -45,13 +46,13 @@ export class ErrorBoundary extends Component<Props, State> {
                   } catch {}
                   window.location.reload();
                 }}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition cursor-pointer"
+                className="bg-indigo-600 hover:bg-indigo-500 text-white"
               >
                 <RefreshCw className="w-4 h-4" />
                 <span>Reload Platform</span>
-              </button>
+              </Button>
             </div>
-          </div>
+          </Card>
         </div>
       );
     }

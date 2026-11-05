@@ -54,6 +54,7 @@ import { HolidayCalendarCard } from './HolidayCalendarCard';
 import { Step10FeasibilityAudit } from './Step10FeasibilityAudit';
 import type { TimetableApp } from '../../hooks/useTimetableApp';
 import { sortClasses, sortRooms, sortTeachers } from '../../utils/sorting';
+import { Badge, Button, Card, Input, Select } from '../../components/ui/primitives';
 
 interface Props {
   school: School;
@@ -737,7 +738,7 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
     const code = newSubCode.trim().toUpperCase() || newSubName.trim().slice(0, 4).toUpperCase();
     const color =
       newSubType === 'activity'
-        ? 'bg-purple-100 text-purple-800 border-purple-300'
+        ? 'bg-rule-100 text-rule-800 border-rule-300'
         : newSubColor || SUBJECT_PALETTE[school.subjects.length % SUBJECT_PALETTE.length].color;
 
     if (app?.addSubject) {
@@ -820,7 +821,7 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
         name: 'English Language & Lit',
         code: 'ENG',
         type: 'academic',
-        color: 'bg-blue-50 text-blue-700 border-blue-200',
+        color: 'bg-info-50 text-info-700 border-info-200',
         freqPrimary: 6,
         freqSenior: 7,
       },
@@ -829,7 +830,7 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
         name: 'Hindi Language & Lit',
         code: 'HIN',
         type: 'academic',
-        color: 'bg-amber-50 text-amber-700 border-amber-200',
+        color: 'bg-warning-50 text-warning-700 border-warning-200',
         freqPrimary: 5,
         freqSenior: 6,
       },
@@ -838,7 +839,7 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
         name: 'Mathematics',
         code: 'MATH',
         type: 'academic',
-        color: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+        color: 'bg-brand-50 text-brand-700 border-brand-200',
         freqPrimary: 7,
         freqSenior: 8,
       },
@@ -849,7 +850,7 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
         type: 'academic',
         room: 'Science Lab',
         requiresDoublePeriod: true,
-        color: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+        color: 'bg-positive-50 text-positive-700 border-positive-200',
         freqPrimary: 6,
         freqSenior: 8,
       },
@@ -858,7 +859,7 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
         name: 'Social Science / EVS',
         code: 'SST',
         type: 'academic',
-        color: 'bg-teal-50 text-teal-700 border-teal-200',
+        color: 'bg-positive-50 text-positive-700 border-positive-200',
         freqPrimary: 5,
         freqSenior: 6,
       },
@@ -869,7 +870,7 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
         type: 'academic',
         room: 'Computer Lab',
         requiresDoublePeriod: true,
-        color: 'bg-purple-50 text-purple-700 border-purple-200',
+        color: 'bg-rule-50 text-rule-700 border-rule-200',
         freqPrimary: 2,
         freqSenior: 4,
       },
@@ -878,7 +879,7 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
         name: 'Sanskrit / 3rd Lang',
         code: 'SKT',
         type: 'academic',
-        color: 'bg-rose-50 text-rose-700 border-rose-200',
+        color: 'bg-danger-50 text-danger-700 border-danger-200',
         freqPrimary: 0,
         freqSenior: 4,
       },
@@ -888,7 +889,7 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
         code: 'PE',
         type: 'activity',
         room: 'Sports Ground',
-        color: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+        color: 'bg-positive-100 text-positive-800 border-positive-300',
         freqPrimary: 3,
         freqSenior: 3,
       },
@@ -897,7 +898,7 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
         name: 'Visual Arts & Craft',
         code: 'ART',
         type: 'activity',
-        color: 'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200',
+        color: 'bg-rule-50 text-rule-700 border-rule-200',
         freqPrimary: 1,
         freqSenior: 1,
       },
@@ -906,7 +907,7 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
         name: 'Music & Performing Arts',
         code: 'MUS',
         type: 'activity',
-        color: 'bg-cyan-50 text-cyan-700 border-cyan-200',
+        color: 'bg-info-50 text-info-700 border-info-200',
         freqPrimary: 1,
         freqSenior: 1,
       },
@@ -1072,12 +1073,13 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
     setTimeout(() => onRunSolver(), 150);
   };
 
-  // Steps definition for left sidebar with dedicated icons & dynamic subtitles
+  // Steps definition for the wizard navigation and the current-step summary.
   const STEPS = [
     {
       num: 1,
       title: 'School Profile',
       subtitle: `${school.workingDays.length} Working Days`,
+      description: 'Set the school identity, academic term, timezone, and working days.',
       icon: Building2,
       isDone: school.workingDays.length > 0 && !!school.name,
     },
@@ -1085,6 +1087,7 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
       num: 2,
       title: 'Bell Schedule',
       subtitle: `Primary & Senior Tiers`,
+      description: 'Set period times, breaks, lunch, and tier dismissal schedules.',
       icon: Clock,
       isDone: !!school.timingConfig && school.rules.primaryEndPeriod > 0,
     },
@@ -1092,6 +1095,7 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
       num: 3,
       title: 'Classes & Sections',
       subtitle: `${school.classes.length} Sections Configured`,
+      description: 'Create class sections and define their grade, tier, and room.',
       icon: GraduationCap,
       isDone: school.classes.length > 0,
     },
@@ -1099,6 +1103,7 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
       num: 4,
       title: 'Rooms & Facilities',
       subtitle: `${(school.rooms || []).length} Rooms Registered`,
+      description: 'Register classrooms, labs, and specialist spaces for scheduling.',
       icon: DoorOpen,
       isDone: (school.rooms || []).length > 0,
     },
@@ -1106,6 +1111,7 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
       num: 5,
       title: 'Subject Catalog',
       subtitle: `${school.subjects.length} Subjects Defined`,
+      description: 'Define subjects, curriculum types, and practical blocks.',
       icon: BookOpen,
       isDone: school.subjects.length > 0,
     },
@@ -1113,6 +1119,7 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
       num: 6,
       title: 'Period Allocation',
       subtitle: 'Periods per Subject per Class',
+      description: 'Balance weekly subject frequencies against available periods.',
       icon: CalendarRange,
       isDone: primaryDiff === 0 && seniorDiff === 0,
     },
@@ -1120,6 +1127,7 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
       num: 7,
       title: 'Teaching Staff',
       subtitle: `${school.teachers.length} Teachers Registered`,
+      description: 'Add staff, subject qualifications, and workload limits.',
       icon: Users,
       isDone: school.teachers.length > 0,
     },
@@ -1127,6 +1135,7 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
       num: 8,
       title: 'Teaching Assignments',
       subtitle: 'Assign Teachers to Classes',
+      description: 'Assign one qualified teacher to each required class and subject.',
       icon: Layers,
       isDone: (school.assignments || []).length > 0,
       badge: (school.assignments || []).length === 0 ? 'Action' : undefined,
@@ -1135,6 +1144,7 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
       num: 9,
       title: 'Scheduling Rules',
       subtitle: 'Constraints & Blocked Slots',
+      description: 'Pin required lessons and block slots that cannot be scheduled.',
       icon: ShieldCheck,
       isDone: true,
     },
@@ -1142,285 +1152,310 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
       num: 10,
       title: 'Feasibility Audit',
       subtitle: 'Check Before Generating',
+      description: 'Review scheduling bottlenecks and confirm readiness before solving.',
       icon: Sparkles,
       isDone: true,
       badge: 'Audit',
     },
   ];
 
-  const totalAssigned = (school.assignments || []).length;
-  const doneStepsCount = STEPS.filter(s => s.isDone).length;
-  const setupProgressPercent = Math.round((doneStepsCount / STEPS.length) * 100);
+  const activeStep = STEPS.find(step => step.num === currentStep) ?? STEPS[0];
+  const ActiveStepIcon = activeStep.icon;
+  const setupSteps = STEPS.filter(step => step.num < 10);
+  const doneStepsCount = setupSteps.filter(step => step.isDone).length;
+  const pendingSteps = setupSteps.filter(step => !step.isDone);
+  const setupProgressPercent = Math.round((doneStepsCount / setupSteps.length) * 100);
 
   return (
     <div className="space-y-6">
       {/* Top Banner mirroring chronosedu-gray.vercel.app */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-xs flex flex-wrap items-center justify-between gap-4">
+      <Card className="rounded-card p-4 sm:p-5 shadow-xs flex flex-wrap items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs print:text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 font-bold border border-indigo-200">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge className="border-brand-100 bg-brand-50 text-brand-700">
               Layer A • Setup Wizard
-            </span>
-            <h2 className="font-extrabold text-slate-900 text-base sm:text-lg">
+            </Badge>
+            <h2 className="font-extrabold text-neutral-900 text-base sm:text-lg">
               10-Step School Configuration &amp; Pre-Generation Checklist
             </h2>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
-            Every item can be edited or deleted at any time. The wizard blocks generation if any red readiness error exists.
+          <p className="text-sm text-neutral-600 mt-1">
+            Configure your school, then check the setup for scheduling bottlenecks.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
           {school.id.includes('issues') || school.name.toLowerCase().includes('issues') ? (
             app?.loadCleanDataset1 && (
-              <button
+              <Button
                 type="button"
                 onClick={app.loadCleanDataset1}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-300 text-xs font-bold transition shadow-2xs cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-soft bg-surface hover:bg-neutral-50 text-neutral-700 border border-neutral-200 text-xs font-semibold transition cursor-pointer"
                 title="Switch back to Clean Baseline Dataset 1 (Greenwood Public School)"
               >
                 <span>✨ Load Clean Dataset 1 (Baseline)</span>
-              </button>
+              </Button>
             )
           ) : (
             app?.loadTestDataset2 && (
-              <button
+              <Button
                 type="button"
                 onClick={app.loadTestDataset2}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold transition shadow-2xs cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-soft bg-surface hover:bg-neutral-50 text-neutral-700 border border-neutral-200 text-xs font-semibold transition cursor-pointer"
                 title="Load Greenwood Public School (Dataset 2 with 23 real-world issues)"
               >
                 <span>🧪 Load Dataset 2 (Issues Testbed)</span>
-              </button>
+              </Button>
             )
           )}
 
-          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold">
-            <Check className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Readiness Engine Active</span>
-          </div>
-
-          <button
-            type="button"
+          <Button
+            variant="secondary"
             onClick={onRunSolver}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold text-xs sm:text-sm shadow-md transition cursor-pointer"
+            className="text-xs sm:text-sm"
           >
-            <Sparkles className="w-4 h-4 text-amber-300" />
+            <Sparkles className="w-4 h-4 text-brand-600" />
             <span>Generate Timetable Draft</span>
-          </button>
+          </Button>
         </div>
-      </div>
+      </Card>
 
       {/* Two-Column Master-Detail Layout */}
       <div className="flex flex-col lg:flex-row gap-5 items-start">
         {/* Left Column: 10 Steps Sidebar (sticky on viewport, scrollable) */}
-        <div className="w-full lg:w-64 xl:w-72 shrink-0 space-y-3 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto pr-1">
-          {/* Progress Overview Card */}
-          <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 rounded-2xl p-4 text-white shadow-md border border-indigo-900/40 relative overflow-hidden">
-            <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-indigo-500/10 rounded-full blur-xl pointer-events-none" />
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs print:text-[11px] font-bold uppercase tracking-wider text-indigo-300 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                Setup Readiness
-              </span>
-              <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-white/10 text-white border border-white/10">
-                {setupProgressPercent}% Ready
-              </span>
+        <div className="w-full min-w-0 lg:w-64 xl:w-72 shrink-0 space-y-3 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto pr-1">
+          {/* Compact setup progress and audit blockers */}
+          <Card className="rounded-card p-4 shadow-xs space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <h3 className="text-sm font-bold text-neutral-900">Setup progress</h3>
+                <p className="text-xs text-neutral-600 mt-0.5">{doneStepsCount} of {setupSteps.length} setup steps complete</p>
+              </div>
+              <Badge className="border-brand-100 bg-brand-50 text-brand-700">{setupProgressPercent}%</Badge>
             </div>
-            <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden p-0.5">
-              <div
-                className="h-full bg-gradient-to-r from-emerald-400 via-teal-300 to-indigo-400 rounded-full transition-all duration-500 shadow-sm"
-                style={{ width: `${setupProgressPercent}%` }}
-              />
+            <div
+              className="h-2 w-full overflow-hidden rounded-full bg-neutral-100"
+              role="progressbar"
+              aria-label="Setup progress"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={setupProgressPercent}
+            >
+              <div className="h-full rounded-full bg-brand-600 transition-all duration-300" style={{ width: `${setupProgressPercent}%` }} />
             </div>
-            <div className="flex items-center justify-between mt-2.5 text-xs print:text-[11px] text-slate-300">
-              <span>{doneStepsCount} of {STEPS.length} Steps Complete</span>
-              <span className="font-semibold text-emerald-400">
-                {doneStepsCount === STEPS.length ? '✓ All Verified' : `${STEPS.length - doneStepsCount} Pending`}
-              </span>
+            {pendingSteps.length > 0 ? (
+              <div className="text-xs text-neutral-700" aria-live="polite">
+                <div className="font-semibold text-neutral-800">Still needed before the audit</div>
+                <div className="mt-1 flex flex-wrap gap-1.5">
+                  {pendingSteps.slice(0, 3).map(step => (
+                    <Button key={step.num} type="button" onClick={() => setStep(step.num)} className="rounded-control border border-neutral-200 bg-surface px-2 py-1 text-xs text-neutral-700 hover:bg-neutral-50 focus-visible:outline-2 focus-visible:outline-brand-600">
+                      {step.title}
+                    </Button>
+                  ))}
+                  {pendingSteps.length > 3 && <span className="self-center text-neutral-600">+{pendingSteps.length - 3} more</span>}
+                </div>
+              </div>
+            ) : (
+              <p className="text-xs text-positive-800">Setup checklist complete. Continue to the Feasibility Audit for the full readiness review.</p>
+            )}
+          </Card>
+
+          {/* Compact step menu for narrow screens */}
+          <div className="lg:hidden rounded-soft border border-neutral-200 bg-surface p-3">
+            <div className="mb-1.5 flex items-center justify-between text-xs">
+              <span className="font-semibold text-neutral-800">Step {currentStep} of {STEPS.length}</span>
+              <span className="text-neutral-600">{activeStep.title}</span>
             </div>
+            <Select
+              aria-label="Choose setup step"
+              value={currentStep}
+              onChange={event => setStep(Number(event.target.value))}
+              className="ui-select min-h-11 w-full"
+            >
+              {STEPS.map(step => (
+                <option key={step.num} value={step.num}>Step {step.num} of 10 · {step.title}</option>
+              ))}
+            </Select>
           </div>
 
           {/* Stepper Navigation List with Timeline Spine */}
-          <div className="relative space-y-1.5 before:absolute before:left-[23px] before:top-4 before:bottom-4 before:w-0.5 before:bg-slate-200/80 before:z-0">
+          <div className="relative hidden space-y-1.5 before:absolute before:left-[23px] before:top-4 before:bottom-4 before:w-0.5 before:bg-neutral-200/80 before:z-0 lg:block">
             {STEPS.map(step => {
               const isActive = currentStep === step.num;
               const StepIcon = step.icon;
               return (
-                <button
+                <Button
                   key={step.num}
                   type="button"
                   onClick={() => setStep(step.num)}
-                  className={`relative z-10 w-full text-left p-2.5 rounded-xl border transition-all duration-200 flex items-center justify-between gap-2.5 cursor-pointer group ${
+                  aria-current={isActive ? 'step' : undefined}
+                  aria-label={`Step ${step.num}: ${step.title}, ${isActive ? 'current' : step.isDone ? 'completed' : 'upcoming'}`}
+                  className={`relative z-10 w-full min-w-0 text-left p-2.5 rounded-soft border transition-colors duration-200 flex items-center justify-between gap-2.5 cursor-pointer group focus-visible:outline-2 focus-visible:outline-brand-600 ${
                     isActive
-                      ? 'bg-white border-indigo-500 shadow-md ring-2 ring-indigo-500/20 translate-x-1'
-                      : 'bg-white hover:bg-slate-50/90 text-slate-700 border-slate-200/90 shadow-2xs hover:border-slate-300 hover:translate-x-0.5'
+                      ? 'bg-brand-50 border-brand-300 text-neutral-900 shadow-xs'
+                      : 'bg-surface hover:bg-neutral-50 text-neutral-700 border-neutral-200'
                   }`}
                 >
                   {/* Left Active Glow Accent */}
                   {isActive && (
-                    <div className="absolute left-0 top-2 bottom-2 w-1 bg-gradient-to-b from-indigo-600 to-violet-600 rounded-r" />
+                    <div className="absolute left-0 top-2 bottom-2 w-1 bg-gradient-to-b from-brand-600 to-brand-600 rounded-r-tight" />
                   )}
 
                   <div className="flex items-center gap-2.5 min-w-0">
                     {/* Step Icon Badge */}
                     <div
-                      className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 font-bold text-xs transition-all duration-200 ${
+                      className={`w-8 h-8 rounded-soft flex items-center justify-center shrink-0 font-bold text-xs transition-all duration-200 ${
                         isActive
-                          ? 'bg-gradient-to-tr from-indigo-600 to-violet-600 text-white shadow-xs scale-105'
+                          ? 'bg-gradient-to-tr from-brand-600 to-brand-600 text-white shadow-xs scale-105'
                           : step.isDone
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/80'
-                          : 'bg-slate-100 text-slate-500 border border-slate-200'
+                          ? 'bg-positive-50 text-positive-700 border border-positive-200/80'
+                          : 'bg-neutral-100 text-neutral-500 border border-neutral-200'
                       }`}
                     >
                       <StepIcon className="w-4 h-4" />
                     </div>
 
-                    <div className="min-w-0 truncate">
+                    <div className="min-w-0">
                       <div
                         className={`text-xs truncate flex items-center gap-1 ${
                           isActive
-                            ? 'text-indigo-950 font-extrabold'
-                            : 'text-slate-800 font-semibold group-hover:text-slate-950'
+                            ? 'text-brand-950 font-extrabold'
+                            : 'text-neutral-800 font-semibold group-hover:text-neutral-950'
                         }`}
                       >
-                        <span className="text-xs print:text-[10px] font-mono opacity-50 mr-0.5">
+                        <span className="text-xs font-mono opacity-50 mr-0.5">
                           {step.num < 10 ? `0${step.num}` : `${step.num}`}
                         </span>
                         <span className="truncate">{step.title}</span>
                       </div>
-                      <div
-                        className={`text-xs print:text-[11px] truncate ${
-                          isActive
-                            ? 'text-indigo-600 font-medium'
-                            : 'text-slate-400 group-hover:text-slate-500'
-                        }`}
-                      >
-                        {step.subtitle}
-                      </div>
+                      <div className="text-xs truncate text-neutral-600">{step.subtitle}</div>
                     </div>
                   </div>
 
                   {/* Right Status Indicator */}
                   <div className="shrink-0 flex items-center gap-1.5">
-                    {step.badge && !isActive && (
-                      <span className={`px-2 py-0.5 rounded-full text-xs print:text-[10px] font-bold uppercase tracking-wider ${
-                        step.num === 10
-                          ? 'bg-purple-100 text-purple-800 border border-purple-200'
-                          : 'bg-amber-100 text-amber-800 border border-amber-200'
-                      }`}>
-                        {step.badge}
-                      </span>
-                    )}
-                    {step.isDone && !step.badge && (
-                      <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                        isActive
-                          ? 'bg-indigo-100 text-indigo-700'
-                          : 'bg-emerald-100 text-emerald-700'
-                      }`}>
-                        <Check className="w-3 h-3 stroke-[3]" />
-                      </div>
+                    {isActive ? (
+                      <span className="text-xs font-semibold text-brand-700">Current</span>
+                    ) : step.isDone ? (
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-positive-800"><Check className="h-3.5 w-3.5" aria-hidden="true" />Complete</span>
+                    ) : (
+                      <span className="text-xs font-medium text-neutral-600">Upcoming</span>
                     )}
                   </div>
-                </button>
+                </Button>
               );
             })}
           </div>
         </div>
 
         {/* Right Column: Active Step Content Area */}
-        <div className="flex-1 min-w-0 space-y-5">
+        <div className="w-full flex-1 min-w-0 space-y-4">
+          <Card className="rounded-card border-brand-100 bg-brand-50/50 p-4 sm:p-5 shadow-xs">
+            <div className="flex min-w-0 items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-soft bg-surface text-brand-700 border border-brand-100">
+                <ActiveStepIcon className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs font-semibold text-brand-700">Step {currentStep} of {STEPS.length}</div>
+                <h3 className="mt-0.5 text-base sm:text-lg font-bold text-neutral-900">{activeStep.title}</h3>
+                <p className="mt-1 text-sm text-neutral-700">{activeStep.description}</p>
+              </div>
+            </div>
+          </Card>
           {/* STEP 1: School Profile */}
           {currentStep === 1 && (
             <div className="space-y-6">
-              <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <Card className="bg-surface rounded-card border border-neutral-200 p-5 shadow-xs space-y-4">
+                <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
                   <div>
-                    <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
-                      <Building2 className="w-4 h-4 text-indigo-600" />
+                    <h3 className="font-bold text-base text-neutral-900 flex items-center gap-2">
+                      <Building2 className="w-4 h-4 text-brand-600" />
                       <span>Step 1: School Identity &amp; Operating Profile</span>                    </h3>
-                    <p className="text-xs text-slate-500 mt-0.5">
+                    <p className="text-sm text-neutral-600 mt-1">
                       Define multi-tenant school identity, term dates, and active working days.
                     </p>
                   </div>
-                  <span className="text-xs print:text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                  <Badge className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-neutral-100 text-neutral-600 border border-neutral-200">
                     {school.published ? '🟢 Published' : '🟡 Draft'}
-                  </span>
+                  </Badge>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                   <div className="lg:col-span-2">
-                    <label className="block font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
-                      <Building2 className="w-3.5 h-3.5 text-indigo-500" />
+                    <label className="block font-semibold text-neutral-700 mb-1 flex items-center gap-1.5">
+                      <Building2 className="w-3.5 h-3.5 text-brand-500" />
                       School Name
                     </label>
-                    <input
+                    <Input
                       type="text"
                       value={school.name}
                       onChange={e => updateSchool(s => ({ ...s, name: e.target.value }))}
+                      aria-invalid={!school.name}
+                      aria-describedby={!school.name ? 'school-name-readiness' : undefined}
                       placeholder="e.g. Greenwood High School"
-                      className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-semibold text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                      className="w-full min-h-10 px-3 py-2 rounded-soft border border-neutral-300 bg-surface font-semibold text-neutral-900 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 transition"
                     />
+                    {!school.name && <p id="school-name-readiness" className="mt-1 text-xs font-medium text-danger-700">Enter a school name to complete this step.</p>}
                   </div>
 
                   <div>
-                    <label className="block font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-indigo-500" />
+                    <label className="block font-semibold text-neutral-700 mb-1 flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-brand-500" />
                       Academic Term
                     </label>
-                    <input
+                    <Input
                       type="text"
                       value={school.term || ''}
                       onChange={e => updateSchool(s => ({ ...s, term: e.target.value }))}
                       placeholder="2026–2027 (Term 1)"
-                      className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                      className="w-full min-h-10 px-3 py-2 rounded-soft border border-neutral-300 bg-surface font-medium text-neutral-900 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 transition"
                     />
                   </div>
 
                   <div>
-                    <label className="block font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
-                      <Globe className="w-3.5 h-3.5 text-indigo-500" />
+                    <label className="block font-semibold text-neutral-700 mb-1 flex items-center gap-1.5">
+                      <Globe className="w-3.5 h-3.5 text-brand-500" />
                       Timezone
                     </label>
-                    <input
+                    <Input
                       type="text"
                       value={school.timezone}
                       onChange={e => updateSchool(s => ({ ...s, timezone: e.target.value }))}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                      className="w-full min-h-10 px-3 py-2 rounded-soft border border-neutral-300 bg-surface font-medium text-neutral-900 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 transition"
                     />
                   </div>
                 </div>
 
                 {/* Working Days Selector */}
-                <div className="space-y-2 pt-3 border-t border-slate-100">
+                <div className="space-y-2 pt-3 border-t border-neutral-100">
                   <div className="flex items-center justify-between">
-                    <label className="font-bold text-slate-700 text-xs flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-indigo-600" />
+                    <label className="font-bold text-neutral-700 text-xs flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-brand-600" />
                       <span>Weekly Working Days Calendar</span>
                     </label>
                     <div className="flex items-center gap-1.5">
-                      <button
+                      <Button
                         type="button"
                         onClick={() => handleUpdateDays(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'])}
-                        className={`px-2 py-0.5 rounded-md text-xs print:text-[10px] font-semibold border transition cursor-pointer ${
+                        className={`px-2 py-0.5 rounded-tight text-xs font-semibold border transition cursor-pointer ${
                           school.workingDays.length === 5 && !school.workingDays.includes('Saturday')
-                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
-                            : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
+                            ? 'bg-brand-600 text-white border-brand-600 shadow-2xs'
+                            : 'bg-neutral-100 text-neutral-600 border-neutral-200 hover:bg-neutral-200'
                         }`}
                       >
                         5-Day (Mon–Fri)
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         type="button"
                         onClick={() => handleUpdateDays(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'])}
-                        className={`px-2 py-0.5 rounded-md text-xs print:text-[10px] font-semibold border transition cursor-pointer ${
+                        className={`px-2 py-0.5 rounded-tight text-xs font-semibold border transition cursor-pointer ${
                           school.workingDays.includes('Saturday')
-                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
-                            : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
+                            ? 'bg-brand-600 text-white border-brand-600 shadow-2xs'
+                            : 'bg-neutral-100 text-neutral-600 border-neutral-200 hover:bg-neutral-200'
                         }`}
                       >
                         6-Day (Mon–Sat)
-                      </button>
+                      </Button>
                     </div>
                   </div>
 
@@ -1428,26 +1463,29 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                     {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => {
                       const isActive = school.workingDays.includes(day);
                       return (
-                        <button
+                        <Button
                           key={day}
                           type="button"
                           onClick={() => handleToggleDay(day)}
-                          className={`py-2 px-2 rounded-xl text-center font-bold text-xs border transition cursor-pointer flex items-center justify-center gap-1 ${
+                          className={`py-2 px-2 rounded-soft text-center font-bold text-xs border transition cursor-pointer flex items-center justify-center gap-1 ${
                             isActive
                               ? day === 'Saturday'
-                                ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
-                                : 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
-                              : 'bg-slate-50 text-slate-400 border-slate-200 hover:bg-slate-100'
+                                ? 'bg-warning-700 text-white border-warning-700 shadow-xs'
+                                : 'bg-brand-600 text-white border-brand-600 shadow-xs'
+                              : 'bg-neutral-50 text-neutral-600 border-neutral-200 hover:bg-neutral-100'
                           }`}
                         >
                           <span>{day.slice(0, 3)}</span>
                           {isActive && <Check className="w-3 h-3 shrink-0" />}
-                        </button>
+                        </Button>
                       );
                     })}
                   </div>
+                  {school.workingDays.length === 0 && (
+                    <p role="status" className="text-xs font-medium text-danger-700">Choose at least one working day to complete this step.</p>
+                  )}
                 </div>
-              </div>
+              </Card>
 
               {/* Holiday Calendar Component */}
               <HolidayCalendarCard school={school} app={app} />
@@ -1456,66 +1494,71 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
 
           {/* STEP 2: Time Structure */}
           {currentStep === 2 && (
-            <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-5 shadow-xs">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <Card className="bg-surface rounded-card border border-neutral-200 p-5 space-y-5 shadow-xs">
+              {(!school.timingConfig || school.rules.primaryEndPeriod <= 0) && (
+                <p role="status" className="rounded-control border border-warning-200 bg-warning-50 px-3 py-2 text-xs font-medium text-warning-900">
+                  Complete and save the bell schedule below to finish this step.
+                </p>
+              )}
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 pb-3">
                 <div>
-                  <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-indigo-600" />
+                  <h3 className="font-bold text-base text-neutral-900 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-brand-600" />
                     <span>Step 2: Bell Schedule &amp; Period Timings</span>
                   </h3>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-xs text-neutral-500 mt-0.5">
                     Configure school hours, period durations, primary/senior dismissal times, and breaks.
                   </p>
                 </div>
-                <span className="text-xs print:text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+                <Badge className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-brand-50 text-brand-700 border border-brand-100">
                   {school.workingDays.length} Working Days • {computedSchedule.slots.filter(s => !s.isBreak).length} Periods/Day
-                </span>
+                </Badge>
               </div>
 
               <div className="space-y-4 text-xs">
                 {/* School Start Time & Period Length */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block font-semibold text-slate-700 mb-1">
+                    <label className="block font-semibold text-neutral-700 mb-1">
                       School Opening / Start Time
                     </label>
-                    <input
+                    <Input
                       type="time"
                       value={timing.startTime}
                       onChange={e => handleUpdateTiming({ ...timing, startTime: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold bg-white text-slate-800"
+                      className="w-full px-3 py-2 rounded-soft border border-neutral-300 font-bold bg-surface text-neutral-800"
                     />
                   </div>
 
                   <div>
-                    <label className="block font-semibold text-slate-700 mb-1">
+                    <label className="block font-semibold text-neutral-700 mb-1">
                       Standard Period Duration
                     </label>
-                    <select
+                    <Select
                       value={timing.periodDurationMinutes}
                       onChange={e => handleUpdateTiming({ ...timing, periodDurationMinutes: Number(e.target.value) || 45 })}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold bg-white text-slate-800"
+                      className="w-full px-3 py-2 rounded-soft border border-neutral-300 font-bold bg-surface text-neutral-800"
                     >
                       <option value={35}>35 Minutes</option>
                       <option value={40}>40 Minutes</option>
                       <option value={45}>45 Minutes (Standard)</option>
                       <option value={50}>50 Minutes</option>
                       <option value={60}>60 Minutes (1 Hour)</option>
-                    </select>
+                    </Select>
                   </div>
                 </div>
 
                 {/* 1-Click Bell Schedule Templates */}
-                <div className="p-3.5 rounded-2xl bg-gradient-to-r from-slate-50 via-indigo-50/30 to-slate-50 border border-slate-200 space-y-2.5">
+                <div className="p-3.5 rounded-card bg-gradient-to-r from-neutral-50 via-brand-50/30 to-neutral-50 border border-neutral-200 space-y-2.5">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-slate-800 flex items-center gap-1.5">
-                      <Zap className="w-4 h-4 text-amber-500 fill-amber-500" />
+                    <span className="font-bold text-neutral-800 flex items-center gap-1.5">
+                      <Zap className="w-4 h-4 text-warning-500 fill-warning-500" />
                       <span>1-Click Bell Schedule Presets</span>
                     </span>
-                    <span className="text-xs print:text-[10px] text-slate-500 font-medium">Click to auto-configure start time, periods, breaks & working days</span>
+                    <span className="text-xs text-neutral-500 font-medium">Click to auto-configure start time, periods, breaks & working days</span>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                    <button
+                    <Button
                       type="button"
                       onClick={() => {
                         handleUpdateTiming(
@@ -1537,18 +1580,18 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                           ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
                         );
                       }}
-                      className="p-2.5 rounded-xl border border-indigo-200 bg-white hover:bg-indigo-50/60 hover:border-indigo-400 text-left transition cursor-pointer group shadow-2xs"
+                      className="p-2.5 rounded-soft border border-brand-200 bg-surface hover:bg-brand-50/60 hover:border-brand-400 text-left transition cursor-pointer group shadow-2xs"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-xs text-indigo-950 group-hover:text-indigo-600 flex items-center gap-1">
+                        <span className="font-bold text-xs text-brand-950 group-hover:text-brand-600 flex items-center gap-1">
                           <span>⚡ CBSE Standard</span>
                         </span>
-                        <span className="text-xs print:text-[9px] font-bold bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded">6 Days</span>
+                        <Badge className="text-xs font-bold bg-brand-100 text-brand-700 px-1.5 py-0.5 rounded-tight">6 Days</Badge>
                       </div>
-                      <div className="text-xs print:text-[11px] text-slate-500 mt-1">8:00 AM • 40m • 8 Periods • Mon–Sat</div>
-                    </button>
+                      <div className="text-xs text-neutral-500 mt-1">8:00 AM • 40m • 8 Periods • Mon–Sat</div>
+                    </Button>
 
-                    <button
+                    <Button
                       type="button"
                       onClick={() => {
                         handleUpdateTiming(
@@ -1570,18 +1613,18 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                           ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
                         );
                       }}
-                      className="p-2.5 rounded-xl border border-sky-200 bg-white hover:bg-sky-50/60 hover:border-sky-400 text-left transition cursor-pointer group shadow-2xs"
+                      className="p-2.5 rounded-soft border border-info-200 bg-surface hover:bg-info-50/60 hover:border-info-400 text-left transition cursor-pointer group shadow-2xs"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-xs text-sky-950 group-hover:text-sky-600 flex items-center gap-1">
+                        <span className="font-bold text-xs text-info-950 group-hover:text-info-600 flex items-center gap-1">
                           <span>⚡ Metro 5-Day</span>
                         </span>
-                        <span className="text-xs print:text-[9px] font-bold bg-sky-100 text-sky-700 px-1.5 py-0.5 rounded">5 Days</span>
+                        <Badge className="text-xs font-bold bg-info-100 text-info-700 px-1.5 py-0.5 rounded-tight">5 Days</Badge>
                       </div>
-                      <div className="text-xs print:text-[11px] text-slate-500 mt-1">8:00 AM • 45m • 8 Periods • Mon–Fri</div>
-                    </button>
+                      <div className="text-xs text-neutral-500 mt-1">8:00 AM • 45m • 8 Periods • Mon–Fri</div>
+                    </Button>
 
-                    <button
+                    <Button
                       type="button"
                       onClick={() => {
                         handleUpdateTiming(
@@ -1603,145 +1646,145 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                           ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
                         );
                       }}
-                      className="p-2.5 rounded-xl border border-amber-200 bg-white hover:bg-amber-50/60 hover:border-amber-400 text-left transition cursor-pointer group shadow-2xs"
+                      className="p-2.5 rounded-soft border border-warning-200 bg-surface hover:bg-warning-50/60 hover:border-warning-400 text-left transition cursor-pointer group shadow-2xs"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-xs text-amber-950 group-hover:text-amber-600 flex items-center gap-1">
+                        <span className="font-bold text-xs text-warning-950 group-hover:text-warning-800 flex items-center gap-1">
                           <span>⚡ Compact Morning</span>
                         </span>
-                        <span className="text-xs print:text-[9px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">Fast Pace</span>
+                        <Badge className="text-xs font-bold bg-warning-100 text-warning-700 px-1.5 py-0.5 rounded-tight">Fast Pace</Badge>
                       </div>
-                      <div className="text-xs print:text-[11px] text-slate-500 mt-1">7:45 AM • 35m • 7 Periods • Mon–Sat</div>
-                    </button>
+                      <div className="text-xs text-neutral-500 mt-1">7:45 AM • 35m • 7 Periods • Mon–Sat</div>
+                    </Button>
                   </div>
                 </div>
 
                 {/* Periods Per Day — Multi-Tier Dismissals (Pre-Primary, Primary, Senior) */}
-                <div className="p-4 rounded-xl bg-indigo-50/60 border border-indigo-200 space-y-3">
-                  <div className="font-bold text-indigo-950 text-xs flex items-center justify-between">
+                <div className="p-4 rounded-soft bg-brand-50/60 border border-brand-200 space-y-3">
+                  <div className="font-bold text-brand-950 text-xs flex items-center justify-between">
                     <span className="flex items-center gap-1.5">
-                      <Layers className="w-3.5 h-3.5 text-indigo-600" />
+                      <Layers className="w-3.5 h-3.5 text-brand-600" />
                       Daily Academic Periods per Wing (Staggered Dismissals)
                     </span>
-                    <span className="text-xs print:text-[10px] text-indigo-600 font-medium">Automatic bus &amp; dispersal coordination</span>
+                    <span className="text-xs text-brand-600 font-medium">Automatic bus &amp; dispersal coordination</span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {/* Pre-Primary Card */}
-                    <div className="bg-white rounded-xl border border-amber-200 p-3 space-y-1.5">
+                    <div className="bg-surface rounded-soft border border-warning-200 p-3 space-y-1.5">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs print:text-[11px] font-bold text-amber-900">🟡 Pre-Primary Wing</span>
-                        <span className="text-xs print:text-[10px] text-amber-700 font-semibold">
+                        <span className="text-xs font-bold text-warning-900">🟡 Pre-Primary Wing</span>
+                        <span className="text-xs text-warning-700 font-semibold">
                           {computedSchedule.prePrimaryDismissalTime ? `Out at ${computedSchedule.prePrimaryDismissalTime}` : 'Same as Primary'}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <button
+                        <Button
                           type="button"
                           onClick={() => {
                             const cur = school.rules.prePrimaryEndPeriod || (school.rules.primaryEndPeriod - 1);
                             const next = Math.max(3, cur - 1);
                             handleUpdateTiming(timing, { prePrimaryEndPeriod: next });
                           }}
-                          className="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 font-bold flex items-center justify-center hover:bg-amber-200 transition cursor-pointer"
+                          className="w-7 h-7 rounded-control bg-warning-100 text-warning-800 font-bold flex items-center justify-center hover:bg-warning-200 transition cursor-pointer"
                           title="Decrease Pre-Primary periods"
                         >
                           <Minus className="w-3.5 h-3.5" />
-                        </button>
+                        </Button>
                         <div className="flex-1 text-center">
-                          <span className="text-xl font-extrabold text-amber-900">
+                          <span className="text-xl font-extrabold text-warning-900">
                             {school.rules.prePrimaryEndPeriod || (school.rules.primaryEndPeriod - 1)}
                           </span>
-                          <span className="text-xs print:text-[10px] text-amber-600 ml-1">periods/day</span>
+                          <span className="text-xs text-warning-800 ml-1">periods/day</span>
                         </div>
-                        <button
+                        <Button
                           type="button"
                           onClick={() => {
                             const cur = school.rules.prePrimaryEndPeriod || (school.rules.primaryEndPeriod - 1);
                             const next = Math.min(school.rules.primaryEndPeriod, cur + 1);
                             handleUpdateTiming(timing, { prePrimaryEndPeriod: next });
                           }}
-                          className="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 font-bold flex items-center justify-center hover:bg-amber-200 transition cursor-pointer"
+                          className="w-7 h-7 rounded-control bg-warning-100 text-warning-800 font-bold flex items-center justify-center hover:bg-warning-200 transition cursor-pointer"
                           title="Increase Pre-Primary periods"
                         >
                           <Plus className="w-3.5 h-3.5" />
-                        </button>
+                        </Button>
                       </div>
-                      <div className="text-xs print:text-[10px] text-amber-700 text-center font-medium">
+                      <div className="text-xs text-warning-700 text-center font-medium">
                         Nursery, LKG, UKG early release
                       </div>
                     </div>
 
                     {/* Primary Card */}
-                    <div className="bg-white rounded-xl border border-emerald-200 p-3 space-y-1.5">
+                    <div className="bg-surface rounded-soft border border-positive-200 p-3 space-y-1.5">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs print:text-[11px] font-bold text-emerald-900">🟢 Primary Wing</span>
-                        <span className="text-xs print:text-[10px] text-emerald-600 font-semibold">Out at {computedSchedule.primaryDismissalTime}</span>
+                        <span className="text-xs font-bold text-positive-900">🟢 Primary Wing</span>
+                        <span className="text-xs text-positive-700 font-semibold">Out at {computedSchedule.primaryDismissalTime}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <button
+                        <Button
                           type="button"
                           onClick={() => {
                             const next = Math.max(2, school.rules.primaryEndPeriod - 1);
                             handleUpdateTiming(timing, { primaryEndPeriod: next });
                           }}
-                          className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center hover:bg-emerald-200 transition cursor-pointer"
+                          className="w-7 h-7 rounded-control bg-positive-100 text-positive-800 font-bold flex items-center justify-center hover:bg-positive-200 transition cursor-pointer"
                         >
                           <Minus className="w-3.5 h-3.5" />
-                        </button>
+                        </Button>
                         <div className="flex-1 text-center">
-                          <span className="text-xl font-extrabold text-emerald-900">{school.rules.primaryEndPeriod}</span>
-                          <span className="text-xs print:text-[10px] text-emerald-600 ml-1">periods/day</span>
+                          <span className="text-xl font-extrabold text-positive-900">{school.rules.primaryEndPeriod}</span>
+                          <span className="text-xs text-positive-700 ml-1">periods/day</span>
                         </div>
-                        <button
+                        <Button
                           type="button"
                           onClick={() => {
                             const next = Math.min(school.rules.seniorEndPeriod, school.rules.primaryEndPeriod + 1);
                             handleUpdateTiming(timing, { primaryEndPeriod: next });
                           }}
-                          className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center hover:bg-emerald-200 transition cursor-pointer"
+                          className="w-7 h-7 rounded-control bg-positive-100 text-positive-800 font-bold flex items-center justify-center hover:bg-positive-200 transition cursor-pointer"
                         >
                           <Plus className="w-3.5 h-3.5" />
-                        </button>
+                        </Button>
                       </div>
-                      <div className="text-xs print:text-[10px] text-emerald-700 text-center font-medium">
+                      <div className="text-xs text-positive-700 text-center font-medium">
                         Grades 1 through 5
                       </div>
                     </div>
 
                     {/* Senior Card */}
-                    <div className="bg-white rounded-xl border border-sky-200 p-3 space-y-1.5">
+                    <div className="bg-surface rounded-soft border border-info-200 p-3 space-y-1.5">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs print:text-[11px] font-bold text-sky-900">🔵 Senior Wing</span>
-                        <span className="text-xs print:text-[10px] text-sky-600 font-semibold">Out at {computedSchedule.seniorDismissalTime}</span>
+                        <span className="text-xs font-bold text-info-900">🔵 Senior Wing</span>
+                        <span className="text-xs text-info-600 font-semibold">Out at {computedSchedule.seniorDismissalTime}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <button
+                        <Button
                           type="button"
                           onClick={() => {
                             const next = Math.max(school.rules.primaryEndPeriod, school.rules.seniorEndPeriod - 1);
                             handleUpdateTiming(timing, { seniorEndPeriod: next });
                           }}
-                          className="w-7 h-7 rounded-lg bg-sky-100 text-sky-800 font-bold flex items-center justify-center hover:bg-sky-200 transition cursor-pointer"
+                          className="w-7 h-7 rounded-control bg-info-100 text-info-800 font-bold flex items-center justify-center hover:bg-info-200 transition cursor-pointer"
                         >
                           <Minus className="w-3.5 h-3.5" />
-                        </button>
+                        </Button>
                         <div className="flex-1 text-center">
-                          <span className="text-xl font-extrabold text-sky-900">{school.rules.seniorEndPeriod}</span>
-                          <span className="text-xs print:text-[10px] text-sky-600 ml-1">periods/day</span>
+                          <span className="text-xl font-extrabold text-info-900">{school.rules.seniorEndPeriod}</span>
+                          <span className="text-xs text-info-600 ml-1">periods/day</span>
                         </div>
-                        <button
+                        <Button
                           type="button"
                           onClick={() => {
                             const next = Math.min(10, school.rules.seniorEndPeriod + 1);
                             handleUpdateTiming(timing, { seniorEndPeriod: next });
                           }}
-                          className="w-7 h-7 rounded-lg bg-sky-100 text-sky-800 font-bold flex items-center justify-center hover:bg-sky-200 transition cursor-pointer"
+                          className="w-7 h-7 rounded-control bg-info-100 text-info-800 font-bold flex items-center justify-center hover:bg-info-200 transition cursor-pointer"
                         >
                           <Plus className="w-3.5 h-3.5" />
-                        </button>
+                        </Button>
                       </div>
-                      <div className="text-xs print:text-[10px] text-sky-700 text-center font-medium">
+                      <div className="text-xs text-info-700 text-center font-medium">
                         Grades 6 through 12
                       </div>
                     </div>
@@ -1751,46 +1794,46 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                 {/* Recess & Lunch Breaks */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {/* Recess Break Card */}
-                  <div className={`p-3 rounded-xl border space-y-2 transition-all ${
+                  <div className={`p-3 rounded-soft border space-y-2 transition-all ${
                     (timing.hasRecessBreak ?? true)
-                      ? 'bg-emerald-50/60 border-emerald-200'
-                      : 'bg-slate-50 border-slate-200 opacity-80'
+                      ? 'bg-positive-50/60 border-positive-200'
+                      : 'bg-neutral-50 border-neutral-200 opacity-80'
                   }`}>
                     <div className="flex items-center justify-between">
-                      <label className="font-bold text-emerald-950 flex items-center gap-2 cursor-pointer select-none">
-                        <input
+                      <label className="font-bold text-positive-950 flex items-center gap-2 cursor-pointer select-none">
+                        <Input
                           type="checkbox"
                           checked={timing.hasRecessBreak ?? true}
                           onChange={e => handleUpdateTiming({ ...timing, hasRecessBreak: e.target.checked })}
-                          className="rounded text-emerald-600 focus:ring-emerald-500 w-3.5 h-3.5 cursor-pointer"
+                          className="rounded-tight text-positive-600 focus:ring-positive-500 w-3.5 h-3.5 cursor-pointer"
                         />
-                        <Coffee className="w-3.5 h-3.5 text-emerald-700" />
+                        <Coffee className="w-3.5 h-3.5 text-positive-700" />
                         <span>Recess Break</span>
                       </label>
-                      <span className={`text-xs print:text-[10px] font-bold px-2 py-0.5 rounded-md ${
+                      <Badge className={`text-xs font-bold px-2 py-0.5 rounded-tight ${
                         (timing.hasRecessBreak ?? true)
-                          ? 'text-emerald-700 bg-emerald-100'
-                          : 'text-slate-500 bg-slate-200'
+                          ? 'text-positive-700 bg-positive-100'
+                          : 'text-neutral-500 bg-neutral-200'
                       }`}>
                         {(timing.hasRecessBreak ?? true) ? `${timing.recessDurationMinutes} mins` : 'Disabled'}
-                      </span>
+                      </Badge>
                     </div>
 
                     {(timing.hasRecessBreak ?? true) ? (
                       <div className="space-y-2">
-                        <input
+                        <Input
                           value={timing.recessLabel || 'Short Break'}
                           onChange={e => handleUpdateTiming({ ...timing, recessLabel: e.target.value })}
                           placeholder="Short Break"
-                          className="w-full px-2.5 py-1 rounded-lg border border-emerald-300 bg-white text-xs font-semibold text-emerald-900"
+                          className="w-full px-2.5 py-1 rounded-control border border-positive-300 bg-surface text-xs font-semibold text-positive-900"
                         />
                         <div className="grid grid-cols-2 gap-2">
                           <div>
-                            <label className="text-xs print:text-[10px] text-emerald-800 font-semibold block mb-0.5">After Period:</label>
-                            <select
+                            <label className="text-xs text-positive-800 font-semibold block mb-0.5">After Period:</label>
+                            <Select
                               value={timing.recessAfterPeriod}
                               onChange={e => handleUpdateTiming({ ...timing, recessAfterPeriod: Number(e.target.value) || 2 })}
-                              className="w-full px-2 py-1 rounded-lg border border-emerald-300 bg-white text-xs font-semibold"
+                              className="w-full px-2 py-1 rounded-control border border-positive-300 bg-surface text-xs font-semibold"
                             >
                               {Array.from(
                                 { length: Math.max(1, (timing.hasLunchBreak ?? true) ? Math.min(timing.lunchAfterPeriod - 1, school.rules.primaryEndPeriod) : school.rules.seniorEndPeriod - 1) },
@@ -1798,72 +1841,72 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                               ).map(p => (
                                 <option key={p} value={p}>Period {p}</option>
                               ))}
-                            </select>
+                            </Select>
                           </div>
                           <div>
-                            <label className="text-xs print:text-[10px] text-emerald-800 font-semibold block mb-0.5">Duration:</label>
-                            <select
+                            <label className="text-xs text-positive-800 font-semibold block mb-0.5">Duration:</label>
+                            <Select
                               value={timing.recessDurationMinutes}
                               onChange={e => handleUpdateTiming({ ...timing, recessDurationMinutes: Number(e.target.value) || 15 })}
-                              className="w-full px-2 py-1 rounded-lg border border-emerald-300 bg-white text-xs font-semibold"
+                              className="w-full px-2 py-1 rounded-control border border-positive-300 bg-surface text-xs font-semibold"
                             >
                               <option value={10}>10 Mins</option>
                               <option value={15}>15 Mins</option>
                               <option value={20}>20 Mins</option>
                               <option value={25}>25 Mins</option>
                               <option value={30}>30 Mins</option>
-                            </select>
+                            </Select>
                           </div>
                         </div>
                       </div>
                     ) : (
-                      <p className="text-xs print:text-[11px] text-slate-500 italic py-2">
+                      <p className="text-xs text-neutral-500 italic py-2">
                         No short break. Periods proceed continuously without pause until lunch or dismissal.
                       </p>
                     )}
                   </div>
 
                   {/* Lunch Break Card */}
-                  <div className={`p-3 rounded-xl border space-y-2 transition-all ${
+                  <div className={`p-3 rounded-soft border space-y-2 transition-all ${
                     (timing.hasLunchBreak ?? true)
-                      ? 'bg-sky-50/60 border-sky-200'
-                      : 'bg-slate-50 border-slate-200 opacity-80'
+                      ? 'bg-info-50/60 border-info-200'
+                      : 'bg-neutral-50 border-neutral-200 opacity-80'
                   }`}>
                     <div className="flex items-center justify-between">
-                      <label className="font-bold text-sky-950 flex items-center gap-2 cursor-pointer select-none">
-                        <input
+                      <label className="font-bold text-info-950 flex items-center gap-2 cursor-pointer select-none">
+                        <Input
                           type="checkbox"
                           checked={timing.hasLunchBreak ?? true}
                           onChange={e => handleUpdateTiming({ ...timing, hasLunchBreak: e.target.checked })}
-                          className="rounded text-sky-600 focus:ring-sky-500 w-3.5 h-3.5 cursor-pointer"
+                          className="rounded-tight text-info-600 focus:ring-info-500 w-3.5 h-3.5 cursor-pointer"
                         />
-                        <Utensils className="w-3.5 h-3.5 text-sky-700" />
+                        <Utensils className="w-3.5 h-3.5 text-info-700" />
                         <span>Lunch Break</span>
                       </label>
-                      <span className={`text-xs print:text-[10px] font-bold px-2 py-0.5 rounded-md ${
+                      <Badge className={`text-xs font-bold px-2 py-0.5 rounded-tight ${
                         (timing.hasLunchBreak ?? true)
-                          ? 'text-sky-700 bg-sky-100'
-                          : 'text-slate-500 bg-slate-200'
+                          ? 'text-info-700 bg-info-100'
+                          : 'text-neutral-500 bg-neutral-200'
                       }`}>
                         {(timing.hasLunchBreak ?? true) ? `${timing.lunchDurationMinutes} mins` : 'Disabled'}
-                      </span>
+                      </Badge>
                     </div>
 
                     {(timing.hasLunchBreak ?? true) ? (
                       <div className="space-y-2">
-                        <input
+                        <Input
                           value={timing.lunchLabel || 'Lunch Break'}
                           onChange={e => handleUpdateTiming({ ...timing, lunchLabel: e.target.value })}
                           placeholder="Lunch Break"
-                          className="w-full px-2.5 py-1 rounded-lg border border-sky-300 bg-white text-xs font-semibold text-sky-900"
+                          className="w-full px-2.5 py-1 rounded-control border border-info-300 bg-surface text-xs font-semibold text-info-900"
                         />
                         <div className="grid grid-cols-2 gap-2">
                           <div>
-                            <label className="text-xs print:text-[10px] text-sky-800 font-semibold block mb-0.5">After Period:</label>
-                            <select
+                            <label className="text-xs text-info-800 font-semibold block mb-0.5">After Period:</label>
+                            <Select
                               value={timing.lunchAfterPeriod}
                               onChange={e => handleUpdateTiming({ ...timing, lunchAfterPeriod: Number(e.target.value) || 4 })}
-                              className="w-full px-2 py-1 rounded-lg border border-sky-300 bg-white text-xs font-semibold"
+                              className="w-full px-2 py-1 rounded-control border border-info-300 bg-surface text-xs font-semibold"
                             >
                               {(() => {
                                 const isRecessOn = timing.hasRecessBreak ?? true;
@@ -1874,14 +1917,14 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                                   <option key={p} value={p}>Period {p}</option>
                                 ));
                               })()}
-                            </select>
+                            </Select>
                           </div>
                           <div>
-                            <label className="text-xs print:text-[10px] text-sky-800 font-semibold block mb-0.5">Duration:</label>
-                            <select
+                            <label className="text-xs text-info-800 font-semibold block mb-0.5">Duration:</label>
+                            <Select
                               value={timing.lunchDurationMinutes}
                               onChange={e => handleUpdateTiming({ ...timing, lunchDurationMinutes: Number(e.target.value) || 30 })}
-                              className="w-full px-2 py-1 rounded-lg border border-sky-300 bg-white text-xs font-semibold"
+                              className="w-full px-2 py-1 rounded-control border border-info-300 bg-surface text-xs font-semibold"
                             >
                               <option value={15}>15 Mins</option>
                               <option value={20}>20 Mins</option>
@@ -1893,26 +1936,26 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                               <option value={50}>50 Mins</option>
                               <option value={55}>55 Mins</option>
                               <option value={60}>60 Mins (1 Hour)</option>
-                            </select>
+                            </Select>
                           </div>
                         </div>
                         <div className="flex items-center justify-between pt-1">
-                          <label className="text-xs print:text-[10px] font-semibold text-sky-900 flex items-center gap-1.5 cursor-pointer">
-                            <input
+                          <label className="text-xs font-semibold text-info-900 flex items-center gap-1.5 cursor-pointer">
+                            <Input
                               type="checkbox"
                               checked={!timing.lunchSeniorOnly}
                               onChange={e => handleUpdateTiming({ ...timing, lunchSeniorOnly: !e.target.checked })}
-                              className="rounded text-sky-600 focus:ring-sky-500 w-3.5 h-3.5"
+                              className="rounded-tight text-info-600 focus:ring-info-500 w-3.5 h-3.5"
                             />
                             <span>Synchronized for all classes</span>
                           </label>
-                          <span className="text-xs print:text-[10px] text-sky-600 font-medium">
+                          <span className="text-xs text-info-600 font-medium">
                             {!timing.lunchSeniorOnly ? 'All Classes' : 'Senior Only'}
                           </span>
                         </div>
                       </div>
                     ) : (
-                      <p className="text-xs print:text-[11px] text-slate-500 italic py-2">
+                      <p className="text-xs text-neutral-500 italic py-2">
                         No lunch break. Suitable for morning-only or half-day operations.
                       </p>
                     )}
@@ -1920,73 +1963,73 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                 </div>
 
                 {/* Calculated Timeline Preview */}
-                <div className="p-3 rounded-xl bg-slate-900 text-white space-y-2">
-                  <div className="flex items-center justify-between text-xs print:text-[11px]">
-                    <span className="font-bold flex items-center gap-1.5 text-indigo-300">
+                <div className="p-3 rounded-soft bg-neutral-900 text-white space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold flex items-center gap-1.5 text-brand-300">
                       <Clock className="w-3.5 h-3.5" />
                       <span>Calculated Daily Timeline</span>
                     </span>
-                    <span className="text-xs print:text-[10px] text-slate-400">
+                    <span className="text-xs text-neutral-400">
                       Starts {timing.startTime} • Primary Out {computedSchedule.primaryDismissalTime} • Senior Out {computedSchedule.seniorDismissalTime}
                     </span>
                   </div>
 
-                  <div className="flex flex-wrap gap-1.5 overflow-x-auto pb-1 text-xs print:text-[10px]">
+                  <div className="flex flex-wrap gap-1.5 overflow-x-auto pb-1 text-xs">
                     {computedSchedule.slots.map(s => (
-                      <span
+                      <Badge
                         key={s.label}
-                        className={`px-2 py-1 rounded-md font-medium border ${
+                        className={`px-2 py-1 rounded-tight font-medium border ${
                           s.type === 'break'
-                            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                            ? 'bg-positive-500/20 text-positive-300 border-positive-500/30'
                             : s.type === 'lunch'
-                            ? 'bg-sky-500/20 text-sky-300 border-sky-500/30'
-                            : 'bg-slate-800 text-slate-200 border-slate-700'
+                            ? 'bg-info-500/20 text-info-300 border-info-500/30'
+                            : 'bg-neutral-800 text-neutral-200 border-neutral-700'
                         }`}
                       >
                         {s.label}: {s.time}
-                      </span>
+                      </Badge>
                     ))}
                   </div>
                 </div>
               </div>
-            </div>
+            </Card>
           )}
 
           {/* STEP 3: Grades & Classes */}
           {currentStep === 3 && (
-            <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 shadow-xs">
+            <Card className="bg-surface rounded-card border border-neutral-200 p-5 space-y-4 shadow-xs">
               {/* Header Bar */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-neutral-100 pb-3">
                 <div>
-                  <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
-                    <Layers className="w-4 h-4 text-indigo-600" />
+                  <h3 className="font-bold text-base text-neutral-900 flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-brand-600" />
                     <span>Step 3: Classes &amp; Sections ({school.classes.length})</span>
                   </h3>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-xs text-neutral-500 mt-0.5">
                     Manage student cohorts, grade levels, and assigned homeroom classrooms.
                   </p>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <button
+                  <Button
                     type="button"
                     onClick={() => setIsBatchClassModalOpen(true)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold text-xs shadow-xs transition cursor-pointer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-control bg-gradient-to-r from-brand-600 to-brand-600 hover:from-brand-700 hover:to-brand-700 text-white font-bold text-xs shadow-xs transition cursor-pointer"
                     title="1-Click batch create Pre-Primary, Primary, Middle, Secondary, and Senior Secondary classes with auto-assigned homerooms"
                   >
-                    <Zap className="w-3.5 h-3.5 fill-amber-300 text-amber-300" />
+                    <Zap className="w-3.5 h-3.5 fill-warning-300 text-warning-300" />
                     <span>⚡ Batch Generate Classes</span>
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
                     onClick={() => setIsAddClassOpen(x => !x)}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-2xs transition cursor-pointer"
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-control border border-neutral-200 bg-surface hover:bg-neutral-50 text-neutral-700 font-bold text-xs shadow-2xs transition cursor-pointer"
                   >
-                    <Plus className="w-3.5 h-3.5 text-indigo-600" />
+                    <Plus className="w-3.5 h-3.5 text-brand-600" />
                     <span>{isAddClassOpen ? 'Close Form' : 'Add Class'}</span>
-                  </button>
-                  <span className="text-xs print:text-[11px] text-slate-500 font-semibold bg-slate-100 px-2.5 py-1 rounded-full whitespace-nowrap">
+                  </Button>
+                  <Badge className="text-xs text-neutral-500 font-semibold bg-neutral-100 px-2.5 py-1 rounded-full whitespace-nowrap">
                     {filteredStep3Classes.length} of {school.classes.length} Cohorts
-                  </span>
+                  </Badge>
                 </div>
               </div>
 
@@ -2001,85 +2044,87 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                     ...(step3WingCounts.secondary > 0 ? [{ id: 'secondary', label: `Secondary (${step3WingCounts.secondary})` }] : []),
                     ...(step3WingCounts.senior > 0 ? [{ id: 'senior', label: `Senior Sec (${step3WingCounts.senior})` }] : []),
                   ].map(tab => (
-                    <button
+                    <Button
                       key={tab.id}
                       type="button"
                       onClick={() => setStep3WingFilter(tab.id as any)}
-                      className={`px-2.5 py-1 rounded-lg font-medium transition cursor-pointer border ${
+                      className={`px-2.5 py-1 rounded-control font-medium transition cursor-pointer border ${
                         step3WingFilter === tab.id
-                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs font-bold'
-                          : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                          ? 'bg-brand-600 text-white border-brand-600 shadow-2xs font-bold'
+                          : 'bg-neutral-50 text-neutral-600 border-neutral-200 hover:bg-neutral-100'
                       }`}
                     >
                       {tab.label}
-                    </button>
+                    </Button>
                   ))}
                 </div>
 
                 <div className="relative min-w-[200px] sm:w-64">
-                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                  <input
+                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -tranneutral-y-1/2 text-neutral-600 pointer-events-none" />
+                  <Input
                     type="text"
                     placeholder="Search cohorts, rooms, teachers..."
                     value={step3Search}
                     onChange={e => setStep3Search(e.target.value)}
-                    className="w-full pl-8 pr-7 py-1.5 rounded-xl border border-slate-200 bg-white text-xs placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="w-full pl-8 pr-7 py-1.5 rounded-soft border border-neutral-200 bg-surface text-xs placeholder:text-neutral-600 focus:outline-none focus:ring-1 focus:ring-brand-500"
                   />
                   {step3Search && (
-                    <button
+                    <Button
                       type="button"
                       onClick={() => setStep3Search('')}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                      aria-label="Clear class search"
+                      className="absolute right-2 top-1/2 -tranneutral-y-1/2 text-neutral-600 hover:text-neutral-600 cursor-pointer"
                     >
                       <X className="w-3.5 h-3.5" />
-                    </button>
+                    </Button>
                   )}
                 </div>
               </div>
 
               {/* Collapsible Add Class Form */}
               {isAddClassOpen && (
-                <div className="p-4 rounded-xl bg-indigo-50/50 border border-indigo-200 space-y-3 text-xs animate-in fade-in duration-200">
-                  <div className="font-bold text-indigo-950 flex items-center justify-between">
+                <div className="p-4 rounded-soft bg-brand-50/50 border border-brand-200 space-y-3 text-xs animate-in fade-in duration-200">
+                  <div className="font-bold text-brand-950 flex items-center justify-between">
                     <span className="flex items-center gap-1.5">
-                      <Plus className="w-4 h-4 text-indigo-600" />
+                      <Plus className="w-4 h-4 text-brand-600" />
                       Add New Class Section
                     </span>
-                    <button
+                    <Button
                       type="button"
                       onClick={() => setIsAddClassOpen(false)}
-                      className="text-slate-400 hover:text-slate-600 cursor-pointer"
+                      aria-label="Close add class form"
+                      className="text-neutral-600 hover:text-neutral-600 cursor-pointer"
                     >
                       <X className="w-4 h-4" />
-                    </button>
+                    </Button>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    <input
+                    <Input
                       placeholder="Class (e.g. 7A)"
                       value={newClassName}
                       onChange={e => setNewClassName(e.target.value)}
-                      className="px-3 py-2 rounded-xl border border-slate-300 font-medium bg-white"
+                      className="px-3 py-2 rounded-soft border border-neutral-300 font-medium bg-surface"
                     />
-                    <input
+                    <Input
                       placeholder="Grade 7"
                       value={newClassGrade}
                       onChange={e => setNewClassGrade(e.target.value)}
-                      className="px-3 py-2 rounded-xl border border-slate-300 font-medium bg-white"
+                      className="px-3 py-2 rounded-soft border border-neutral-300 font-medium bg-surface"
                     />
-                    <select
+                    <Select
                       value={newClassTier}
                       onChange={e => setNewClassTier(e.target.value as Tier)}
-                      className="px-3 py-2 rounded-xl border border-slate-300 font-medium bg-white"
+                      className="px-3 py-2 rounded-soft border border-neutral-300 font-medium bg-surface"
                     >
                       <option value="Primary">Primary</option>
                       <option value="Senior">Senior</option>
-                    </select>
-                    <input
+                    </Select>
+                    <Input
                       placeholder="Room (e.g. Room 108)"
                       value={newClassRoom}
                       onChange={e => setNewClassRoom(e.target.value)}
                       list="step3-room-suggestions"
-                      className="px-3 py-2 rounded-xl border border-slate-300 font-medium bg-white"
+                      className="px-3 py-2 rounded-soft border border-neutral-300 font-medium bg-surface"
                     />
                     <datalist id="step3-room-suggestions">
                       {allRooms.map(r => (
@@ -2090,23 +2135,23 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                     </datalist>
                   </div>
                   <div className="flex justify-end gap-2 pt-1">
-                    <button
+                    <Button
                       type="button"
                       onClick={() => setIsAddClassOpen(false)}
-                      className="px-3 py-1.5 rounded-xl border border-slate-300 text-slate-700 font-semibold hover:bg-white text-xs cursor-pointer"
+                      className="px-3 py-1.5 rounded-soft border border-neutral-300 text-neutral-700 font-semibold hover:bg-surface text-xs cursor-pointer"
                     >
                       Cancel
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
                       onClick={async () => {
                         await handleAddClass();
                         setIsAddClassOpen(false);
                       }}
-                      className="px-4 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs cursor-pointer transition shadow-xs"
+                      className="px-4 py-1.5 rounded-soft bg-neutral-900 hover:bg-neutral-800 text-white font-bold text-xs cursor-pointer transition shadow-xs"
                     >
                       Save Class Section
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )}
@@ -2117,77 +2162,77 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                   const wing = (c.wing || '').toLowerCase();
                   const n = (c.name + ' ' + c.grade).toLowerCase();
                   let wingLabel = c.wing || (c.tier === 'Primary' ? 'Primary' : 'Senior');
-                  let avatarBg = 'bg-indigo-600 text-white';
-                  let badgeColor = 'bg-indigo-50 text-indigo-700 border-indigo-200';
+                  let avatarBg = 'bg-brand-600 text-white';
+                  let badgeColor = 'bg-brand-50 text-brand-700 border-brand-200';
 
                   if (wing.includes('pre') || n.includes('nur') || n.includes('lkg') || n.includes('ukg') || n.includes('kg')) {
                     wingLabel = 'Pre-Primary';
-                    avatarBg = 'bg-amber-500 text-white';
-                    badgeColor = 'bg-amber-50 text-amber-800 border-amber-200';
+                    avatarBg = 'bg-warning-700 text-white';
+                    badgeColor = 'bg-warning-50 text-warning-800 border-warning-200';
                   } else if (wing.includes('primary') || n.match(/\b([1-5])\b/)) {
                     wingLabel = 'Primary';
-                    avatarBg = 'bg-emerald-600 text-white';
-                    badgeColor = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                    avatarBg = 'bg-positive-700 text-white';
+                    badgeColor = 'bg-positive-50 text-positive-700 border-positive-200';
                   } else if (wing.includes('middle') || n.match(/\b([6-8])\b/)) {
                     wingLabel = 'Middle';
-                    avatarBg = 'bg-sky-600 text-white';
-                    badgeColor = 'bg-sky-50 text-sky-700 border-sky-200';
+                    avatarBg = 'bg-info-600 text-white';
+                    badgeColor = 'bg-info-50 text-info-700 border-info-200';
                   } else if (wing.includes('senior') || n.match(/\b(11|12)\b/)) {
                     wingLabel = 'Senior Sec';
-                    avatarBg = 'bg-violet-600 text-white';
-                    badgeColor = 'bg-violet-50 text-violet-700 border-violet-200';
+                    avatarBg = 'bg-brand-600 text-white';
+                    badgeColor = 'bg-brand-50 text-brand-700 border-brand-200';
                   } else if (wing.includes('secondary') || n.match(/\b(9|10)\b/)) {
                     wingLabel = 'Secondary';
-                    avatarBg = 'bg-indigo-600 text-white';
-                    badgeColor = 'bg-indigo-50 text-indigo-700 border-indigo-200';
+                    avatarBg = 'bg-brand-600 text-white';
+                    badgeColor = 'bg-brand-50 text-brand-700 border-brand-200';
                   }
 
                   return (
-                    <div
+                    <Card
                       key={c.id}
-                      className="p-3 rounded-xl border border-slate-200/90 bg-white hover:border-slate-300 hover:shadow-xs transition-all duration-200 flex flex-col justify-between text-xs shadow-2xs space-y-2.5"
+                      className="p-3 rounded-soft border border-neutral-200/90 bg-surface hover:border-neutral-300 hover:shadow-xs transition-all duration-200 flex flex-col justify-between text-xs shadow-2xs space-y-2.5"
                     >
                       <div>
                         {/* Top: Cohort initials avatar + Name + Wing + Delete */}
                         <div className="flex items-start justify-between gap-2 mb-1.5">
                           <div className="flex items-center gap-2 min-w-0">
-                            <div className={`w-8 h-8 rounded-lg font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs ${avatarBg}`}>
+                            <div className={`w-8 h-8 rounded-control font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs ${avatarBg}`}>
                               {c.name.slice(0, 4)}
                             </div>
                             <div className="min-w-0">
-                              <div className="font-bold text-slate-900 text-xs truncate">
+                              <div className="font-bold text-neutral-900 text-xs truncate">
                                 Class {c.name}
                               </div>
                               <div className="flex items-center gap-1.5 mt-0.5">
-                                <span className={`text-xs print:text-[10px] font-bold px-1.5 py-0.2 rounded-md uppercase tracking-wider border ${badgeColor}`}>
+                                <span className={`text-xs font-bold px-1.5 py-0.2 rounded-tight uppercase tracking-wider border ${badgeColor}`}>
                                   {wingLabel}
                                 </span>
-                                <span className="text-xs print:text-[10px] text-slate-400 font-medium truncate max-w-[80px]">
+                                <span className="text-xs text-neutral-600 font-medium truncate max-w-[80px]">
                                   {c.grade}
                                 </span>
                               </div>
                             </div>
                           </div>
 
-                          <button
+                          <Button
                             type="button"
                             onClick={() => handleDeleteClass(c.id)}
-                            className="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer shrink-0"
+                            className="p-1 rounded-tight text-neutral-600 hover:text-danger-600 hover:bg-danger-50 transition cursor-pointer shrink-0"
                             title={`Delete Class ${c.name}`}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                          </Button>
                         </div>
 
                         {/* Stream or Class Teacher details */}
                         <div className="space-y-1">
                           {c.stream && (
-                            <div className="px-1.5 py-0.5 rounded text-xs print:text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200 w-fit">
+                            <div className="px-1.5 py-0.5 rounded-tight text-xs font-bold bg-rule-50 text-rule-700 border border-rule-200 w-fit">
                               Stream: {c.stream}
                             </div>
                           )}
                           {c.classTeacherName && (
-                            <div className="px-1.5 py-0.5 rounded text-xs print:text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1 w-fit">
+                            <div className="px-1.5 py-0.5 rounded-tight text-xs font-semibold bg-warning-50 text-warning-800 border border-warning-200 flex items-center gap-1 w-fit">
                               <span>⭐ CT: {c.classTeacherName}</span>
                             </div>
                           )}
@@ -2195,44 +2240,44 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                       </div>
 
                       {/* Footer: Homeroom + Capacity */}
-                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs print:text-[11px] text-slate-600">
-                        <span className="font-semibold px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 flex items-center gap-1 text-xs print:text-[10px]">
-                          <DoorOpen className="w-3 h-3 text-slate-500" />
+                      <div className="pt-2 border-t border-neutral-100 flex items-center justify-between text-xs text-neutral-600">
+                        <Badge className="font-semibold px-2 py-0.5 rounded-tight bg-neutral-100 border border-neutral-200 flex items-center gap-1 text-xs">
+                          <DoorOpen className="w-3 h-3 text-neutral-500" />
                           <span className="truncate max-w-[110px]">{c.room || 'No Homeroom'}</span>
-                        </span>
-                        <span className="text-xs print:text-[10px] text-slate-400 font-medium">
+                        </Badge>
+                        <span className="text-xs text-neutral-600 font-medium">
                           {c.strength ? `${c.strength} Students` : '40 Students'}
                         </span>
                       </div>
-                    </div>
+                    </Card>
                   );
                 })}
               </div>
 
               {filteredStep3Classes.length === 0 && (
-                <div className="text-center py-8 text-xs text-slate-500 border border-dashed border-slate-200 rounded-xl">
-                  No classes match your current search or wing filter.
+                <div role="status" className="text-center py-8 text-sm text-neutral-600 border border-dashed border-neutral-200 rounded-soft bg-neutral-50/70">
+                  {school.classes.length === 0 ? 'Add a class section to begin configuring the school.' : 'No classes match your current search or wing filter.'}
                 </div>
               )}
-            </div>
+            </Card>
           )}
 
           {/* STEP 4: Rooms & Labs */}
           {currentStep === 4 && (
-            <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 shadow-xs">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+            <Card className="bg-surface rounded-card border border-neutral-200 p-5 space-y-4 shadow-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-neutral-100 pb-3">
                 <div>
-                  <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
-                    <DoorOpen className="w-4 h-4 text-indigo-600" />
+                  <h3 className="font-bold text-base text-neutral-900 flex items-center gap-2">
+                    <DoorOpen className="w-4 h-4 text-brand-600" />
                     <span>Step 4: Rooms &amp; Facilities</span>
                   </h3>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-xs text-neutral-500 mt-0.5">
                     Physical inventory of classrooms, science labs, and computer suites with room capacities and homeroom assignments.
                   </p>
                 </div>
-                <span className="text-xs print:text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 shrink-0 self-start sm:self-auto">
+                <Badge className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-positive-50 text-positive-800 border border-positive-200 shrink-0 self-start sm:self-auto">
                   {allRooms.length} Facilities Configured
-                </span>
+                </Badge>
               </div>
 
               {/* Filter Pills & Search */}
@@ -2245,38 +2290,39 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                     { id: 'computer_lab', label: `IT Suites (${allRooms.filter(r => r.type === 'computer_lab').length})` },
                     { id: 'specialist', label: `Other Facilities (${allRooms.filter(r => r.type !== 'classroom' && r.type !== 'lab' && r.type !== 'computer_lab').length})` },
                   ].map(tab => (
-                    <button
+                    <Button
                       key={tab.id}
                       type="button"
                       onClick={() => setStep4Filter(tab.id as any)}
-                      className={`px-2.5 py-1 rounded-lg font-medium transition cursor-pointer border ${
+                      className={`px-2.5 py-1 rounded-control font-medium transition cursor-pointer border ${
                         step4Filter === tab.id
-                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
-                          : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                          ? 'bg-brand-600 text-white border-brand-600 shadow-2xs'
+                          : 'bg-neutral-50 text-neutral-600 border-neutral-200 hover:bg-neutral-100'
                       }`}
                     >
                       {tab.label}
-                    </button>
+                    </Button>
                   ))}
                 </div>
 
                 <div className="relative min-w-[200px] sm:w-64">
-                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
+                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -tranneutral-y-1/2 text-neutral-600" />
+                  <Input
                     type="text"
                     placeholder="Search room or class..."
                     value={step4Search}
                     onChange={e => setStep4Search(e.target.value)}
-                    className="w-full pl-8 pr-7 py-1.5 rounded-xl border border-slate-200 bg-white text-xs placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="w-full pl-8 pr-7 py-1.5 rounded-soft border border-neutral-200 bg-surface text-xs placeholder:text-neutral-600 focus:outline-none focus:ring-1 focus:ring-brand-500"
                   />
                   {step4Search && (
-                    <button
+                    <Button
                       type="button"
                       onClick={() => setStep4Search('')}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                      aria-label="Clear room search"
+                      className="absolute right-2 top-1/2 -tranneutral-y-1/2 text-neutral-600 hover:text-neutral-600 cursor-pointer"
                     >
                       <X className="w-3.5 h-3.5" />
-                    </button>
+                    </Button>
                   )}
                 </div>
               </div>
@@ -2286,44 +2332,44 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                 {filteredRooms.map(room => {
                   const isEditing = editingRoomId === room.id;
                   const t = (room.type || '').toLowerCase().replace(/_/g, ' ');
-                  let badge = { label: 'Classroom', bg: 'bg-indigo-50 text-indigo-700 border-indigo-200' };
+                  let badge = { label: 'Classroom', bg: 'bg-brand-50 text-brand-700 border-brand-200' };
                   if (t.includes('computer') || t.includes('it')) {
-                    badge = { label: 'IT Suite', bg: 'bg-sky-50 text-sky-700 border-sky-200' };
+                    badge = { label: 'IT Suite', bg: 'bg-info-50 text-info-700 border-info-200' };
                   } else if (t.includes('science') || t.includes('lab') || t.includes('physics') || t.includes('chem') || t.includes('bio')) {
-                    badge = { label: 'Science Lab', bg: 'bg-purple-50 text-purple-700 border-purple-200' };
+                    badge = { label: 'Science Lab', bg: 'bg-rule-50 text-rule-700 border-rule-200' };
                   } else if (t.includes('sport') || t.includes('ground') || t.includes('outdoor') || t.includes('field') || t.includes('pe')) {
-                    badge = { label: 'Sports / Field', bg: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+                    badge = { label: 'Sports / Field', bg: 'bg-positive-50 text-positive-700 border-positive-200' };
                   } else if (t.includes('art') || t.includes('music') || t.includes('dance') || t.includes('studio')) {
-                    badge = { label: 'Creative Studio', bg: 'bg-amber-50 text-amber-700 border-amber-200' };
+                    badge = { label: 'Creative Studio', bg: 'bg-warning-50 text-warning-700 border-warning-200' };
                   } else if (t.includes('auditorium') || t.includes('hall')) {
-                    badge = { label: 'Auditorium', bg: 'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200' };
+                    badge = { label: 'Auditorium', bg: 'bg-rule-50 text-rule-700 border-rule-200' };
                   } else if (t.includes('library')) {
-                    badge = { label: 'Library', bg: 'bg-teal-50 text-teal-700 border-teal-200' };
+                    badge = { label: 'Library', bg: 'bg-positive-50 text-positive-700 border-positive-200' };
                   }
 
                   if (isEditing) {
                     return (
-                      <div key={room.id} className="p-3.5 rounded-xl border-2 border-indigo-500 bg-indigo-50/40 space-y-2 shadow-xs col-span-1 sm:col-span-2 lg:col-span-1">
-                        <div className="flex items-center justify-between font-bold text-xs text-indigo-950 border-b border-indigo-200 pb-1.5">
+                      <div key={room.id} className="p-3.5 rounded-soft border-2 border-brand-500 bg-brand-50/40 space-y-2 shadow-xs col-span-1 sm:col-span-2 lg:col-span-1">
+                        <div className="flex items-center justify-between font-bold text-xs text-brand-950 border-b border-brand-200 pb-1.5">
                           <span>Edit Facility</span>
-                          <span className="text-xs print:text-[10px] text-slate-400">ID: {room.id.slice(0, 8)}...</span>
+                          <span className="text-xs text-neutral-600">ID: {room.id.slice(0, 8)}...</span>
                         </div>
                         <div className="space-y-1">
-                          <label className="text-xs print:text-[10px] font-bold text-slate-600 uppercase">Room Name / Number</label>
-                          <input
+                          <label className="text-xs font-bold text-neutral-600 uppercase">Room Name / Number</label>
+                          <Input
                             value={editRoomName}
                             onChange={e => setEditRoomName(e.target.value)}
-                            className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 font-semibold bg-white text-xs"
+                            className="w-full px-2.5 py-1.5 rounded-control border border-neutral-300 font-semibold bg-surface text-xs"
                             placeholder="e.g. Classroom A-101"
                           />
                         </div>
                         <div className="grid grid-cols-2 gap-2">
                           <div>
-                            <label className="text-xs print:text-[10px] font-bold text-slate-600 uppercase">Facility Type</label>
-                            <select
+                            <label className="text-xs font-bold text-neutral-600 uppercase">Facility Type</label>
+                            <Select
                               value={editRoomType}
                               onChange={e => setEditRoomType(e.target.value)}
-                              className="w-full px-2 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-medium"
+                              className="w-full px-2 py-1.5 rounded-control border border-neutral-300 bg-surface text-xs font-medium"
                             >
                               <option value="classroom">Classroom</option>
                               <option value="lab">Science Lab</option>
@@ -2333,48 +2379,48 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                               <option value="auditorium">Auditorium / Hall</option>
                               <option value="library">Library</option>
                               <option value="other">Other Facility</option>
-                            </select>
+                            </Select>
                           </div>
                           <div>
-                            <label className="text-xs print:text-[10px] font-bold text-slate-600 uppercase">Capacity (Students)</label>
-                            <input
+                            <label className="text-xs font-bold text-neutral-600 uppercase">Capacity (Students)</label>
+                            <Input
                               type="number"
                               min={1}
                               max={200}
                               value={editRoomCapacity}
                               onChange={e => setEditRoomCapacity(Number(e.target.value) || 35)}
-                              className="w-full px-2 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-semibold"
+                              className="w-full px-2 py-1.5 rounded-control border border-neutral-300 bg-surface text-xs font-semibold"
                             />
                           </div>
                         </div>
                         <div>
-                          <label className="text-xs print:text-[10px] font-bold text-slate-600 uppercase">Dedicated Homeroom For (Optional)</label>
-                          <select
+                          <label className="text-xs font-bold text-neutral-600 uppercase">Dedicated Homeroom For (Optional)</label>
+                          <Select
                             value={editRoomHomeroomClassId}
                             onChange={e => setEditRoomHomeroomClassId(e.target.value)}
-                            className="w-full px-2 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-medium"
+                            className="w-full px-2 py-1.5 rounded-control border border-neutral-300 bg-surface text-xs font-medium"
                           >
                             <option value="">None (Shared Facility / Lab)</option>
                             {school.classes.map(c => (
                               <option key={c.id} value={c.id}>Class {c.name} ({c.grade})</option>
                             ))}
-                          </select>
+                          </Select>
                         </div>
-                        <div className="flex items-center justify-end gap-2 pt-1 border-t border-indigo-200">
-                          <button
+                        <div className="flex items-center justify-end gap-2 pt-1 border-t border-brand-200">
+                          <Button
                             type="button"
                             onClick={() => setEditingRoomId(null)}
-                            className="px-2.5 py-1 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 text-xs font-medium cursor-pointer"
+                            className="px-2.5 py-1 rounded-control border border-neutral-300 text-neutral-600 hover:bg-neutral-100 text-xs font-medium cursor-pointer"
                           >
                             Cancel
-                          </button>
-                          <button
+                          </Button>
+                          <Button
                             type="button"
                             onClick={handleSaveEditRoom}
-                            className="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs cursor-pointer"
+                            className="px-3 py-1 rounded-control bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs cursor-pointer"
                           >
                             Save Changes
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     );
@@ -2383,50 +2429,50 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                   return (
                     <div
                       key={room.id}
-                      className="p-3.5 rounded-xl border border-slate-200 bg-white hover:border-slate-300 hover:shadow-xs transition space-y-2 flex flex-col justify-between"
+                      className="p-3.5 rounded-soft border border-neutral-200 bg-surface hover:border-neutral-300 hover:shadow-xs transition space-y-2 flex flex-col justify-between"
                     >
                       <div className="space-y-1">
                         <div className="flex items-start justify-between gap-1.5">
-                          <span className="font-bold text-slate-900 text-xs break-words">{room.name}</span>
+                          <span className="font-bold text-neutral-900 text-xs break-words">{room.name}</span>
                           <div className="flex items-center gap-1 shrink-0">
-                            <span className={`text-xs print:text-[10px] font-semibold px-2 py-0.5 rounded-full border ${badge.bg}`}>
+                            <Badge className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${badge.bg}`}>
                               {badge.label}
-                            </span>
-                            <button
+                            </Badge>
+                            <Button
                               type="button"
                               onClick={() => handleStartEditRoom(room)}
-                              className="p-1 rounded-md text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition cursor-pointer"
+                              className="p-1 rounded-tight text-neutral-600 hover:text-brand-600 hover:bg-brand-50 transition cursor-pointer"
                               title={`Edit ${room.name}`}
                             >
                               <Pencil className="w-3.5 h-3.5" />
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                               type="button"
                               onClick={() => handleDeleteRoom(room)}
-                              className="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                              className="p-1 rounded-tight text-neutral-600 hover:text-danger-600 hover:bg-danger-50 transition cursor-pointer"
                               title={`Delete ${room.name}`}
                             >
                               <Trash2 className="w-3.5 h-3.5" />
-                            </button>
+                            </Button>
                           </div>
                         </div>
 
-                        <div className="text-xs print:text-[11px] text-slate-600 flex items-center gap-1">
+                        <div className="text-xs text-neutral-600 flex items-center gap-1">
                           {room.homeroomForClassName ? (
-                            <span className="text-indigo-900 font-medium">
-                              Dedicated Homeroom for <strong className="font-bold text-indigo-700">Class {room.homeroomForClassName}</strong>
+                            <span className="text-brand-900 font-medium">
+                              Dedicated Homeroom for <strong className="font-bold text-brand-700">Class {room.homeroomForClassName}</strong>
                             </span>
                           ) : (
-                            <span className="text-slate-500 italic">
+                            <span className="text-neutral-500 italic">
                               Shared Facility for Practicals &amp; Curriculum
                             </span>
                           )}
                         </div>
                       </div>
 
-                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs print:text-[10px] text-slate-500">
-                        <span>Capacity: <strong className="font-semibold text-slate-700">{room.capacity || 35} Students</strong></span>
-                        <span className="text-slate-400">• Whiteboard &amp; AV</span>
+                      <div className="pt-2 border-t border-neutral-100 flex items-center justify-between text-xs text-neutral-500">
+                        <span>Capacity: <strong className="font-semibold text-neutral-700">{room.capacity || 35} Students</strong></span>
+                        <span className="text-neutral-600">• Whiteboard &amp; AV</span>
                       </div>
                     </div>
                   );
@@ -2434,28 +2480,28 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
               </div>
 
               {filteredRooms.length === 0 && (
-                <div className="text-center py-8 text-xs text-slate-500 border border-dashed border-slate-200 rounded-xl">
-                  No rooms or facilities match your current search or filter.
+                <div role="status" className="text-center py-8 text-sm text-neutral-600 border border-dashed border-neutral-200 rounded-soft bg-neutral-50/70">
+                  {(school.rooms || []).length === 0 ? 'Add a room or facility to continue.' : 'No rooms or facilities match your current search or filter.'}
                 </div>
               )}
 
               {/* Add Facility Form */}
-              <div className="border-t border-slate-100 pt-4 space-y-3 text-xs">
-                <div className="font-bold text-slate-800 flex items-center gap-1.5">
-                  <Plus className="w-4 h-4 text-indigo-600" />
+              <div className="border-t border-neutral-100 pt-4 space-y-3 text-xs">
+                <div className="font-bold text-neutral-800 flex items-center gap-1.5">
+                  <Plus className="w-4 h-4 text-brand-600" />
                   <span>Add New Facility / Room</span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-                  <input
+                  <Input
                     placeholder="Facility Name (e.g. Physics Lab 1)"
                     value={newRoomName}
                     onChange={e => setNewRoomName(e.target.value)}
-                    className="px-3 py-2 rounded-xl border border-slate-300 font-medium bg-white"
+                    className="px-3 py-2 rounded-soft border border-neutral-300 font-medium bg-surface"
                   />
-                  <select
+                  <Select
                     value={newRoomType}
                     onChange={e => setNewRoomType(e.target.value)}
-                    className="px-3 py-2 rounded-xl border border-slate-300 font-medium bg-white"
+                    className="px-3 py-2 rounded-soft border border-neutral-300 font-medium bg-surface"
                   >
                     <option value="classroom">Classroom</option>
                     <option value="lab">Science Lab</option>
@@ -2465,81 +2511,81 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                     <option value="auditorium">Auditorium / Hall</option>
                     <option value="library">Library</option>
                     <option value="other">Other Facility</option>
-                  </select>
-                  <input
+                  </Select>
+                  <Input
                     type="number"
                     min={1}
                     max={200}
                     placeholder="Capacity (e.g. 35)"
                     value={newRoomCapacity}
                     onChange={e => setNewRoomCapacity(Number(e.target.value) || 35)}
-                    className="px-3 py-2 rounded-xl border border-slate-300 font-medium bg-white"
+                    className="px-3 py-2 rounded-soft border border-neutral-300 font-medium bg-surface"
                   />
-                  <select
+                  <Select
                     value={newRoomHomeroomClassId}
                     onChange={e => setNewRoomHomeroomClassId(e.target.value)}
-                    className="px-3 py-2 rounded-xl border border-slate-300 font-medium bg-white"
+                    className="px-3 py-2 rounded-soft border border-neutral-300 font-medium bg-surface"
                   >
                     <option value="">Homeroom: None (Shared)</option>
                     {school.classes.map(c => (
                       <option key={c.id} value={c.id}>Class {c.name} ({c.grade})</option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
-                <button
+                <Button
                   type="button"
                   onClick={handleAddRoom}
-                  className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs cursor-pointer transition shadow-xs"
+                  className="w-full py-2.5 rounded-soft bg-neutral-900 hover:bg-neutral-800 text-white font-bold text-xs cursor-pointer transition shadow-xs"
                 >
                   + Add Facility
-                </button>
+                </Button>
               </div>
-            </div>
+            </Card>
           )}
 
           {/* STEP 5: Subjects */}
           {currentStep === 5 && (
-            <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 shadow-xs">
+            <Card className="bg-surface rounded-card border border-neutral-200 p-5 space-y-4 shadow-xs">
               {/* Header Bar */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-neutral-100 pb-3">
                 <div>
-                  <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
-                    <BookOpen className="w-4 h-4 text-indigo-600" />
+                  <h3 className="font-bold text-base text-neutral-900 flex items-center gap-2">
+                    <BookOpen className="w-4 h-4 text-brand-600" />
                     <span>Step 5: Subject Catalog ({school.subjects.length})</span>
                   </h3>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-xs text-neutral-500 mt-0.5">
                     Configure curriculum subjects, practical double-period blocks, and card themes.
                   </p>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <button
+                  <Button
                     type="button"
                     onClick={() => handleApplyCbseCurriculum('cbse_full')}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold text-xs shadow-xs transition cursor-pointer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-control bg-gradient-to-r from-brand-600 to-brand-600 hover:from-brand-700 hover:to-brand-700 text-white font-bold text-xs shadow-xs transition cursor-pointer"
                     title="1-Click apply standard CBSE / National Curriculum catalog (10 Subjects with lab links & colors)"
                   >
-                    <Zap className="w-3.5 h-3.5 fill-amber-300 text-amber-300" />
+                    <Zap className="w-3.5 h-3.5 fill-warning-300 text-warning-300" />
                     <span>⚡ Apply CBSE Curriculum</span>
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
                     onClick={() => handleApplyCbseCurriculum('core_only')}
-                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs shadow-2xs transition cursor-pointer"
+                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-control border border-neutral-200 bg-surface hover:bg-neutral-50 text-neutral-700 font-semibold text-xs shadow-2xs transition cursor-pointer"
                     title="Apply Core 6 Academic Subjects only"
                   >
                     <span>Core 6 Only</span>
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
                     onClick={() => setIsAddSubjectOpen(x => !x)}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-2xs transition cursor-pointer"
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-control border border-neutral-200 bg-surface hover:bg-neutral-50 text-neutral-700 font-bold text-xs shadow-2xs transition cursor-pointer"
                   >
-                    <Plus className="w-3.5 h-3.5 text-indigo-600" />
+                    <Plus className="w-3.5 h-3.5 text-brand-600" />
                     <span>{isAddSubjectOpen ? 'Close Form' : 'Add Subject'}</span>
-                  </button>
-                  <span className="text-xs print:text-[11px] text-slate-500 font-semibold bg-slate-100 px-2.5 py-1 rounded-full whitespace-nowrap">
+                  </Button>
+                  <Badge className="text-xs text-neutral-500 font-semibold bg-neutral-100 px-2.5 py-1 rounded-full whitespace-nowrap">
                     {filteredStep5Subjects.length} of {school.subjects.length} Subjects
-                  </span>
+                  </Badge>
                 </div>
               </div>
 
@@ -2552,112 +2598,114 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                     { id: 'activity', label: `Activity (${step5Counts.activity})` },
                     { id: 'lab', label: `Lab / Block (${step5Counts.lab})` },
                   ].map(tab => (
-                    <button
+                    <Button
                       key={tab.id}
                       type="button"
                       onClick={() => setStep5Filter(tab.id as any)}
-                      className={`px-2.5 py-1 rounded-lg font-medium transition cursor-pointer border ${
+                      className={`px-2.5 py-1 rounded-control font-medium transition cursor-pointer border ${
                         step5Filter === tab.id
-                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs font-bold'
-                          : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                          ? 'bg-brand-600 text-white border-brand-600 shadow-2xs font-bold'
+                          : 'bg-neutral-50 text-neutral-600 border-neutral-200 hover:bg-neutral-100'
                       }`}
                     >
                       {tab.label}
-                    </button>
+                    </Button>
                   ))}
                 </div>
 
                 <div className="relative min-w-[200px] sm:w-64">
-                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                  <input
+                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -tranneutral-y-1/2 text-neutral-600 pointer-events-none" />
+                  <Input
                     type="text"
                     placeholder="Search subjects, codes, labs..."
                     value={step5Search}
                     onChange={e => setStep5Search(e.target.value)}
-                    className="w-full pl-8 pr-7 py-1.5 rounded-xl border border-slate-200 bg-white text-xs placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="w-full pl-8 pr-7 py-1.5 rounded-soft border border-neutral-200 bg-surface text-xs placeholder:text-neutral-600 focus:outline-none focus:ring-1 focus:ring-brand-500"
                   />
                   {step5Search && (
-                    <button
+                    <Button
                       type="button"
                       onClick={() => setStep5Search('')}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                      aria-label="Clear subject search"
+                      className="absolute right-2 top-1/2 -tranneutral-y-1/2 text-neutral-600 hover:text-neutral-600 cursor-pointer"
                     >
                       <X className="w-3.5 h-3.5" />
-                    </button>
+                    </Button>
                   )}
                 </div>
               </div>
 
               {/* Collapsible Add Subject Form */}
               {isAddSubjectOpen && (
-                <div className="p-4 rounded-xl bg-indigo-50/50 border border-indigo-200 space-y-3 text-xs animate-in fade-in duration-200">
-                  <div className="font-bold text-indigo-950 flex items-center justify-between">
+                <div className="p-4 rounded-soft bg-brand-50/50 border border-brand-200 space-y-3 text-xs animate-in fade-in duration-200">
+                  <div className="font-bold text-brand-950 flex items-center justify-between">
                     <span className="flex items-center gap-1.5">
-                      <Plus className="w-4 h-4 text-indigo-600" />
+                      <Plus className="w-4 h-4 text-brand-600" />
                       Add New Subject
                     </span>
-                    <button
+                    <Button
                       type="button"
                       onClick={() => setIsAddSubjectOpen(false)}
-                      className="text-slate-400 hover:text-slate-600 cursor-pointer"
+                      aria-label="Close add subject form"
+                      className="text-neutral-600 hover:text-neutral-600 cursor-pointer"
                     >
                       <X className="w-4 h-4" />
-                    </button>
+                    </Button>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    <input
+                    <Input
                       placeholder="Subject Name (e.g. Robotics)"
                       value={newSubName}
                       onChange={e => setNewSubName(e.target.value)}
-                      className="px-3 py-2 rounded-xl border border-slate-300 font-medium bg-white"
+                      className="px-3 py-2 rounded-soft border border-neutral-300 font-medium bg-surface"
                     />
-                    <input
+                    <Input
                       placeholder="Code (e.g. ROB)"
                       value={newSubCode}
                       onChange={e => setNewSubCode(e.target.value)}
-                      className="px-3 py-2 rounded-xl border border-slate-300 font-medium bg-white"
+                      className="px-3 py-2 rounded-soft border border-neutral-300 font-medium bg-surface"
                     />
-                    <select
+                    <Select
                       value={newSubType}
                       onChange={e => setNewSubType(e.target.value as 'academic' | 'activity')}
-                      className="px-3 py-2 rounded-xl border border-slate-300 font-medium bg-white"
+                      className="px-3 py-2 rounded-soft border border-neutral-300 font-medium bg-surface"
                     >
                       <option value="academic">Academic</option>
                       <option value="activity">Activity Block</option>
-                    </select>
+                    </Select>
                   </div>
 
                   <div className="flex items-center gap-2 pt-1">
-                    <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700 select-none">
-                      <input
+                    <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-neutral-700 select-none">
+                      <Input
                         type="checkbox"
                         checked={newSubDoublePeriod}
                         onChange={e => setNewSubDoublePeriod(e.target.checked)}
-                        className="rounded border-slate-300 text-indigo-600"
+                        className="rounded-tight border-neutral-300 text-brand-600"
                       />
-                      <FlaskConical className="w-3.5 h-3.5 text-indigo-600" />
+                      <FlaskConical className="w-3.5 h-3.5 text-brand-600" />
                       <span>Require 2-Period Consecutive Block (Science Lab / Art / Practical)</span>
                     </label>
                   </div>
 
                   <div className="flex justify-end gap-2 pt-1">
-                    <button
+                    <Button
                       type="button"
                       onClick={() => setIsAddSubjectOpen(false)}
-                      className="px-3 py-1.5 rounded-xl border border-slate-300 text-slate-700 font-semibold hover:bg-white text-xs cursor-pointer"
+                      className="px-3 py-1.5 rounded-soft border border-neutral-300 text-neutral-700 font-semibold hover:bg-surface text-xs cursor-pointer"
                     >
                       Cancel
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
                       onClick={async () => {
                         await handleAddSubject();
                         setIsAddSubjectOpen(false);
                       }}
-                      className="px-4 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs cursor-pointer transition shadow-xs"
+                      className="px-4 py-1.5 rounded-soft bg-neutral-900 hover:bg-neutral-800 text-white font-bold text-xs cursor-pointer transition shadow-xs"
                     >
                       Save Subject
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )}
@@ -2669,170 +2717,176 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                   const hasLab = Boolean(sub.room || sub.requiresDoublePeriod);
 
                   return (
-                    <div
+                    <Card
                       key={sub.id}
-                      className="p-3 rounded-xl border border-slate-200/90 bg-white hover:border-slate-300 hover:shadow-xs transition-all duration-200 flex flex-col justify-between text-xs shadow-2xs space-y-2.5"
+                      className="p-3 rounded-soft border border-neutral-200/90 bg-surface hover:border-neutral-300 hover:shadow-xs transition-all duration-200 flex flex-col justify-between text-xs shadow-2xs space-y-2.5"
                     >
                       <div>
                         {/* Top: Code avatar badge + Name + Type + Delete */}
                         <div className="flex items-start justify-between gap-2 mb-1.5">
                           <div className="flex items-center gap-2 min-w-0">
-                            <div className={`w-8 h-8 rounded-lg font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs ${
-                              isActivity ? 'bg-purple-600 text-white' : 'bg-indigo-600 text-white'
+                            <div className={`w-8 h-8 rounded-control font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs ${
+                              isActivity ? 'bg-rule-600 text-white' : 'bg-brand-600 text-white'
                             }`}>
                               {(sub.code || sub.name.slice(0, 3)).toUpperCase().slice(0, 3)}
                             </div>
                             <div className="min-w-0">
-                              <div className="font-bold text-slate-900 text-xs truncate" title={sub.name}>
+                              <div className="font-bold text-neutral-900 text-xs truncate" title={sub.name}>
                                 {sub.name}
                               </div>
                               <div className="flex items-center gap-1.5 mt-0.5">
-                                <span className={`text-xs print:text-[10px] font-bold px-1.5 py-0.2 rounded-md uppercase tracking-wider border ${
+                                <Badge className={`text-xs font-bold px-1.5 py-0.2 rounded-tight uppercase tracking-wider border ${
                                   isActivity
-                                    ? 'bg-purple-50 text-purple-700 border-purple-200'
-                                    : 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                                    ? 'bg-rule-50 text-rule-700 border-rule-200'
+                                    : 'bg-brand-50 text-brand-700 border-brand-200'
                                 }`}>
                                   {sub.type}
-                                </span>
-                                <span className="text-xs print:text-[10px] text-slate-400 font-mono">
+                                </Badge>
+                                <span className="text-xs text-neutral-600 font-mono">
                                   {sub.code}
                                 </span>
                               </div>
                             </div>
                           </div>
 
-                          <button
+                          <Button
                             type="button"
                             onClick={() => handleDeleteSubject(sub.id)}
-                            className="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer shrink-0"
+                            className="p-1 rounded-tight text-neutral-600 hover:text-danger-600 hover:bg-danger-50 transition cursor-pointer shrink-0"
                             title={`Delete Subject ${sub.name}`}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                          </Button>
                         </div>
 
                         {/* Badges for Lab Room & Double-Period */}
                         <div className="flex flex-wrap gap-1 mt-2">
                           {sub.room ? (
-                            <span className="px-1.5 py-0.5 rounded text-xs print:text-[10px] font-semibold bg-purple-50 text-purple-700 border border-purple-200 flex items-center gap-1">
-                              <DoorOpen className="w-3 h-3 text-purple-500" />
+                            <Badge className="px-1.5 py-0.5 rounded-tight text-xs font-semibold bg-rule-50 text-rule-700 border border-rule-200 flex items-center gap-1">
+                              <DoorOpen className="w-3 h-3 text-rule-500" />
                               <span className="truncate max-w-[120px]">{sub.room}</span>
-                            </span>
+                            </Badge>
                           ) : (
-                            <span className="px-1.5 py-0.5 rounded text-xs print:text-[10px] text-slate-400 bg-slate-50 border border-slate-200">
+                            <Badge className="px-1.5 py-0.5 rounded-tight text-xs text-neutral-600 bg-neutral-50 border border-neutral-200">
                               Classroom
-                            </span>
+                            </Badge>
                           )}
                           {sub.requiresDoublePeriod && (
-                            <span className="px-1.5 py-0.5 rounded text-xs print:text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1">
-                              <Zap className="w-2.5 h-2.5 fill-amber-500 text-amber-500" />
+                            <Badge className="px-1.5 py-0.5 rounded-tight text-xs font-bold bg-warning-50 text-warning-800 border border-warning-200 flex items-center gap-1">
+                              <Zap className="w-2.5 h-2.5 fill-warning-500 text-warning-500" />
                               <span>2-Period Block</span>
-                            </span>
+                            </Badge>
                           )}
                         </div>
                       </div>
 
                       {/* Footer: Weekly Periods Distribution */}
-                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs print:text-[11px] text-slate-600">
-                        <span className="text-xs print:text-[10px] text-slate-500">
-                          Primary: <strong className="font-semibold text-slate-700">{sub.freqPrimary ?? 0}p</strong> • Senior: <strong className="font-semibold text-slate-700">{sub.freqSenior ?? 0}p</strong>
+                      <div className="pt-2 border-t border-neutral-100 flex items-center justify-between text-xs text-neutral-600">
+                        <span className="text-xs text-neutral-500">
+                          Primary: <strong className="font-semibold text-neutral-700">{sub.freqPrimary ?? 0}p</strong> • Senior: <strong className="font-semibold text-neutral-700">{sub.freqSenior ?? 0}p</strong>
                         </span>
-                        <span className="text-xs print:text-[10px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.2 rounded border border-indigo-100">
+                        <Badge className="text-xs font-bold text-brand-600 bg-brand-50 px-1.5 py-0.2 rounded-tight border border-brand-100">
                           {(sub.freqPrimary ?? 0) + (sub.freqSenior ?? 0)}p / wk
-                        </span>
+                        </Badge>
                       </div>
-                    </div>
+                    </Card>
                   );
                 })}
               </div>
 
               {filteredStep5Subjects.length === 0 && (
-                <div className="text-center py-8 text-xs text-slate-500 border border-dashed border-slate-200 rounded-xl">
-                  No subjects match your current search or filter.
+                <div role="status" className="text-center py-8 text-sm text-neutral-600 border border-dashed border-neutral-200 rounded-soft bg-neutral-50/70">
+                  {school.subjects.length === 0 ? 'Add a subject to begin setting weekly periods.' : 'No subjects match your current search or filter.'}
                 </div>
               )}
-            </div>
+            </Card>
           )}
 
           {/* STEP 6: Weekly Periods */}
           {currentStep === 6 && (
-            <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 shadow-xs">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <Card className="bg-surface rounded-card border border-neutral-200 p-5 space-y-4 shadow-xs">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 pb-3">
                 <div>
-                  <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
-                    <Layers className="w-4 h-4 text-indigo-600" />
+                  <h3 className="font-bold text-base text-neutral-900 flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-brand-600" />
                     <span>Step 6: Period Allocation &amp; Frequency</span>
                   </h3>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-xs text-neutral-500 mt-0.5">
                     Calibrate periods per week for every subject to fit school-day capacity.
                   </p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
-                  <button
+                  <Button
                     type="button"
                     onClick={() => handleApplyPresetFrequencies('cbse_standard')}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-indigo-200 bg-white hover:bg-indigo-50/60 text-indigo-900 font-bold text-xs shadow-2xs cursor-pointer transition"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-soft border border-brand-200 bg-surface hover:bg-brand-50/60 text-brand-900 font-bold text-xs shadow-2xs cursor-pointer transition"
                     title="Apply standard CBSE curriculum hour distribution across tiers"
                   >
-                    <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                    <Zap className="w-3.5 h-3.5 text-warning-500 fill-warning-500" />
                     <span>⚡ Standard CBSE Hours</span>
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button
                     type="button"
                     onClick={() => handleApplyPresetFrequencies('stem_focus')}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-sky-200 bg-white hover:bg-sky-50/60 text-sky-900 font-bold text-xs shadow-2xs cursor-pointer transition"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-soft border border-info-200 bg-surface hover:bg-info-50/60 text-info-900 font-bold text-xs shadow-2xs cursor-pointer transition"
                     title="Apply STEM & Practical lab focus distribution"
                   >
-                    <Zap className="w-3.5 h-3.5 text-sky-500 fill-sky-500" />
+                    <Zap className="w-3.5 h-3.5 text-info-500 fill-info-500" />
                     <span>⚡ STEM &amp; Lab Focus</span>
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button
                     type="button"
                     onClick={handleAutoBalance}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-xs cursor-pointer transition"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-soft bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs shadow-xs cursor-pointer transition"
                     title="Automatically adjust frequencies to eliminate any remaining period deficit or surplus"
                   >
-                    <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                    <Sparkles className="w-3.5 h-3.5 text-warning-300" />
                     <span>Smart Auto-Balance</span>
-                  </button>
+                  </Button>
                 </div>
               </div>
 
               {/* Weekly Capacity Indicators */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div
-                  className={`p-3 rounded-xl border flex items-center justify-between ${
+                  aria-invalid={primaryDiff !== 0}
+                  aria-describedby={primaryDiff !== 0 ? 'primary-capacity-error' : undefined}
+                  className={`p-3 rounded-soft border flex items-center justify-between ${
                     primaryDiff === 0
-                      ? 'bg-emerald-50 border-emerald-200 text-emerald-950'
-                      : 'bg-amber-50 border-amber-200 text-amber-950'
+                      ? 'bg-positive-50 border-positive-200 text-positive-950'
+                      : 'bg-warning-50 border-warning-200 text-warning-950'
                   }`}
                 >
                   <div>
                     <div className="font-bold text-xs">Primary Cohorts</div>
-                    <div className="text-xs print:text-[11px] opacity-75">{totalPrimaryFreq} / {primaryCap} periods/week</div>
+                    <div className="text-xs opacity-75">{totalPrimaryFreq} / {primaryCap} periods/week</div>
                   </div>
-                  <span className="px-2.5 py-1 rounded-full text-xs print:text-[11px] font-bold bg-white/80 shadow-2xs">
+                  <Badge className="px-2.5 py-1 rounded-full text-xs font-bold bg-surface/80 shadow-2xs">
                     {primaryDiff === 0 ? '✓ Balanced' : `${primaryDiff} Remaining`}
-                  </span>
+                  </Badge>
+                  {primaryDiff !== 0 && <span id="primary-capacity-error" className="sr-only">Adjust primary subject periods to match the weekly capacity.</span>}
                 </div>
 
                 <div
-                  className={`p-3 rounded-xl border flex items-center justify-between ${
+                  aria-invalid={seniorDiff !== 0}
+                  aria-describedby={seniorDiff !== 0 ? 'senior-capacity-error' : undefined}
+                  className={`p-3 rounded-soft border flex items-center justify-between ${
                     seniorDiff === 0
-                      ? 'bg-emerald-50 border-emerald-200 text-emerald-950'
-                      : 'bg-amber-50 border-amber-200 text-amber-950'
+                      ? 'bg-positive-50 border-positive-200 text-positive-950'
+                      : 'bg-warning-50 border-warning-200 text-warning-950'
                   }`}
                 >
                   <div>
                     <div className="font-bold text-xs">Senior Cohorts</div>
-                    <div className="text-xs print:text-[11px] opacity-75">{totalSeniorFreq} / {seniorCap} periods/week</div>
+                    <div className="text-xs opacity-75">{totalSeniorFreq} / {seniorCap} periods/week</div>
                   </div>
-                  <span className="px-2.5 py-1 rounded-full text-xs print:text-[11px] font-bold bg-white/80 shadow-2xs">
+                  <Badge className="px-2.5 py-1 rounded-full text-xs font-bold bg-surface/80 shadow-2xs">
                     {seniorDiff === 0 ? '✓ Balanced' : `${seniorDiff} Remaining`}
-                  </span>
+                  </Badge>
+                  {seniorDiff !== 0 && <span id="senior-capacity-error" className="sr-only">Adjust senior subject periods to match the weekly capacity.</span>}
                 </div>
               </div>
 
@@ -2845,87 +2899,87 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                   return (
                     <div
                       key={sub.id}
-                      className="p-3.5 rounded-xl border border-slate-200/90 bg-white hover:border-slate-300 hover:shadow-xs transition-all duration-200 flex flex-col justify-between shadow-2xs space-y-3"
+                      className="p-3.5 rounded-soft border border-neutral-200/90 bg-surface hover:border-neutral-300 hover:shadow-xs transition-all duration-200 flex flex-col justify-between shadow-2xs space-y-3"
                     >
                       {/* Top Header */}
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2 min-w-0">
-                          <div className={`w-8 h-8 rounded-lg font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs ${
-                            isActivity ? 'bg-purple-600 text-white' : 'bg-indigo-600 text-white'
+                          <div className={`w-8 h-8 rounded-control font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs ${
+                            isActivity ? 'bg-rule-600 text-white' : 'bg-brand-600 text-white'
                           }`}>
                             {(sub.code || sub.name.slice(0, 3)).toUpperCase().slice(0, 3)}
                           </div>
                           <div className="min-w-0">
-                            <div className="font-bold text-slate-900 text-xs truncate" title={sub.name}>
+                            <div className="font-bold text-neutral-900 text-xs truncate" title={sub.name}>
                               {sub.name}
                             </div>
                             <div className="flex items-center gap-1.5 mt-0.5">
-                              <span className={`text-xs print:text-[10px] font-bold px-1.5 py-0.2 rounded-md uppercase tracking-wider border ${
+                              <Badge className={`text-xs font-bold px-1.5 py-0.2 rounded-tight uppercase tracking-wider border ${
                                 isActivity
-                                  ? 'bg-purple-50 text-purple-700 border-purple-200'
-                                  : 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                                  ? 'bg-rule-50 text-rule-700 border-rule-200'
+                                  : 'bg-brand-50 text-brand-700 border-brand-200'
                               }`}>
                                 {sub.type}
-                              </span>
-                              <span className="text-xs print:text-[10px] text-slate-400 font-mono">
+                              </Badge>
+                              <span className="text-xs text-neutral-600 font-mono">
                                 {sub.code}
                               </span>
                             </div>
                           </div>
                         </div>
 
-                        <span className="text-xs print:text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200 whitespace-nowrap">
+                        <Badge className="text-xs font-bold px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-700 border border-neutral-200 whitespace-nowrap">
                           {totalFreq} p/wk
-                        </span>
+                        </Badge>
                       </div>
 
                       {/* Steppers for Primary and Senior */}
-                      <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100">
+                      <div className="grid grid-cols-2 gap-2 pt-1 border-t border-neutral-100">
                         {/* Primary Stepper */}
-                        <div className="p-2 rounded-lg bg-slate-50 border border-slate-200 flex flex-col justify-between">
-                          <span className="text-xs print:text-[10px] font-semibold text-slate-500 mb-1">Primary Tier:</span>
+                        <div className="p-2 rounded-control bg-neutral-50 border border-neutral-200 flex flex-col justify-between">
+                          <span className="text-xs font-semibold text-neutral-500 mb-1">Primary Tier:</span>
                           <div className="flex items-center justify-between">
-                            <button
+                            <Button
                               type="button"
                               onClick={() => handleUpdateSubjectFreq(sub.id, 'primary', -1)}
-                              className="w-6 h-6 rounded-md bg-white border border-slate-200 hover:bg-slate-100 flex items-center justify-center text-slate-700 transition cursor-pointer shadow-2xs"
+                              className="w-6 h-6 rounded-tight bg-surface border border-neutral-200 hover:bg-neutral-100 flex items-center justify-center text-neutral-700 transition cursor-pointer shadow-2xs"
                               title="Decrease Primary frequency"
                             >
                               <Minus className="w-3 h-3" />
-                            </button>
-                            <span className="font-bold text-slate-900 text-xs">{sub.freqPrimary}p</span>
-                            <button
+                            </Button>
+                            <span className="font-bold text-neutral-900 text-xs">{sub.freqPrimary}p</span>
+                            <Button
                               type="button"
                               onClick={() => handleUpdateSubjectFreq(sub.id, 'primary', 1)}
-                              className="w-6 h-6 rounded-md bg-white border border-slate-200 hover:bg-slate-100 flex items-center justify-center text-slate-700 transition cursor-pointer shadow-2xs"
+                              className="w-6 h-6 rounded-tight bg-surface border border-neutral-200 hover:bg-neutral-100 flex items-center justify-center text-neutral-700 transition cursor-pointer shadow-2xs"
                               title="Increase Primary frequency"
                             >
                               <Plus className="w-3 h-3" />
-                            </button>
+                            </Button>
                           </div>
                         </div>
 
                         {/* Senior Stepper */}
-                        <div className="p-2 rounded-lg bg-slate-50 border border-slate-200 flex flex-col justify-between">
-                          <span className="text-xs print:text-[10px] font-semibold text-slate-500 mb-1">Senior Tier:</span>
+                        <div className="p-2 rounded-control bg-neutral-50 border border-neutral-200 flex flex-col justify-between">
+                          <span className="text-xs font-semibold text-neutral-500 mb-1">Senior Tier:</span>
                           <div className="flex items-center justify-between">
-                            <button
+                            <Button
                               type="button"
                               onClick={() => handleUpdateSubjectFreq(sub.id, 'senior', -1)}
-                              className="w-6 h-6 rounded-md bg-white border border-slate-200 hover:bg-slate-100 flex items-center justify-center text-slate-700 transition cursor-pointer shadow-2xs"
+                              className="w-6 h-6 rounded-tight bg-surface border border-neutral-200 hover:bg-neutral-100 flex items-center justify-center text-neutral-700 transition cursor-pointer shadow-2xs"
                               title="Decrease Senior frequency"
                             >
                               <Minus className="w-3 h-3" />
-                            </button>
-                            <span className="font-bold text-slate-900 text-xs">{sub.freqSenior}p</span>
-                            <button
+                            </Button>
+                            <span className="font-bold text-neutral-900 text-xs">{sub.freqSenior}p</span>
+                            <Button
                               type="button"
                               onClick={() => handleUpdateSubjectFreq(sub.id, 'senior', 1)}
-                              className="w-6 h-6 rounded-md bg-white border border-slate-200 hover:bg-slate-100 flex items-center justify-center text-slate-700 transition cursor-pointer shadow-2xs"
+                              className="w-6 h-6 rounded-tight bg-surface border border-neutral-200 hover:bg-neutral-100 flex items-center justify-center text-neutral-700 transition cursor-pointer shadow-2xs"
                               title="Increase Senior frequency"
                             >
                               <Plus className="w-3 h-3" />
-                            </button>
+                            </Button>
                           </div>
                         </div>
                       </div>
@@ -2933,44 +2987,44 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                   );
                 })}
               </div>
-            </div>
+            </Card>
           )}
 
           {/* STEP 7: Faculty Roster & Workload Caps */}
           {currentStep === 7 && (
-            <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 shadow-xs">
+            <Card className="bg-surface rounded-card border border-neutral-200 p-5 space-y-4 shadow-xs">
               {/* Header Bar */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-neutral-100 pb-3">
                 <div>
-                  <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
-                    <Users className="w-4 h-4 text-indigo-600" />
+                  <h3 className="font-bold text-base text-neutral-900 flex items-center gap-2">
+                    <Users className="w-4 h-4 text-brand-600" />
                     <span>Step 7: Teaching Staff ({school.teachers.length})</span>
                   </h3>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-xs text-neutral-500 mt-0.5">
                     Multi-tier instructor directory, qualified subjects, and weekly teaching workload caps.
                   </p>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <button
+                  <Button
                     type="button"
                     onClick={() => setIsBatchStaffModalOpen(true)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold text-xs shadow-xs transition cursor-pointer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-control bg-gradient-to-r from-brand-600 to-brand-600 hover:from-brand-700 hover:to-brand-700 text-white font-bold text-xs shadow-xs transition cursor-pointer"
                     title="Batch import or generate faculty roster"
                   >
-                    <Zap className="w-3.5 h-3.5 fill-amber-300 text-amber-300" />
+                    <Zap className="w-3.5 h-3.5 fill-warning-300 text-warning-300" />
                     <span>⚡ Batch Setup Faculty</span>
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
                     onClick={() => setIsAddTeacherOpen(x => !x)}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-2xs transition cursor-pointer"
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-control border border-neutral-200 bg-surface hover:bg-neutral-50 text-neutral-700 font-bold text-xs shadow-2xs transition cursor-pointer"
                   >
-                    <Plus className="w-3.5 h-3.5 text-indigo-600" />
+                    <Plus className="w-3.5 h-3.5 text-brand-600" />
                     <span>{isAddTeacherOpen ? 'Close Form' : 'Add Teacher'}</span>
-                  </button>
-                  <span className="text-xs print:text-[11px] font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 whitespace-nowrap">
+                  </Button>
+                  <Badge className="text-xs font-semibold px-2.5 py-1 rounded-full bg-neutral-100 text-neutral-700 whitespace-nowrap">
                     {filteredStep7Teachers.length} of {school.teachers.length} Faculty
-                  </span>
+                  </Badge>
                 </div>
               </div>
 
@@ -2987,177 +3041,184 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                     { id: 'near_cap', label: `Near Cap (${step7Counts.nearCap})` },
                     ...(step7Counts.leave > 0 ? [{ id: 'leave', label: `On Leave (${step7Counts.leave})` }] : []),
                   ].map(tab => (
-                    <button
+                    <Button
                       key={tab.id}
                       type="button"
                       onClick={() => setStep7Filter(tab.id as any)}
-                      className={`px-2.5 py-1 rounded-lg font-medium transition cursor-pointer border ${
+                      className={`px-2.5 py-1 rounded-control font-medium transition cursor-pointer border ${
                         step7Filter === tab.id
-                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs font-bold'
-                          : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                          ? 'bg-brand-600 text-white border-brand-600 shadow-2xs font-bold'
+                          : 'bg-neutral-50 text-neutral-600 border-neutral-200 hover:bg-neutral-100'
                       }`}
                     >
                       {tab.label}
-                    </button>
+                    </Button>
                   ))}
                 </div>
 
                 <div className="relative min-w-[200px] sm:w-64">
-                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
+                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -tranneutral-y-1/2 text-neutral-600" />
+                  <Input
                     type="text"
                     placeholder="Search name, subject, or wing..."
                     value={step7Search}
                     onChange={e => setStep7Search(e.target.value)}
-                    className="w-full pl-8 pr-7 py-1.5 rounded-xl border border-slate-200 bg-white text-xs placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="w-full pl-8 pr-7 py-1.5 rounded-soft border border-neutral-200 bg-surface text-xs placeholder:text-neutral-600 focus:outline-none focus:ring-1 focus:ring-brand-500"
                   />
                   {step7Search && (
-                    <button
+                    <Button
                       type="button"
                       onClick={() => setStep7Search('')}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                      aria-label="Clear teacher search"
+                      className="absolute right-2 top-1/2 -tranneutral-y-1/2 text-neutral-600 hover:text-neutral-600 cursor-pointer"
                     >
                       <X className="w-3.5 h-3.5" />
-                    </button>
+                    </Button>
                   )}
                 </div>
               </div>
 
               {/* Add Faculty Collapsible Panel */}
               {isAddTeacherOpen && (
-                <div className="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-200 space-y-3 text-xs animate-in fade-in duration-150">
-                  <div className="font-bold text-indigo-950 flex items-center justify-between">
+                <div className="p-4 rounded-card bg-brand-50/50 border border-brand-200 space-y-3 text-xs animate-in fade-in duration-150">
+                  <div className="font-bold text-brand-950 flex items-center justify-between">
                     <span className="flex items-center gap-1.5">
-                      <Plus className="w-4 h-4 text-indigo-600" />
+                      <Plus className="w-4 h-4 text-brand-600" />
                       Add New Faculty Member
                     </span>
-                    <button
+                    <Button
                       type="button"
                       onClick={() => setIsAddTeacherOpen(false)}
-                      className="text-slate-400 hover:text-slate-600"
+                      aria-label="Close add teacher form"
+                      className="text-neutral-600 hover:text-neutral-600"
                     >
                       <X className="w-4 h-4" />
-                    </button>
+                    </Button>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
-                    <input
+                    <Input
                       placeholder="Full Name (e.g. Dr. Emily Watson)"
                       value={newTeacherName}
                       onChange={e => setNewTeacherName(e.target.value)}
-                      className="sm:col-span-2 px-3 py-2 rounded-xl border border-slate-300 font-semibold bg-white text-xs"
+                      className="sm:col-span-2 px-3 py-2 rounded-soft border border-neutral-300 font-semibold bg-surface text-xs"
                     />
                     <div>
-                      <select
+                      <Select
                         value={newTeacherDesignation}
                         onChange={e => setNewTeacherDesignation(e.target.value)}
-                        className="w-full px-2.5 py-2 rounded-xl border border-slate-300 font-semibold bg-white text-xs"
+                        className="w-full px-2.5 py-2 rounded-soft border border-neutral-300 font-semibold bg-surface text-xs"
                       >
                         <option value="PGT">PGT (Senior Sec)</option>
                         <option value="TGT">TGT (Middle/Secondary)</option>
                         <option value="PRT">PRT (Primary)</option>
                         <option value="NTT">NTT (Pre-Primary)</option>
                         <option value="Specialist">Specialist / Activity</option>
-                      </select>
+                      </Select>
                     </div>
                     <div>
-                      <select
+                      <Select
                         value={newTeacherWings}
                         onChange={e => setNewTeacherWings(e.target.value)}
-                        className="w-full px-2.5 py-2 rounded-xl border border-slate-300 font-semibold bg-white text-xs"
+                        className="w-full px-2.5 py-2 rounded-soft border border-neutral-300 font-semibold bg-surface text-xs"
                       >
                         <option value="Senior Secondary">Senior Secondary</option>
                         <option value="Secondary">Secondary</option>
                         <option value="Middle">Middle</option>
                         <option value="Primary">Primary</option>
                         <option value="Pre-Primary">Pre-Primary</option>
-                      </select>
+                      </Select>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-slate-500 font-medium text-xs print:text-[11px] whitespace-nowrap">Daily Max:</span>
-                      <input
+                      <span className="text-neutral-500 font-medium text-xs whitespace-nowrap">Daily Max:</span>
+                      <Input
                         type="number"
                         min={1}
                         max={8}
                         value={newTeacherMaxPerDay}
                         onChange={e => setNewTeacherMaxPerDay(Number(e.target.value) || 5)}
-                        className="w-full px-2 py-1.5 rounded-lg border border-slate-300 font-bold bg-white text-xs"
+                        className="w-full px-2 py-1.5 rounded-control border border-neutral-300 font-bold bg-surface text-xs"
                       />
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-slate-500 font-medium text-xs print:text-[11px] whitespace-nowrap">Weekly Max:</span>
-                      <input
+                      <span className="text-neutral-500 font-medium text-xs whitespace-nowrap">Weekly Max:</span>
+                      <Input
                         type="number"
                         min={1}
                         max={40}
                         value={newTeacherMaxPerWeek}
                         onChange={e => setNewTeacherMaxPerWeek(Number(e.target.value) || 30)}
-                        className="w-full px-2 py-1.5 rounded-lg border border-slate-300 font-bold bg-white text-xs"
+                        className="w-full px-2 py-1.5 rounded-control border border-neutral-300 font-bold bg-surface text-xs"
                       />
                     </div>
                     <div className="sm:col-span-2">
-                      <select
+                      <Select
                         value={newTeacherWorkingDays}
                         onChange={e => setNewTeacherWorkingDays(e.target.value)}
-                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 font-medium bg-white text-xs"
+                        className="w-full px-2.5 py-1.5 rounded-control border border-neutral-300 font-medium bg-surface text-xs"
                       >
                         <option value="Mon-Sat">Mon–Sat (Full Time 6 Days)</option>
                         <option value="Mon-Fri">Mon–Fri (Full Time 5 Days)</option>
                         <option value="Mon,Wed,Fri">Mon, Wed, Fri (Visiting Part-Time)</option>
                         <option value="Tue,Thu">Tue, Thu (Visiting Part-Time)</option>
-                      </select>
+                      </Select>
                     </div>
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs print:text-[11px] text-slate-600 font-bold">Select Qualified Teaching Subjects:</label>
-                    <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto p-2 bg-white rounded-xl border border-slate-200">
+                    <label className="text-xs text-neutral-600 font-bold">Select Qualified Teaching Subjects:</label>
+                    <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto p-2 bg-surface rounded-soft border border-neutral-200">
                       {school.subjects.map(s => {
                         const selected = newTeacherSubjects.includes(s.id);
                         return (
-                          <button
+                          <Button
                             key={s.id}
                             type="button"
                             onClick={() => toggleSubjectForNewTeacher(s.id)}
-                            className={`px-2 py-0.5 rounded-md text-xs print:text-[10px] font-semibold border transition cursor-pointer ${
+                            className={`px-2 py-0.5 rounded-tight text-xs font-semibold border transition cursor-pointer ${
                               selected
-                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
-                                : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                                ? 'bg-brand-600 text-white border-brand-600 shadow-2xs'
+                                : 'bg-neutral-50 text-neutral-600 border-neutral-200 hover:bg-neutral-100'
                             }`}
                           >
                             {s.name} ({s.code})
-                          </button>
+                          </Button>
                         );
                       })}
                     </div>
                   </div>
 
                   <div className="flex justify-end gap-2 pt-1">
-                    <button
+                    <Button
                       type="button"
                       onClick={() => setIsAddTeacherOpen(false)}
-                      className="px-3 py-1.5 rounded-xl border border-slate-300 text-slate-700 font-semibold hover:bg-white text-xs cursor-pointer"
+                      className="px-3 py-1.5 rounded-soft border border-neutral-300 text-neutral-700 font-semibold hover:bg-surface text-xs cursor-pointer"
                     >
                       Cancel
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
                       onClick={async () => {
                         await handleAddTeacher();
                         setIsAddTeacherOpen(false);
                       }}
-                      className="px-4 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs cursor-pointer transition shadow-xs"
+                      className="px-4 py-1.5 rounded-soft bg-neutral-900 hover:bg-neutral-800 text-white font-bold text-xs cursor-pointer transition shadow-xs"
                     >
                       Save Faculty Member
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )}
 
               {/* Multi-Column Responsive Grid matching Step 8 */}
+              {filteredStep7Teachers.length === 0 && (
+                <div role="status" className="text-center py-8 text-sm text-neutral-600 border border-dashed border-neutral-200 rounded-soft bg-neutral-50/70">
+                  {school.teachers.length === 0 ? 'Add teaching staff to continue.' : 'No teachers match the current filters.'}
+                </div>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 max-h-[560px] overflow-y-auto pr-1">
                 {filteredStep7Teachers.map(t => {
                   const wl = step7TeacherWorkloads[t.id] || { assigned: 0, max: t.maxPerWeek || 30, pct: 0, overloaded: false };
@@ -3172,55 +3233,55 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                   // Role badge color
                   const resolvedDesig = resolveTeacherDesignation(t);
                   const desig = resolvedDesig.toUpperCase();
-                  let roleColor = 'bg-slate-100 text-slate-700 border-slate-200';
-                  let avatarBg = 'bg-slate-100 text-slate-700';
+                  let roleColor = 'bg-neutral-100 text-neutral-700 border-neutral-200';
+                  let avatarBg = 'bg-neutral-100 text-neutral-700';
                   if (desig === 'PGT') {
-                    roleColor = 'bg-violet-50 text-violet-700 border-violet-200';
-                    avatarBg = 'bg-violet-600 text-white';
+                    roleColor = 'bg-brand-50 text-brand-700 border-brand-200';
+                    avatarBg = 'bg-brand-600 text-white';
                   } else if (desig === 'TGT') {
-                    roleColor = 'bg-indigo-50 text-indigo-700 border-indigo-200';
-                    avatarBg = 'bg-indigo-600 text-white';
+                    roleColor = 'bg-brand-50 text-brand-700 border-brand-200';
+                    avatarBg = 'bg-brand-600 text-white';
                   } else if (desig === 'PRT') {
-                    roleColor = 'bg-emerald-50 text-emerald-700 border-emerald-200';
-                    avatarBg = 'bg-emerald-600 text-white';
+                    roleColor = 'bg-positive-50 text-positive-700 border-positive-200';
+                    avatarBg = 'bg-positive-700 text-white';
                   } else if (desig === 'NTT') {
-                    roleColor = 'bg-amber-50 text-amber-800 border-amber-200';
-                    avatarBg = 'bg-amber-500 text-white';
+                    roleColor = 'bg-warning-50 text-warning-800 border-warning-200';
+                    avatarBg = 'bg-warning-700 text-white';
                   } else if (desig.includes('SPECIALIST') || desig.includes('ACTIVITY')) {
-                    roleColor = 'bg-pink-50 text-pink-700 border-pink-200';
-                    avatarBg = 'bg-pink-600 text-white';
+                    roleColor = 'bg-danger-50 text-danger-700 border-danger-200';
+                    avatarBg = 'bg-danger-600 text-white';
                   }
 
                   return (
                     <div
                       key={t.id}
-                      className={`p-3 rounded-xl border text-xs transition-all duration-200 flex flex-col justify-between shadow-2xs hover:shadow-xs hover:border-slate-300 ${
+                      className={`p-3 rounded-soft border text-xs transition-all duration-200 flex flex-col justify-between shadow-2xs hover:shadow-xs hover:border-neutral-300 ${
                         wl.overloaded
-                          ? 'bg-rose-50/70 border-rose-300 ring-1 ring-rose-300/40'
+                          ? 'bg-danger-50/70 border-danger-300 ring-1 ring-danger-300/40'
                           : isNearCap
-                          ? 'bg-amber-50/60 border-amber-200'
+                          ? 'bg-warning-50/60 border-warning-200'
                           : t.status === 'On Leave'
-                          ? 'bg-slate-50/90 border-slate-300 opacity-80'
-                          : 'bg-white border-slate-200/90'
+                          ? 'bg-neutral-50/90 border-neutral-300 opacity-80'
+                          : 'bg-surface border-neutral-200/90'
                       }`}
                     >
                       {/* Top Header: Avatar + Name + Designation + Delete */}
                       <div>
                         <div className="flex items-start justify-between gap-2 mb-2">
                           <div className="flex items-center gap-2 min-w-0">
-                            <div className={`w-8 h-8 rounded-lg font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs ${avatarBg}`}>
+                            <div className={`w-8 h-8 rounded-control font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs ${avatarBg}`}>
                               {initials}
                             </div>
                             <div className="min-w-0">
-                              <div className="font-bold text-slate-900 text-xs truncate" title={t.name}>
+                              <div className="font-bold text-neutral-900 text-xs truncate" title={t.name}>
                                 {t.name}
                               </div>
                               <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
-                                <span className={`text-xs print:text-[10px] font-bold px-1.5 py-0.2 rounded-md uppercase tracking-wider border ${roleColor}`}>
+                                <span className={`text-xs font-bold px-1.5 py-0.2 rounded-tight uppercase tracking-wider border ${roleColor}`}>
                                   {resolvedDesig}
                                 </span>
                                 {t.teachingWings && (
-                                  <span className="text-xs print:text-[10px] text-slate-400 font-medium truncate max-w-[100px]">
+                                  <span className="text-xs text-neutral-600 font-medium truncate max-w-[100px]">
                                     • {t.teachingWings}
                                   </span>
                                 )}
@@ -3228,25 +3289,25 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                             </div>
                           </div>
 
-                          <button
+                          <Button
                             type="button"
                             onClick={() => handleDeleteTeacher(t.id)}
-                            className="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer shrink-0"
+                            className="p-1 rounded-tight text-neutral-600 hover:text-danger-600 hover:bg-danger-50 transition cursor-pointer shrink-0"
                             title={`Delete Teacher ${t.name}`}
                           >
                             <Trash2 className="w-3 h-3" />
-                          </button>
+                          </Button>
                         </div>
 
                         {/* Badges for Homeroom or Leave */}
                         {t.classTeacherOf && (
-                          <div className="mb-2 px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200 text-xs print:text-[10px] font-bold flex items-center gap-1 w-fit">
+                          <div className="mb-2 px-2 py-0.5 rounded-tight bg-warning-50 text-warning-800 border border-warning-200 text-xs font-bold flex items-center gap-1 w-fit">
                             <span>⭐ Class Teacher: {t.classTeacherOf}</span>
                           </div>
                         )}
                         {t.status === 'On Leave' && (
-                          <div className="mb-2 px-2 py-0.5 rounded-md bg-rose-50 text-rose-800 border border-rose-200 text-xs print:text-[10px] font-bold flex items-center gap-1 w-fit">
-                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />
+                          <div className="mb-2 px-2 py-0.5 rounded-tight bg-danger-50 text-danger-800 border border-danger-200 text-xs font-bold flex items-center gap-1 w-fit">
+                            <span className="w-1.5 h-1.5 rounded-full bg-danger-500 animate-ping" />
                             <span>Maternity Leave (Inactive)</span>
                           </div>
                         )}
@@ -3259,18 +3320,18 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                               const subName = sub?.name || sid.replace(/^sub-/, '').toUpperCase();
                               const isPrimary = (t.primarySubject && (sub?.code === t.primarySubject || sid === t.primarySubject));
                               return (
-                                <span
+                                <Badge
                                   key={sid}
-                                  className={`px-1.5 py-0.5 rounded text-xs print:text-[10px] font-semibold flex items-center gap-0.5 border ${
+                                  className={`px-1.5 py-0.5 rounded-tight text-xs font-semibold flex items-center gap-0.5 border ${
                                     isPrimary
-                                      ? 'bg-indigo-50 text-indigo-700 border-indigo-200 font-bold'
-                                      : 'bg-slate-50 text-slate-600 border-slate-200'
+                                      ? 'bg-brand-50 text-brand-700 border-brand-200 font-bold'
+                                      : 'bg-neutral-50 text-neutral-600 border-neutral-200'
                                   }`}
                                   title={subName}
                                 >
                                   <span className="truncate max-w-[110px]">{subName}</span>
-                                  {isPrimary && <span className="text-xs print:text-[9px] text-indigo-500">★</span>}
-                                </span>
+                                  {isPrimary && <span className="text-xs text-brand-500">★</span>}
+                                </Badge>
                               );
                             })}
                           </div>
@@ -3278,27 +3339,27 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                       </div>
 
                       {/* Bottom Footer: Workload limits + Live Progress Bar (Consistent with Step 8!) */}
-                      <div className="pt-2 border-t border-slate-100 space-y-1.5">
-                        <div className="flex items-center justify-between text-xs print:text-[10px] text-slate-500">
+                      <div className="pt-2 border-t border-neutral-100 space-y-1.5">
+                        <div className="flex items-center justify-between text-xs text-neutral-500">
                           <div className="flex items-center gap-1 font-medium">
-                            <span className="bg-slate-100 text-slate-700 px-1.5 py-0.2 rounded font-bold">
+                            <Badge className="bg-neutral-100 text-neutral-700 px-1.5 py-0.2 rounded-tight font-bold">
                               ≤ {t.maxPerDay} p/day
-                            </span>
-                            <span className="text-slate-400">• {t.workingDays || 'Mon-Sat'}</span>
+                            </Badge>
+                            <span className="text-neutral-600">• {t.workingDays || 'Mon-Sat'}</span>
                           </div>
                           <div className="flex items-center gap-1 font-bold">
                             <span>{wl.assigned}/{wl.max} p/wk</span>
-                            <span className={wl.overloaded ? 'text-rose-600' : isNearCap ? 'text-amber-600' : 'text-slate-600'}>
+                            <span className={wl.overloaded ? 'text-danger-600' : isNearCap ? 'text-warning-800' : 'text-neutral-600'}>
                               ({wl.pct}%)
                             </span>
                           </div>
                         </div>
 
                         {/* Workload Progress Bar */}
-                        <div className="w-full h-1.5 rounded-full bg-slate-200 overflow-hidden">
+                        <div className="w-full h-1.5 rounded-full bg-neutral-200 overflow-hidden">
                           <div
                             className={`h-full transition-all duration-300 ${
-                              wl.overloaded ? 'bg-rose-500' : isNearCap ? 'bg-amber-500' : 'bg-indigo-500'
+                              wl.overloaded ? 'bg-danger-500' : isNearCap ? 'bg-warning-500' : 'bg-brand-500'
                             }`}
                             style={{ width: `${Math.min(wl.pct, 100)}%` }}
                           />
@@ -3308,7 +3369,7 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
                   );
                 })}
               </div>
-            </div>
+            </Card>
           )}
 
           {/* STEP 8: Teaching Assignments */}
@@ -3339,31 +3400,32 @@ export function AdminSetupPanel({ school, updateSchool, onRunSolver, app }: Prop
           )}
 
           {/* Bottom Step Navigation Footer */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs flex items-center justify-between gap-4">
-            <button
-              type="button"
+          <Card className="rounded-card p-3 sm:p-4 shadow-2xs flex items-center justify-between gap-3">
+            <Button
+              variant="secondary"
               disabled={currentStep <= 1}
               onClick={() => setStep(Math.max(1, currentStep - 1))}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+              className="gap-1.5 px-3 sm:px-4 text-xs"
             >
               <ChevronLeft className="w-4 h-4" />
-              <span>Previous Step</span>
-            </button>
+              <span className="hidden sm:inline">Back</span>
+              <span className="sm:hidden">Back</span>
+            </Button>
 
-            <span className="text-xs font-bold text-slate-500">
-              Step {currentStep} of 10
+            <span className="hidden sm:inline text-xs font-medium text-neutral-600">
+              Step {currentStep} of {STEPS.length}
             </span>
 
-            <button
-              type="button"
+            <Button
+              variant="primary"
               disabled={currentStep >= 10}
               onClick={() => setStep(Math.min(10, currentStep + 1))}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+              className="gap-1.5 px-4 text-xs"
             >
-              <span>Next Step</span>
+              <span>{currentStep === 9 ? 'Continue to audit' : 'Continue'}</span>
               <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
+            </Button>
+          </Card>
         </div>
       </div>
 

@@ -3,6 +3,7 @@ import { ShieldCheck, UserCheck, GraduationCap, Building2, Key, Check, X, Lock }
 import type { TimetableApp } from '../../hooks/useTimetableApp';
 import type { Role } from '../../domain/types';
 import { sortClasses, sortTeachers } from '../../utils/sorting';
+import { Button, Card, Input, Select } from '../ui/primitives';
 
 export function LoginModal({ app }: { app: TimetableApp }) {
   const {
@@ -14,11 +15,10 @@ export function LoginModal({ app }: { app: TimetableApp }) {
     login,
   } = app;
 
+  const [selectedSchoolId, setSelectedSchoolId] = useState(activeSchool.id);
   const currentSchool = schools.find(s => s.id === selectedSchoolId) || activeSchool;
   const sortedSchoolTeachers = useMemo(() => sortTeachers(currentSchool.teachers || []), [currentSchool.teachers]);
   const sortedSchoolClasses = useMemo(() => sortClasses(currentSchool.classes || []), [currentSchool.classes]);
-
-  const [selectedSchoolId, setSelectedSchoolId] = useState(activeSchool.id);
   const [selectedRole, setSelectedRole] = useState<Role>(currentUser.role);
   const [selectedTeacherId, setSelectedTeacherId] = useState(
     app.selectedTeacher?.id || currentUser.teacherId || sortedSchoolTeachers[0]?.id || activeSchool.teachers[0]?.id || ''
@@ -99,7 +99,7 @@ export function LoginModal({ app }: { app: TimetableApp }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
+      <Card className="rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
         {/* Header - Fixed */}
         <div className="bg-slate-900 text-white p-5 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
@@ -108,15 +108,16 @@ export function LoginModal({ app }: { app: TimetableApp }) {
             </div>
             <div>
               <h3 className="font-bold text-base sm:text-lg">Tenant Authentication</h3>
-              <p className="text-xs text-slate-400">Select School Organization & Role</p>
+              <p className="text-xs text-slate-600">Select School Organization & Role</p>
             </div>
           </div>
-          <button
+          <Button variant="ghost"
             onClick={() => setIsAuthModalOpen(false)}
+            aria-label="Close login"
             className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition"
           >
             <X className="w-4 h-4" />
-          </button>
+          </Button>
         </div>
 
         {/* Form Body - Scrollable */}
@@ -127,7 +128,7 @@ export function LoginModal({ app }: { app: TimetableApp }) {
               <Building2 className="w-3.5 h-3.5 text-indigo-600" />
               <span>School Organization (Tenant)</span>
             </label>
-            <select
+            <Select
               value={selectedSchoolId}
               onChange={(e) => {
                 setSelectedSchoolId(e.target.value);
@@ -135,14 +136,14 @@ export function LoginModal({ app }: { app: TimetableApp }) {
                 if (s?.teachers[0]) setSelectedTeacherId(s.teachers[0].id);
                 if (s?.classes[0]) setSelectedClassId(s.classes[0].id);
               }}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white font-medium text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="px-3.5 py-2.5 rounded-xl font-medium"
             >
               {schools.map(s => (
                 <option key={s.id} value={s.id}>
                   {s.name} ({s.subdomain})
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
 
           {/* Role Selection */}
@@ -159,7 +160,7 @@ export function LoginModal({ app }: { app: TimetableApp }) {
                 const Icon = r.icon;
                 const active = selectedRole === r.id;
                 return (
-                  <button
+                  <Button variant="secondary"
                     key={r.id}
                     type="button"
                     onClick={() => setSelectedRole(r.id)}
@@ -171,8 +172,8 @@ export function LoginModal({ app }: { app: TimetableApp }) {
                   >
                     <Icon className={`w-5 h-5 mb-1 ${active ? 'text-indigo-600' : 'text-slate-500'}`} />
                     <span className="text-xs font-bold">{r.label}</span>
-                    <span className="text-xs print:text-[10px] text-slate-400">{r.desc}</span>
-                  </button>
+                    <span className="text-xs text-slate-600">{r.desc}</span>
+                  </Button>
                 );
               })}
             </div>
@@ -184,16 +185,16 @@ export function LoginModal({ app }: { app: TimetableApp }) {
               <label className="text-xs font-semibold text-indigo-900 block">
                 Select Teacher Identity:
               </label>
-              <select
+              <Select
                 value={selectedTeacherId}
                 onChange={(e) => setSelectedTeacherId(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-indigo-200 bg-white text-sm font-medium text-slate-800"
+                className="px-3 py-2 rounded-xl font-medium"
               >
                 {sortedSchoolTeachers.map(t => (
                   <option key={t.id} value={t.id}>{t.name}</option>
                 ))}
-              </select>
-              <p className="text-xs print:text-[11px] text-indigo-700">
+              </Select>
+              <p className="text-xs text-indigo-800">
                 Teacher tokens are restricted to their own schedule and self-absence reporting.
               </p>
             </div>
@@ -204,16 +205,16 @@ export function LoginModal({ app }: { app: TimetableApp }) {
               <label className="text-xs font-semibold text-emerald-900 block">
                 Select Class Section:
               </label>
-              <select
+              <Select
                 value={selectedClassId}
                 onChange={(e) => setSelectedClassId(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-emerald-200 bg-white text-sm font-medium text-slate-800"
+                className="px-3 py-2 rounded-xl font-medium"
               >
                 {sortedSchoolClasses.map(c => (
                   <option key={c.id} value={c.id}>{c.name} ({c.grade} • {c.tier})</option>
                 ))}
-              </select>
-              <p className="text-xs print:text-[11px] text-emerald-700">
+              </Select>
+              <p className="text-xs text-emerald-800">
                 Student tokens are restricted to viewing only their assigned class schedule.
               </p>
             </div>
@@ -224,14 +225,14 @@ export function LoginModal({ app }: { app: TimetableApp }) {
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
                 <span>Account Email</span>
-                <span className="text-xs print:text-[10px] text-slate-400 font-normal">Tenant verified</span>
+                <span className="text-xs text-slate-600 font-normal">Tenant verified</span>
               </label>
-              <input
+              <Input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="px-3 py-2 rounded-xl font-medium"
               />
             </div>
             <div className="space-y-1">
@@ -240,15 +241,15 @@ export function LoginModal({ app }: { app: TimetableApp }) {
                   <Lock className="w-3 h-3 text-slate-500" />
                   <span>Password</span>
                 </span>
-                <span className="text-xs print:text-[10px] text-slate-400 font-normal">Encrypted</span>
+                <span className="text-xs text-slate-600 font-normal">Encrypted</span>
               </label>
-              <input
+              <Input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="Enter account password"
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="px-3 py-2 rounded-xl font-medium"
               />
             </div>
           </div>
@@ -256,15 +257,15 @@ export function LoginModal({ app }: { app: TimetableApp }) {
 
         {/* Footer - Fixed */}
         <div className="bg-slate-50 border-t border-slate-200 p-4 flex items-center justify-end gap-3 shrink-0">
-          <button
+          <Button variant="ghost"
             type="button"
             onClick={() => setIsAuthModalOpen(false)}
             className="px-4 py-2 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-200 transition cursor-pointer"
           >
             Cancel
-          </button>
+          </Button>
 
-          <button
+          <Button variant="primary"
             type="button"
             onClick={handleLogin}
             disabled={isSubmitting}
@@ -272,9 +273,9 @@ export function LoginModal({ app }: { app: TimetableApp }) {
           >
             <Check className="w-4 h-4" />
             <span>{isSubmitting ? 'Signing In...' : 'Sign In'}</span>
-          </button>
+          </Button>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

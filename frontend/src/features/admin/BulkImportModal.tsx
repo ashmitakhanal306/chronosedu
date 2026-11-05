@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Upload, Download, FileSpreadsheet, CheckCircle2, AlertTriangle, X, Plus } from 'lucide-react';
 import type { School, Tier } from '../../domain/types';
+import { Button } from '../../components/ui/primitives';
 
 interface Props {
   isOpen: boolean;
@@ -177,12 +178,13 @@ export function BulkImportModal({ isOpen, onClose, school, updateSchool, onRunSo
               <p className="text-xs text-slate-400">Import class sections or faculty staff rosters from CSV</p>
             </div>
           </div>
-          <button
+          <Button variant="ghost"
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition cursor-pointer"
+            aria-label="Close bulk import"
+            className="min-h-10 min-w-10 rounded-full bg-slate-800 text-white hover:bg-slate-700"
           >
             <X className="w-4 h-4" />
-          </button>
+          </Button>
         </div>
 
         {/* Body */}
@@ -241,7 +243,7 @@ export function BulkImportModal({ isOpen, onClose, school, updateSchool, onRunSo
           {/* Upload or Paste */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="font-bold text-slate-700">
+              <label htmlFor="bulk-import-csv" className="font-bold text-slate-700">
                 Paste CSV Data or Choose File:
               </label>
               <label className="text-indigo-600 font-semibold hover:underline cursor-pointer">
@@ -256,6 +258,7 @@ export function BulkImportModal({ isOpen, onClose, school, updateSchool, onRunSo
             </div>
 
             <textarea
+              id="bulk-import-csv"
               rows={4}
               value={csvText}
               onChange={handleTextChange}
@@ -264,7 +267,7 @@ export function BulkImportModal({ isOpen, onClose, school, updateSchool, onRunSo
                   ? 'name,grade,tier,room\n6A,Grade 6,Primary,Room 103\n11B,Grade 11,Senior,Room 203'
                   : 'name,subjects,maxPerDay\nDr. Emily Watson,Mathematics;General Science,5\nMr. Arthur Clark,English Lit;Social Studies,5'
               }
-              className="w-full p-3 font-mono text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50/50"
+              className="w-full min-h-28 p-3 font-mono text-sm rounded-xl border border-slate-300 focus-visible:outline-2 focus-visible:outline-indigo-600 bg-slate-50/50"
             />
           </div>
 
@@ -274,7 +277,7 @@ export function BulkImportModal({ isOpen, onClose, school, updateSchool, onRunSo
               <div className="flex items-center justify-between font-bold text-slate-800">
                 <span>Parsed Preview ({parsedItems.length} records detected, {validCount} ready)</span>
                 {validCount > 0 && (
-                  <span className="text-emerald-600 font-semibold">✓ Ready to Ingest</span>
+                  <span className="text-emerald-700 font-semibold">✓ Ready to Ingest</span>
                 )}
               </div>
 
@@ -286,12 +289,12 @@ export function BulkImportModal({ isOpen, onClose, school, updateSchool, onRunSo
                       {importMode === 'classes' ? (
                         <>
                           <span className="text-slate-500">({item.grade})</span>
-                          <span className={`px-1.5 py-0.2 rounded text-xs print:text-[10px] font-semibold ${
+                          <span className={`px-1.5 py-0.2 rounded text-xs font-semibold ${
                             item.tier === 'Primary' ? 'bg-emerald-100 text-emerald-800' : 'bg-sky-100 text-sky-800'
                           }`}>
                             {item.tier}
                           </span>
-                          <span className="text-slate-400">{item.room}</span>
+                          <span className="text-slate-600">{item.room}</span>
                         </>
                       ) : (
                         <>
@@ -302,12 +305,12 @@ export function BulkImportModal({ isOpen, onClose, school, updateSchool, onRunSo
 
                     <div>
                       {item.isDuplicate ? (
-                        <span className="inline-flex items-center gap-1 text-xs print:text-[11px] font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md">
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md">
                           <AlertTriangle className="w-3 h-3" />
                           <span>Already Exists</span>
                         </span>
                       ) : item.isValid ? (
-                        <span className="inline-flex items-center gap-1 text-xs print:text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
                           <CheckCircle2 className="w-3 h-3" />
                           <span>Valid</span>
                         </span>
@@ -339,22 +342,20 @@ export function BulkImportModal({ isOpen, onClose, school, updateSchool, onRunSo
           </div>
 
           <div className="flex items-center gap-2">
-            <button
+            <Button variant="secondary"
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200 transition cursor-pointer"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button variant="primary"
               type="button"
               onClick={handleCommitImport}
               disabled={validCount === 0}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold text-xs shadow-xs transition cursor-pointer"
             >
               <Upload className="w-4 h-4" />
               <span>Import & Solve Timetable</span>
-            </button>
+            </Button>
           </div>
         </div>
       </div>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Calendar, Plus, Trash2, Sun, Sparkles, AlertCircle, Clock } from 'lucide-react';
 import type { School, Holiday } from '../../domain/types';
 import type { TimetableApp } from '../../hooks/useTimetableApp';
+import { Badge, Button, Card, Input, Select } from '../../components/ui/primitives';
 
 interface Props {
   school: School;
@@ -66,65 +67,65 @@ export function HolidayCalendarCard({ school, app }: Props) {
   const getTypeBadge = (hType?: string) => {
     switch (hType) {
       case 'national':
-        return <span className="px-2 py-0.5 rounded-full text-xs print:text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">National / Public</span>;
+        return <Badge className="px-2 py-0.5 rounded-full text-xs font-bold bg-warning-50 text-warning-700 border border-warning-200">National / Public</Badge>;
       case 'exam':
-        return <span className="px-2 py-0.5 rounded-full text-xs print:text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">Exam Period</span>;
+        return <Badge className="px-2 py-0.5 rounded-full text-xs font-bold bg-danger-50 text-danger-700 border border-danger-200">Exam Period</Badge>;
       case 'staff_day':
-        return <span className="px-2 py-0.5 rounded-full text-xs print:text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">Staff Training</span>;
+        return <Badge className="px-2 py-0.5 rounded-full text-xs font-bold bg-brand-50 text-brand-700 border border-brand-200">Staff Training</Badge>;
       default:
-        return <span className="px-2 py-0.5 rounded-full text-xs print:text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">School Break</span>;
+        return <Badge className="px-2 py-0.5 rounded-full text-xs font-bold bg-positive-50 text-positive-700 border border-positive-200">School Break</Badge>;
     }
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 shadow-xs">
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
-        <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-emerald-600" />
+    <Card className="bg-surface rounded-card border border-neutral-200 p-5 space-y-4 shadow-xs">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 pb-3">
+        <h3 className="font-bold text-base text-neutral-900 flex items-center gap-2">
+          <Calendar className="w-4 h-4 text-positive-600" />
           <span>Holiday Calendar &amp; School Closures</span>
         </h3>
-        <span className="text-xs print:text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">
+        <Badge className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-positive-50 text-positive-700 border border-positive-100">
           {holidays.length} Event{holidays.length === 1 ? '' : 's'} Configured
-        </span>
+        </Badge>
       </div>
 
-      <p className="text-xs text-slate-500">
+      <p className="text-xs text-neutral-500">
         Non-teaching periods, national holidays, exam blocks, and staff development days. Lessons will not be scheduled on dates falling within these ranges.
       </p>
 
       {/* Add Holiday Form */}
-      <form onSubmit={handleAdd} className="bg-slate-50 rounded-xl p-3 border border-slate-200 space-y-3">
+      <form onSubmit={handleAdd} className="bg-neutral-50 rounded-soft p-3 border border-neutral-200 space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
           <div className="sm:col-span-2">
-            <label className="block text-xs print:text-[11px] font-bold text-slate-600 mb-1">Holiday / Closure Name</label>
-            <input
+            <label className="block text-xs font-bold text-neutral-600 mb-1">Holiday / Closure Name</label>
+            <Input
               type="text"
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="e.g. Diwali Break, Winter Recess, Staff Day"
-              className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-2.5 py-1.5 rounded-control border border-neutral-300 text-xs bg-surface focus:outline-none focus:ring-2 focus:ring-positive-500"
               required
             />
           </div>
 
           <div>
-            <label className="block text-xs print:text-[11px] font-bold text-slate-600 mb-1">Start Date</label>
-            <input
+            <label className="block text-xs font-bold text-neutral-600 mb-1">Start Date</label>
+            <Input
               type="date"
               value={startDate}
               onChange={e => setStartDate(e.target.value)}
-              className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-2.5 py-1.5 rounded-control border border-neutral-300 text-xs bg-surface focus:outline-none focus:ring-2 focus:ring-positive-500"
               required
             />
           </div>
 
           <div>
-            <label className="block text-xs print:text-[11px] font-bold text-slate-600 mb-1">End Date</label>
-            <input
+            <label className="block text-xs font-bold text-neutral-600 mb-1">End Date</label>
+            <Input
               type="date"
               value={endDate}
               onChange={e => setEndDate(e.target.value)}
-              className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-2.5 py-1.5 rounded-control border border-neutral-300 text-xs bg-surface focus:outline-none focus:ring-2 focus:ring-positive-500"
               required
             />
           </div>
@@ -132,69 +133,69 @@ export function HolidayCalendarCard({ school, app }: Props) {
 
         <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
           <div className="flex items-center gap-2">
-            <label className="text-xs print:text-[11px] font-bold text-slate-600">Category:</label>
-            <select
+            <label className="text-xs font-bold text-neutral-600">Category:</label>
+            <Select
               value={type}
               onChange={e => setType(e.target.value as any)}
-              className="px-2.5 py-1 rounded-lg border border-slate-300 text-xs bg-white font-medium"
+              className="px-2.5 py-1 rounded-control border border-neutral-300 text-xs bg-surface font-medium"
             >
               <option value="school">School Holiday / Vacation</option>
               <option value="national">National / Gazetted Holiday</option>
               <option value="exam">Examination Block</option>
               <option value="staff_day">Teacher In-Service / Staff Day</option>
-            </select>
+            </Select>
           </div>
 
-          <button
+          <Button
             type="submit"
             disabled={isSubmitting || !name.trim() || !startDate || !endDate}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-semibold text-xs shadow-xs transition cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-soft bg-positive-700 hover:bg-positive-800 disabled:opacity-50 text-white font-semibold text-xs shadow-xs transition cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Add to Calendar</span>
-          </button>
+          </Button>
         </div>
       </form>
 
       {/* Holidays List */}
       <div className="space-y-2">
         {holidays.length === 0 ? (
-          <div className="p-4 rounded-xl border border-dashed border-slate-200 text-center text-xs text-slate-400">
+          <div className="p-4 rounded-soft border border-dashed border-neutral-200 text-center text-xs text-neutral-600">
             No holidays registered yet. Add school breaks or exam weeks above.
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1">
             {holidays.map(h => (
-              <div
+              <Card
                 key={h.id}
-                className="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 bg-white hover:border-emerald-200 hover:bg-emerald-50/20 transition group"
+                className="flex items-center justify-between p-2.5 rounded-soft border border-neutral-200 bg-surface hover:border-positive-200 hover:bg-positive-50/20 transition group"
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-xs text-slate-900">{h.name}</span>
+                    <span className="font-semibold text-xs text-neutral-900">{h.name}</span>
                     {getTypeBadge(h.type)}
                   </div>
-                  <div className="flex items-center gap-2 text-xs print:text-[11px] text-slate-500">
-                    <Clock className="w-3 h-3 text-slate-400" />
+                  <div className="flex items-center gap-2 text-xs text-neutral-500">
+                    <Clock className="w-3 h-3 text-neutral-600" />
                     <span>{h.startDate} &rarr; {h.endDate}</span>
-                    <span className="text-slate-400">&bull;</span>
-                    <span className="font-medium text-emerald-700">{calculateDays(h.startDate, h.endDate)}</span>
+                    <span className="text-neutral-600">&bull;</span>
+                    <span className="font-medium text-positive-700">{calculateDays(h.startDate, h.endDate)}</span>
                   </div>
                 </div>
 
-                <button
+                <Button
                   type="button"
                   onClick={() => handleDelete(h.id)}
-                  className="opacity-60 group-hover:opacity-100 p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                  className="opacity-60 group-hover:opacity-100 p-1 rounded-control text-neutral-600 hover:text-danger-600 hover:bg-danger-50 transition cursor-pointer"
                   title="Remove holiday"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              </div>
+                </Button>
+              </Card>
             ))}
           </div>
         )}
       </div>
-    </div>
+    </Card>
   );
 }
