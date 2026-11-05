@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { BarChart3, ChevronDown, ChevronUp, AlertCircle, CheckCircle2 } from 'lucide-react';
 import type { EntryMap, School, Subject, Teacher } from '../../domain/types';
+import { Badge, Button, Card } from '../ui/primitives';
 
 interface Props {
   school: School;
@@ -53,67 +54,71 @@ export function FacultyWorkloadHeatmap({ school, entries, subjectMap, onSelectTe
   const averageLoadPerDay = (totalSlotsAllTeachers / (school.teachers.length * school.workingDays.length)).toFixed(1);
 
   const getBadgeStyle = (count: number) => {
-    if (count === 0) return 'bg-slate-100 text-slate-500 border-slate-200';
-    if (count <= 3) return 'bg-emerald-50 text-emerald-700 border-emerald-200 font-bold';
-    if (count === 4) return 'bg-sky-50 text-sky-700 border-sky-200 font-bold';
-    if (count === maxCap) return 'bg-amber-50 text-amber-800 border-amber-300 font-bold';
-    return 'bg-rose-100 text-rose-800 border-rose-300 font-bold animate-pulse';
+    if (count === 0) return 'bg-neutral-100 text-neutral-500 border-neutral-200';
+    if (count <= 3) return 'bg-positive-50 text-positive-700 border-positive-200 font-bold';
+    if (count === 4) return 'bg-info-50 text-info-700 border-info-200 font-bold';
+    if (count === maxCap) return 'bg-warning-50 text-warning-800 border-warning-300 font-bold';
+    return 'bg-danger-100 text-danger-800 border-danger-300 font-bold animate-pulse';
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+    <Card className="bg-surface rounded-card border border-neutral-200 shadow-2xs overflow-hidden">
       {/* Header bar with toggle */}
-      <div
+      <Button
+        variant="ghost"
+        type="button"
+        aria-expanded={isExpanded}
+        aria-controls="faculty-workload-rows"
         onClick={() => setIsExpanded(!isExpanded)}
-        className="px-4 py-3 bg-slate-50/70 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 cursor-pointer hover:bg-slate-100/60 transition"
+        className="w-full text-left px-4 py-3 bg-neutral-50/70 border-b border-neutral-200 flex flex-wrap items-center justify-between gap-3 cursor-pointer hover:bg-neutral-100/60 transition"
       >
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center shadow-xs">
+        <span className="flex items-center gap-2.5">
+          <Badge className="w-7 h-7 rounded-control bg-brand-600 text-white flex items-center justify-center shadow-xs">
             <BarChart3 className="w-3.5 h-3.5" />
-          </div>
-          <div>
-            <h4 className="font-bold text-xs text-slate-900 flex items-center gap-2">
+          </Badge>
+          <span>
+            <span role="heading" aria-level={4} className="font-bold text-xs text-neutral-900 flex items-center gap-2">
               <span>Faculty Workload Visual Heatmap</span>
-              <span className="px-1.5 py-0.2 rounded-md text-xs print:text-[10px] bg-indigo-100 text-indigo-700 font-semibold">
+              <Badge className="px-1.5 py-0.2 rounded-tight text-xs bg-brand-100 text-brand-700 font-semibold">
                 {school.teachers.length} Faculty
-              </span>
-            </h4>
-            <p className="text-xs print:text-[10px] text-slate-500">
+              </Badge>
+            </span>
+            <span className="block text-xs text-neutral-500">
               Fatigue cap: <strong>≤ {maxCap} periods/day</strong> • Average load: <strong>{averageLoadPerDay} periods/day</strong>
-            </p>
-          </div>
-        </div>
+            </span>
+          </span>
+        </span>
 
-        <div className="flex items-center gap-3 text-xs">
+        <span className="flex items-center gap-3 text-xs">
           {/* Legend */}
-          <div className="hidden sm:flex items-center gap-2 text-xs print:text-[10px]">
-            <span className="flex items-center gap-1 text-slate-600">
-              <span className="w-2 h-2 rounded-xs bg-emerald-400" />
+          <span className="hidden sm:flex items-center gap-2 text-xs">
+            <span className="flex items-center gap-1 text-neutral-600">
+              <span className="w-2 h-2 rounded-xs bg-positive-400" />
               <span>1–3 Light</span>
             </span>
-            <span className="flex items-center gap-1 text-slate-600">
-              <span className="w-2 h-2 rounded-xs bg-sky-400" />
+            <span className="flex items-center gap-1 text-neutral-600">
+              <span className="w-2 h-2 rounded-xs bg-info-400" />
               <span>4 Optimal</span>
             </span>
-            <span className="flex items-center gap-1 text-slate-600">
-              <span className="w-2 h-2 rounded-xs bg-amber-400" />
+            <span className="flex items-center gap-1 text-neutral-600">
+              <span className="w-2 h-2 rounded-xs bg-warning-400" />
               <span>5 Cap</span>
             </span>
-          </div>
+          </span>
 
-          <div className="flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700">
+          <span className="flex items-center gap-1 text-xs font-semibold text-brand-600 hover:text-brand-700">
             <span>{isExpanded ? 'Collapse Matrix' : 'Expand Matrix'}</span>
             {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-          </div>
-        </div>
-      </div>
+          </span>
+        </span>
+      </Button>
 
       {/* Expanded Table */}
       {isExpanded && (
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-left text-xs">
+        <div id="faculty-workload-rows" className="w-full min-w-0 max-w-full overflow-x-auto overscroll-x-contain">
+          <table className="w-full min-w-[640px] border-collapse text-left text-xs">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50/50 text-xs print:text-[10px] uppercase tracking-wider text-slate-500">
+              <tr className="border-b border-neutral-200 bg-neutral-50/50 text-xs uppercase tracking-wider text-neutral-500">
                 <th className="py-2 px-4 font-semibold w-48">Instructor</th>
                 {school.workingDays.map(d => (
                   <th key={d} className="py-2 px-2.5 font-semibold text-center w-20">
@@ -124,21 +129,30 @@ export function FacultyWorkloadHeatmap({ school, entries, subjectMap, onSelectTe
                 <th className="py-2 px-4 font-semibold text-right">Capacity Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-xs">
+            <tbody className="divide-y divide-neutral-100 text-xs">
               {teacherRows.map(r => {
                 const qualifiedNames = r.teacher.subjects.map(sid => subjectMap[sid]?.name).filter(Boolean).join(', ');
                 return (
                   <tr
                     key={r.teacher.id}
                     onClick={() => onSelectTeacher(r.teacher.id)}
-                    className="hover:bg-indigo-50/40 transition cursor-pointer group"
+                    className="hover:bg-brand-50/40 transition cursor-pointer group"
                     title={`Click to view ${r.teacher.name}'s schedule`}
                   >
                     <td className="py-2 px-4">
-                      <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition">
+                      <Button
+                        variant="ghost"
+                        type="button"
+                        aria-label={`View ${r.teacher.name}'s schedule`}
+                        onClick={event => {
+                          event.stopPropagation();
+                          onSelectTeacher(r.teacher.id);
+                        }}
+                        className="w-full min-h-0 justify-start rounded-tight px-0 py-0 text-left font-bold text-neutral-900 group-hover:text-brand-600 transition focus-visible:outline-2 focus-visible:outline-brand-600 focus-visible:outline-offset-1"
+                      >
                         {r.teacher.name}
-                      </div>
-                      <div className="text-xs print:text-[10px] text-slate-400 truncate max-w-[180px]">
+                      </Button>
+                      <div className="text-xs text-neutral-600 truncate max-w-[180px]">
                         {qualifiedNames || 'General Faculty'}
                       </div>
                     </td>
@@ -148,7 +162,7 @@ export function FacultyWorkloadHeatmap({ school, entries, subjectMap, onSelectTe
                       return (
                         <td key={d} className="py-2 px-2.5 text-center">
                           <span
-                            className={`inline-block px-2 py-0.5 rounded-md border text-xs print:text-[11px] min-w-[30px] ${getBadgeStyle(count)}`}
+                            className={`inline-block px-2 py-0.5 rounded-tight border text-xs min-w-[30px] ${getBadgeStyle(count)}`}
                           >
                             {count}
                           </span>
@@ -157,27 +171,27 @@ export function FacultyWorkloadHeatmap({ school, entries, subjectMap, onSelectTe
                     })}
 
                     <td className="py-2 px-2.5 text-center">
-                      <span className="font-bold text-slate-800 text-xs">
+                      <span className="font-bold text-neutral-800 text-xs">
                         {r.totalWeekly}
                       </span>
-                      <span className="text-xs print:text-[9px] text-slate-400 block -mt-0.5">periods</span>
+                      <span className="text-xs text-neutral-600 block -mt-0.5">periods</span>
                     </td>
 
                     <td className="py-2 px-4 text-right">
                       {r.isOverCap ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 border border-rose-200 text-rose-700 font-bold text-xs print:text-[10px]">
+                        <Badge className="inline-flex items-center gap-1 px-2 py-0.5 rounded-tight bg-danger-50 border border-danger-200 text-danger-700 font-bold text-xs">
                           <AlertCircle className="w-3 h-3" />
                           <span>Exceeds Cap</span>
-                        </span>
+                        </Badge>
                       ) : r.isAtCap ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-amber-700 font-bold text-xs print:text-[10px]">
+                        <Badge className="inline-flex items-center gap-1 px-2 py-0.5 rounded-tight bg-warning-50 border border-warning-200 text-warning-700 font-bold text-xs">
                           <span>At Cap (5/5)</span>
-                        </span>
+                        </Badge>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 font-medium text-xs print:text-[10px]">
+                        <Badge className="inline-flex items-center gap-1 px-2 py-0.5 rounded-tight bg-positive-50 border border-positive-200 text-positive-700 font-medium text-xs">
                           <CheckCircle2 className="w-3 h-3" />
                           <span>Optimal (Sub Ready)</span>
-                        </span>
+                        </Badge>
                       )}
                     </td>
                   </tr>
@@ -187,6 +201,6 @@ export function FacultyWorkloadHeatmap({ school, entries, subjectMap, onSelectTe
           </table>
         </div>
       )}
-    </div>
+    </Card>
   );
 }

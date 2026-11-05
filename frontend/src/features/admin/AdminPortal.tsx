@@ -24,7 +24,7 @@ export function AdminPortal({ app }: { app: TimetableApp }) {
   const TABS: { id: AdminTab; label: string; icon: any; badge?: number }[] = [
     { id: 'overview', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'wizard', label: 'Setup Wizard', icon: Sliders },
-    { id: 'studio', label: 'Timetable', icon: Calendar },
+    { id: 'studio', label: 'Timetable Studio', icon: Calendar },
     {
       id: 'substitutes',
       label: 'Absences',
@@ -46,24 +46,29 @@ export function AdminPortal({ app }: { app: TimetableApp }) {
   return (
     <div className="space-y-6">
       {/* Sleek horizontal 7-tab sub-navbar mirroring chronosedu-gray.vercel.app */}
-      <div className="no-print bg-slate-900 border border-slate-800 rounded-2xl p-1.5 shadow-sm overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        <div className="flex items-center gap-1 min-w-max">
+      <nav aria-label="Admin sections" className="no-print w-full min-w-0 bg-slate-900 border border-slate-800 rounded-2xl p-1.5 shadow-sm overflow-x-auto overscroll-x-contain scrollbar-thin scrollbar-thumb-slate-600">
+        <div className="flex w-max min-w-full items-center gap-1">
           {TABS.map(tab => {
             const active = normalizedTab === tab.id;
+            const TabIcon = tab.icon;
             return (
               <button
                 key={tab.id}
                 type="button"
                 onClick={() => setAdminTab(tab.id)}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition cursor-pointer ${
+                aria-current={active ? 'page' : undefined}
+                aria-pressed={active}
+                aria-label={tab.badge ? `${tab.label}, ${tab.badge} active absences` : tab.label}
+                className={`inline-flex min-h-10 shrink-0 items-center gap-2 px-3 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition cursor-pointer focus-visible:outline-2 focus-visible:outline-brand-300 ${
                   active
-                    ? 'bg-indigo-600 text-white shadow-sm'
+                    ? 'bg-brand-600 text-white shadow-sm ring-1 ring-white/20'
                     : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
                 }`}
               >
+                <TabIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
                 <span>{tab.label}</span>
                 {tab.badge !== undefined && (
-                  <span className="px-1.5 py-0.2 rounded-full text-xs print:text-[10px] bg-rose-500 text-white font-bold">
+                  <span className="px-1.5 py-0.2 rounded-full text-xs bg-rose-500 text-white font-bold">
                     {tab.badge}
                   </span>
                 )}
@@ -71,7 +76,7 @@ export function AdminPortal({ app }: { app: TimetableApp }) {
             );
           })}
         </div>
-      </div>
+      </nav>
 
       {/* Render Active Tab Canvas */}
       {normalizedTab === 'overview' && <OverviewTab app={app} />}

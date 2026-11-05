@@ -1,7 +1,9 @@
 import type { ClassSection, EntryMap, School, Subject, Teacher } from '../../domain/types';
 import { computeBellSchedule } from '../../engine/bellSchedule';
 import { DEFAULT_TIMING_CONFIG } from '../../domain/types';
-import { FlaskConical, Pin } from 'lucide-react';
+import { AlertTriangle, ArrowLeftRight, Clock3, FlaskConical, MapPin, Pin } from 'lucide-react';
+import { Badge, Card } from '../ui/primitives';
+import { getSubjectCellClasses, getTodayColumn, isCurrentPeriod } from './gridDisplay';
 
 interface Props {
   school: School;
@@ -30,9 +32,10 @@ export function ClassTimetableGrid({
   const timing = school.timingConfig || DEFAULT_TIMING_CONFIG;
   const bellSchedule = computeBellSchedule(timing, school.rules);
   const dismissalTime = cls.tier === 'Primary' ? bellSchedule.primaryDismissalTime : bellSchedule.seniorDismissalTime;
+  const today = getTodayColumn(school.workingDays);
 
   return (
-    <div className="printable-timetable bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+    <Card className="printable-timetable rounded-2xl shadow-xs overflow-hidden p-0">
       {/* Print-Only Header */}
       <div className="hidden print:flex items-center justify-between p-4 border-b border-slate-300 bg-white">
         <div>
@@ -72,23 +75,29 @@ export function ClassTimetableGrid({
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-left">
+      <div role="region" aria-label={`Weekly timetable for class ${cls.name}`} tabIndex={0} className="w-full min-w-0 max-w-full max-h-[75vh] overflow-auto overscroll-contain focus-visible:outline-2 focus-visible:outline-brand-600 print:max-h-none print:overflow-visible print:static">
+        <table aria-label={`Class ${cls.name} weekly timetable`} className="w-full min-w-[1000px] border-collapse text-left print:min-w-0">
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-50 text-xs print:text-[11px] uppercase tracking-wider text-slate-500">
-              <th className="py-3 px-4 w-36 font-semibold">Period / Time</th>
+            <tr className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
+              <th scope="col" className="sticky top-0 left-0 z-30 py-3 px-4 w-36 min-w-36 font-semibold bg-slate-50 print:static print:z-auto print:min-w-0">
+                Period / Time
+              </th>
               {school.workingDays.map(day => {
                 const isSat = day === 'Saturday';
                 const isActivityDay = day === school.rules.activityDay;
+                const isToday = day === today;
                 return (
-                  <th key={day} className={`py-3 px-4 font-semibold min-w-[160px] ${
-                    isSat ? 'bg-amber-50/60 border-l-2 border-amber-300' : ''
+                    <th key={day} scope="col" className={`sticky top-0 z-20 py-3 px-4 font-semibold min-w-[160px] bg-slate-50 print:static print:z-auto print:min-w-0 ${
+                    isSat ? 'bg-amber-50/60 border-l-2 border-amber-300 print:bg-amber-50/60' : ''
+                  } ${
+                    isToday ? `border-b-2 border-brand-600 bg-brand-50 ${isSat ? 'print:bg-amber-50/60' : 'print:bg-slate-50'} print:border-b-0` : ''
                   }`}>
                     <div className="flex items-center justify-between gap-1">
                       <div>
-                        <div className={isSat ? 'text-amber-800' : ''}>{day}</div>
+                        <div className={isSat && !isToday ? 'text-amber-800' : ''}>{day}</div>
+                        {isToday && <Badge className="mt-1 border-brand-100 bg-brand-100 text-brand-700 print:hidden">Today</Badge>}
                         {isSat && (
-                          <div className="text-xs print:text-[9px] font-normal normal-case tracking-normal text-amber-600 mt-0.5">Saturday school day</div>
+                          <div className="text-xs print:text-[9px] font-normal normal-case tracking-normal text-amber-700 mt-0.5">Saturday school day</div>
                         )}
                       </div>
                       <div className="flex flex-col items-end gap-0.5">
@@ -114,8 +123,8 @@ export function ClassTimetableGrid({
               // If Primary class and slot is seniorOnly, show greyed-out dismissal row
               if (cls.tier === 'Primary' && slot.seniorOnly) {
                 return (
-                  <tr key={slot.label} className="bg-slate-100/70 text-slate-400">
-                    <td className="py-2.5 px-4 font-medium">
+                  <tr key={slot.label} className="bg-slate-100/70 text-slate-600 print:text-slate-400">
+                    <td className="sticky left-0 z-10 py-2.5 px-4 font-medium bg-slate-100/70 print:static print:z-auto">
                       <div>{slot.label}</div>
                       <div className="text-xs print:text-[10px]">{slot.time}</div>
                     </td>
@@ -130,9 +139,9 @@ export function ClassTimetableGrid({
               if (slot.isBreak) {
                 return (
                   <tr key={slot.label} className="bg-amber-50/40 text-slate-600">
-                    <td className="py-2.5 px-4 font-semibold text-slate-700 border-r border-slate-200">
+                    <td className="sticky left-0 z-10 py-2.5 px-4 font-semibold text-slate-700 border-r border-slate-200 bg-amber-50/40 print:static print:z-auto">
                       <div>{slot.label}</div>
-                      <div className="text-xs print:text-[10px] text-slate-400">{slot.time}</div>
+                      <div className="text-xs print:text-[10px] text-slate-500">{slot.time}</div>
                     </td>
                     <td colSpan={school.workingDays.length} className="py-2.5 px-4 text-center font-semibold tracking-wide text-slate-600">
                       {slot.type === 'zero' ? `🌅 ${slot.label} (${slot.time})` : slot.type === 'lunch' ? `🍱 ${slot.label} (${slot.time})` : `☕ ${slot.label} (${slot.time})`}
@@ -144,11 +153,13 @@ export function ClassTimetableGrid({
               const periodNum = slot.number as number;
               if (periodNum > maxPeriod) return null;
 
+              const isNow = isCurrentPeriod(slot.time);
               return (
                 <tr key={slot.label} className="hover:bg-slate-50/50 transition">
-                  <td className="py-3 px-4 border-r border-slate-200 align-top bg-slate-50/30">
+                  <td className={`sticky left-0 z-10 py-3 px-4 border-r border-slate-200 align-top bg-slate-50/30 print:static print:z-auto ${isNow ? 'border-l-4 border-l-brand-600 print:border-l-0' : ''}`}>
                     <div className="font-bold text-slate-800">{slot.label}</div>
-                    <div className="text-xs print:text-[11px] text-slate-500">{slot.time}</div>
+                    <div className="text-xs text-slate-600">{slot.time}</div>
+                    {isNow && <Badge className="mt-1 gap-1 border-brand-200 bg-brand-50 text-brand-700 print:hidden"><Clock3 className="h-3 w-3" />Now</Badge>}
                     {slot.note && (
                       <div className="mt-1 inline-block text-xs print:text-[10px] px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 font-medium">
                         {slot.note}
@@ -158,6 +169,8 @@ export function ClassTimetableGrid({
 
                   {school.workingDays.map((day, dayIdx) => {
                     const isSatCol = day === 'Saturday';
+                    const isToday = day === today;
+                    const isCurrentCell = isToday && isNow;
                     const key = `${day}-${periodNum}-${cls.id}`;
                     const entry = entries[key];
                     const sub = entry ? subjectMap[entry.subjectId] : null;
@@ -214,38 +227,43 @@ export function ClassTimetableGrid({
                     return (
                       <td
                         key={day}
-                        onClick={() => isAdmin && onSlotClick(day, periodNum, cls.id)}
-                        className={`p-2.5 border-r align-top transition ${
+                        className={`relative p-2.5 border-r align-top transition ${
                           isSatCol ? 'bg-amber-50/20 border-amber-200' : 'border-slate-100'
                         } ${
                           isAdmin ? 'cursor-pointer hover:bg-indigo-50/40' : ''
-                        } ${isActivitySlot ? 'bg-purple-50/30' : ''}`}
+                        } ${isActivitySlot ? 'bg-purple-50/30' : ''} ${isToday ? 'border-l-2 border-l-brand-300 print:border-l-0' : ''} ${isCurrentCell ? 'ring-2 ring-inset ring-brand-500 print:ring-0' : ''}`}
                       >
+                        {isAdmin && <button
+                          type="button"
+                          aria-label={`Edit ${day} period ${periodNum}${sub?.name ? `, ${sub.name}` : ', free period'}`}
+                          onClick={() => onSlotClick(day, periodNum, cls.id)}
+                          className="absolute inset-0 z-10 cursor-pointer bg-transparent text-transparent print:hidden focus-visible:outline-2 focus-visible:outline-brand-600 focus-visible:outline-offset-[-3px]"
+                        />}
                         {entry && sub ? (
                           <div
-                            className={`p-2.5 rounded-xl border ${sub.color} relative space-y-1.5 shadow-2xs transition-all duration-200 ${
+                            className={`p-2.5 rounded-xl border ${getSubjectCellClasses(sub.color)} relative space-y-1.5 shadow-2xs transition-all duration-200 ${
                               isHighlighted
-                                ? 'ring-2 ring-indigo-600 shadow-md scale-[1.02] z-10 bg-white/95'
+                                ? 'ring-2 ring-indigo-600 shadow-md scale-[1.02] z-10 print:bg-white/95'
                                 : ''
                             } ${isDimmed ? 'opacity-20 grayscale-[30%]' : ''}`}
                           >
                             <div className="flex items-start justify-between gap-1">
-                              <span className="font-bold text-xs leading-tight">{sub.name}</span>
+                              <span className="font-bold text-sm print:text-xs leading-tight">{sub.name}</span>
                               <div className="flex items-center gap-1 shrink-0">
                                 {isPinned && (
-                                  <span className="text-xs print:text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-500 text-white flex items-center gap-0.5 shadow-2xs" title="Pinned Slot: Solver will never move this lesson">
-                                    <Pin className="w-2.5 h-2.5" />
+                                  <span className="text-xs print:text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-700 text-white flex items-center gap-1 shadow-2xs" title="Pinned Slot: Solver will never move this lesson">
+                                    <Pin className="w-3 h-3 print:hidden" />
                                     <span>Pinned</span>
                                   </span>
                                 )}
                                 {isDoubleBlock && (
-                                  <span className="text-xs print:text-[9px] font-bold px-1.5 py-0.2 rounded bg-purple-600 text-white flex items-center gap-0.5 shadow-2xs" title="90-Minute Consecutive Lab / Practical Block">
-                                    <FlaskConical className="w-2.5 h-2.5" />
+                                  <span className="text-xs print:text-[9px] font-bold px-1.5 py-0.5 rounded bg-purple-700 text-white flex items-center gap-1 shadow-2xs" title="90-Minute Consecutive Lab / Practical Block">
+                                    <FlaskConical className="w-3 h-3 print:hidden" />
                                     <span>90m</span>
                                   </span>
                                 )}
                                 {entry.isActivity && (
-                                  <span className="text-xs print:text-[10px] uppercase font-bold px-1.5 py-0.2 rounded bg-purple-700 text-white shrink-0">
+                                  <span className="text-xs print:text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-purple-800 text-white shrink-0">
                                     Activity
                                   </span>
                                 )}
@@ -254,19 +272,21 @@ export function ClassTimetableGrid({
 
                             <div className="text-xs print:text-[11px] space-y-0.5">
                               {subTeacher ? (
-                                <div className="text-amber-900 bg-amber-200/80 px-1.5 py-0.5 rounded font-semibold">
-                                  Sub: {subTeacher.name}
+                                <div className="text-amber-950 bg-amber-100 border border-amber-300 px-1.5 py-0.5 rounded font-semibold inline-flex flex-wrap items-center gap-x-1 print:block print:text-amber-900 print:bg-amber-200/80 print:border-0">
+                                  <span className="inline-flex items-center gap-1 print:hidden"><ArrowLeftRight className="h-3 w-3" aria-hidden="true" />Substitute: {subTeacher.name}</span>
+                                  <span className="hidden print:inline">Sub: {subTeacher.name}</span>
                                   <span className="block text-xs print:text-[10px] line-through opacity-75">{teacher?.name}</span>
                                 </div>
                               ) : isAbsent ? (
-                                <div className="text-rose-700 bg-rose-100 px-1.5 py-0.5 rounded font-semibold">
-                                  ⚠️ {teacher?.name} (Absent)
+                                <div className="text-rose-900 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded font-semibold print:text-rose-700 print:bg-rose-100 print:border-0">
+                                  <span className="inline-flex items-center gap-1 print:hidden"><AlertTriangle className="h-3 w-3" aria-hidden="true" />Conflict: {teacher?.name} absent</span>
+                                  <span className="hidden print:inline">⚠️ {teacher?.name} (Absent)</span>
                                 </div>
                               ) : (
-                                <div className="font-medium opacity-90">{teacher?.name}</div>
+                                <div className="font-medium text-slate-800">{teacher?.name}</div>
                               )}
-                              <div className="text-xs print:text-[10px] opacity-75 flex items-center justify-between">
-                                <span>📍 {entry.room}</span>
+                              <div className="text-xs print:text-[10px] text-slate-700 flex items-center justify-between">
+                                <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3 print:hidden" aria-hidden="true" /><span className="print:hidden">Room {entry.room}</span><span className="hidden print:inline">📍 {entry.room}</span></span>
                                 {entry.isManualOverride && <span className="underline">Edited</span>}
                               </div>
                             </div>
@@ -277,20 +297,21 @@ export function ClassTimetableGrid({
                               isFilterActive ? 'opacity-20' : ''
                             }`}
                           >
-                            <span className="text-xs print:text-[10px] font-bold text-rose-800 flex items-center gap-1">
-                              🚫 {blockedSlot.label}
+                            <span className="text-xs font-bold text-rose-900 flex items-center gap-1">
+                              <AlertTriangle className="h-3.5 w-3.5 print:hidden" aria-hidden="true" /><span className="hidden print:inline">🚫 </span>{blockedSlot.label}
                             </span>
-                            <span className="text-xs print:text-[9px] font-semibold text-rose-500 capitalize">
+                            <span className="text-xs print:text-[9px] font-semibold text-rose-700 capitalize">
                               {blockedSlot.scope} Blocked
                             </span>
                           </div>
                         ) : (
                           <div
-                            className={`h-16 rounded-xl border border-dashed border-slate-200 flex items-center justify-center text-slate-400 text-xs print:text-[11px] transition-opacity ${
+                            className={`h-16 rounded-xl border border-dashed border-slate-200 flex flex-col print:flex-row items-center justify-center gap-1 text-slate-600 text-xs print:text-[11px] print:text-slate-400 transition-opacity ${
                               isFilterActive ? 'opacity-20' : ''
                             }`}
                           >
-                            Unassigned
+                            <span className="inline-flex items-center gap-1"><Clock3 className="h-3.5 w-3.5 print:hidden" aria-hidden="true" /><span className="hidden print:inline">Unassigned</span><span className="print:hidden">Unassigned</span></span>
+                            <span className="text-xs text-slate-600 print:hidden">No lesson scheduled</span>
                           </div>
                         )}
                       </td>
@@ -302,6 +323,6 @@ export function ClassTimetableGrid({
           </tbody>
         </table>
       </div>
-    </div>
+    </Card>
   );
 }

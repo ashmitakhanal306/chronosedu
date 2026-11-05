@@ -1,7 +1,8 @@
-import { Building2, Bell, RotateCcw, Plus, Key } from 'lucide-react';
+import { Building2, Bell, RotateCcw, Plus, Key, MoreHorizontal, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import type { TimetableApp } from '../../hooks/useTimetableApp';
 import { NewSchoolModal } from './NewSchoolModal';
+import { Badge, Button, Select } from '../ui/primitives';
 
 export function Header({ app }: { app: TimetableApp }) {
   const {
@@ -31,24 +32,24 @@ export function Header({ app }: { app: TimetableApp }) {
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-bold tracking-tight text-base text-white">ChronosEdu</span>
-                <span className="text-xs print:text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 font-semibold">
+                <Badge className="uppercase tracking-wider bg-indigo-500/20 text-indigo-100 border-indigo-400/40">
                   v2.6
-                </span>
+                </Badge>
               </div>
               <div className="text-xs text-slate-400 flex items-center gap-1.5 flex-wrap">
                 <div className="flex items-center gap-1">
                   <Building2 className="w-3.5 h-3.5 text-slate-400" />
-                  <select
+                  <Select
                     value={activeSchool.id}
                     onChange={(e) => setActiveSchoolId(e.target.value)}
-                    className="bg-transparent text-slate-200 font-semibold focus:outline-none cursor-pointer hover:text-white"
+                    className="w-auto border-0 bg-transparent py-1 text-slate-100 font-semibold cursor-pointer hover:text-white"
                   >
                     {schools.map(s => (
                       <option key={s.id} value={s.id} className="bg-slate-900 text-white">
                         {s.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
                 <span>•</span>
                 <span className="text-emerald-400 font-medium">
@@ -84,102 +85,115 @@ export function Header({ app }: { app: TimetableApp }) {
 
           {/* Role Switcher & Global Actions */}
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center bg-slate-800 p-1 rounded-xl border border-slate-700">
-              <button
+            <div role="group" aria-label="Choose portal role" className="flex items-center bg-slate-800 p-1 rounded-xl border border-slate-700">
+              <Button variant="ghost"
                 type="button"
                 onClick={() => switchRole('admin')}
+                aria-pressed={activeRole === 'admin'}
                 className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
                   activeRole === 'admin'
                     ? 'bg-indigo-600 text-white shadow-2xs'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-700/60'
+                    : 'text-slate-200 hover:text-white hover:bg-slate-700/60'
                 }`}
               >
                 School Admin
-              </button>
-              <button
+              </Button>
+              <Button variant="ghost"
                 type="button"
                 onClick={() => switchRole('teacher')}
+                aria-pressed={activeRole === 'teacher'}
                 className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
                   activeRole === 'teacher'
                     ? 'bg-indigo-600 text-white shadow-2xs'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-700/60'
+                    : 'text-slate-200 hover:text-white hover:bg-slate-700/60'
                 }`}
               >
                 Teacher
-              </button>
-              <button
+              </Button>
+              <Button variant="ghost"
                 type="button"
                 onClick={() => switchRole('student')}
+                aria-pressed={activeRole === 'student'}
                 className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
                   activeRole === 'student'
                     ? 'bg-indigo-600 text-white shadow-2xs'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-700/60'
+                    : 'text-slate-200 hover:text-white hover:bg-slate-700/60'
                 }`}
               >
                 Student
-              </button>
+              </Button>
             </div>
 
-            <button
+            <details className="relative">
+              <summary aria-label="Open global actions" className="ui-button ui-button-ghost min-h-10 list-none inline-flex items-center gap-1.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-100 cursor-pointer focus-visible:outline-2 focus-visible:outline-brand-300">
+                <MoreHorizontal className="w-4 h-4" />
+                <span>More</span>
+                <ChevronDown className="w-3.5 h-3.5" />
+              </summary>
+              <div aria-label="Global actions" className="absolute right-0 top-full z-50 mt-2 grid min-w-52 gap-1 rounded-xl border border-slate-700 bg-slate-800 p-2 shadow-xl">
+            <Button variant="ghost"
               type="button"
               onClick={() => showToast('All hard rules (H1–H7) conflict-free. Zero blockers.', 'info')}
-              className="relative px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium flex items-center gap-1.5 text-slate-200 transition cursor-pointer"
+              className="relative min-h-10 justify-start px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 text-slate-200 transition cursor-pointer"
               title="Notifications"
             >
               <Bell className="w-3.5 h-3.5 text-slate-300" />
-              <span className="px-1.5 py-0.2 bg-amber-500 text-slate-950 rounded-full text-xs print:text-[10px] font-bold">
+              <Badge className="border-amber-400 bg-amber-500 text-slate-950">
                 {activeSchool.absences.length > 0 ? activeSchool.absences.length : 1}
-              </span>
-            </button>
+              </Badge>
+            </Button>
 
-            <button
+            <Button variant="ghost"
               type="button"
               onClick={resetDemoData}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-300 hover:text-white transition cursor-pointer"
+              className="inline-flex min-h-10 items-center gap-1.5 justify-start px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-200 hover:bg-slate-700 transition cursor-pointer"
               title="Reset to default sample data"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Reset Data</span>
-            </button>
+            </Button>
 
             {app.activeSchool.id.includes('issues') || app.activeSchool.name.toLowerCase().includes('issues') ? (
-              <button
+              <Button variant="ghost"
                 type="button"
                 onClick={app.loadCleanDataset1}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/30 text-emerald-200 hover:text-white text-xs font-semibold transition cursor-pointer"
+                className="inline-flex min-h-10 items-center gap-1.5 justify-start px-2.5 py-1.5 rounded-lg text-emerald-200 hover:text-white hover:bg-slate-700 text-xs font-semibold transition cursor-pointer"
                 title="Switch to Clean Dataset"
               >
                 <span>✨ Clean Data</span>
-              </button>
+              </Button>
             ) : (
-              <button
+              <Button variant="ghost"
                 type="button"
                 onClick={app.loadTestDataset2}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/30 text-amber-200 hover:text-white text-xs font-semibold transition cursor-pointer"
+                className="inline-flex min-h-10 items-center gap-1.5 justify-start px-2.5 py-1.5 rounded-lg text-amber-200 hover:text-white hover:bg-slate-700 text-xs font-semibold transition cursor-pointer"
                 title="Load Test Scenario with Scheduling Issues"
               >
                 <span>🧪 Test Scenario</span>
-              </button>
+              </Button>
             )}
 
-            <button
+            <Button variant="ghost"
               type="button"
               onClick={() => setIsNewSchoolOpen(true)}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-500/40 text-indigo-200 hover:text-white text-xs font-medium transition cursor-pointer"
+              className="inline-flex min-h-10 items-center gap-1 px-2.5 py-1.5 rounded-lg text-slate-200 hover:text-white hover:bg-slate-700 text-xs font-medium transition cursor-pointer"
               title="Add School"
             >
               <Plus className="w-3.5 h-3.5" />
               <span className="hidden md:inline">School</span>
-            </button>
+            </Button>
 
-            <button
+            <Button variant="ghost"
               type="button"
               onClick={() => setIsAuthModalOpen(true)}
-              className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
+              className="inline-flex min-h-10 items-center gap-1.5 justify-start px-2.5 py-1.5 rounded-lg text-slate-200 hover:text-white hover:bg-slate-700 text-xs transition cursor-pointer"
               title="Switch User"
             >
-              <Key className="w-4 h-4 text-indigo-400" />
-            </button>
+              <Key className="w-4 h-4 text-indigo-300" />
+              <span>Switch User</span>
+            </Button>
+              </div>
+            </details>
           </div>
         </div>
       </header>

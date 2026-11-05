@@ -1,5 +1,6 @@
-import { ArrowRight, CheckCircle2, Cpu, Calendar, ShieldCheck, Users, Layers, Award, Sparkles } from 'lucide-react';
+import { ArrowRight, Cpu, Calendar, ShieldCheck, Users, Layers, Sparkles, DoorOpen, BookOpen, ListChecks } from 'lucide-react';
 import type { TimetableApp } from '../../hooks/useTimetableApp';
+import { Badge, Button, Card } from '../../components/ui/primitives';
 
 export function OverviewTab({ app }: { app: TimetableApp }) {
   const { activeSchool, currentSchedule, setAdminTab, setWizardStep, runSolver, isSyncing } = app;
@@ -11,165 +12,105 @@ export function OverviewTab({ app }: { app: TimetableApp }) {
   const totalAssignments = (activeSchool.assignments || []).length;
   const totalEntries = Object.keys(currentSchedule.entries || {}).length;
 
+  const stats = [
+    { label: 'Classes', value: totalClasses, detail: 'Primary & Senior', icon: Users, tint: 'text-brand-700 bg-brand-50' },
+    { label: 'Teachers', value: totalTeachers, detail: 'Teaching staff', icon: Users, tint: 'text-subject-sky-text bg-subject-sky-bg' },
+    { label: 'Subjects', value: totalSubjects, detail: 'Catalog entries', icon: BookOpen, tint: 'text-subject-plum-text bg-subject-plum-bg' },
+    { label: 'Rooms', value: totalRooms, detail: 'Registered spaces', icon: DoorOpen, tint: 'text-subject-lime-text bg-subject-lime-bg' },
+    { label: 'Assignments', value: totalAssignments, detail: 'Teacher bindings', icon: ListChecks, tint: 'text-subject-orange-text bg-subject-orange-bg' },
+    { label: 'Scheduled slots', value: totalEntries, detail: 'Current schedule', icon: Calendar, tint: 'text-brand-700 bg-brand-50' },
+  ];
+
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
-      {/* Hero Banner */}
-      <div className="bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-900 rounded-3xl p-6 sm:p-8 text-white border border-indigo-800/40 shadow-xl relative overflow-hidden">
-        <div className="absolute right-0 top-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 max-w-3xl space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 text-xs font-semibold">
-            <Sparkles className="w-3.5 h-3.5 text-indigo-300" />
-            <span>AI-Powered Timetable Engine</span>
-          </div>
-
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-            ChronosEdu
-          </h1>
-
-          <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-            Automate your school's timetable with conflict-free scheduling. Set up your school data, run the solver, then review and publish — all in one place.
+    <div className="w-full min-w-0 space-y-4 sm:space-y-5 animate-in fade-in duration-200">
+      <Card className="flex flex-col gap-4 rounded-2xl p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+        <div className="min-w-0">
+          <Badge className="border-brand-100 bg-brand-50 text-brand-700">
+            <Sparkles className="mr-1 h-3.5 w-3.5" aria-hidden="true" />Admin overview
+          </Badge>
+          <h1 className="mt-2 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">{activeSchool.name}</h1>
+          <p className="mt-1 max-w-2xl text-sm text-slate-600">
+            Continue school setup, review your schedule, and publish timetable updates.
           </p>
-
-          <div className="flex flex-wrap items-center gap-3 pt-3">
-            <button
-              onClick={() => {
-                setAdminTab('wizard');
-                setWizardStep(8);
-              }}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs sm:text-sm font-semibold shadow-md transition cursor-pointer"
-            >
-              <span>Open Setup Wizard</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-
-            <button
-              onClick={() => runSolver()}
-              disabled={isSyncing}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs sm:text-sm font-semibold transition cursor-pointer disabled:opacity-50"
-            >
-              <Cpu className="w-4 h-4 text-indigo-400" />
-              <span>{isSyncing ? 'Solving...' : 'Generate Timetable'}</span>
-            </button>
-          </div>
         </div>
-      </div>
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <Button
+            variant="primary"
+            onClick={() => { setAdminTab('wizard'); setWizardStep(8); }}
+            className="w-full justify-center gap-2 sm:w-auto"
+          >
+            <span>Continue setup</span><ArrowRight className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => runSolver()}
+            disabled={isSyncing}
+            className="w-full justify-center gap-2 sm:w-auto"
+          >
+            <Cpu className="h-4 w-4 text-brand-600" />
+            <span>{isSyncing ? 'Solving…' : 'Generate timetable'}</span>
+          </Button>
+        </div>
+      </Card>
 
-      {/* 3-Layer Architecture Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Layer A */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3 shadow-2xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs print:text-[11px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-              Layer A • Admin Control
-            </span>
-            <Users className="w-5 h-5 text-emerald-500" />
+      <section aria-label="School overview statistics" className="grid min-w-0 grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+        {stats.map(({ label, value, detail, icon: Icon, tint }) => (
+          <Card key={label} className="min-w-0 rounded-xl p-3 sm:p-4">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-semibold text-slate-600">{label}</span>
+              <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${tint}`}>
+                <Icon className="h-4 w-4" aria-hidden="true" />
+              </span>
+            </div>
+            <div className="mt-2 text-2xl font-bold leading-none text-slate-900">{value}</div>
+            <div className="mt-1 text-xs text-slate-600">{detail}</div>
+          </Card>
+        ))}
+      </section>
+
+      <section aria-label="Timetable workflow" className="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-3">
+        <Card className="min-w-0 space-y-3 rounded-2xl p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-2">
+            <Badge className="border-emerald-200 bg-emerald-50 text-emerald-800">Setup</Badge>
+            <Users className="h-5 w-5 text-emerald-700" aria-hidden="true" />
           </div>
-          <h3 className="font-bold text-slate-900 text-base">Admin Enters the Facts</h3>
-          <p className="text-xs text-slate-600 leading-relaxed">
-            Define bell schedules per grade tier, homeroom classes, faculty qualifications, room capacities, and the
-            <strong> Class + Subject ➔ ONE Teacher</strong> assignment matrix in the 10-step setup wizard.
+          <h2 className="text-base font-bold text-slate-900">Configure school details</h2>
+          <p className="text-sm leading-relaxed text-slate-600">
+            Set bell schedules, classes, staff, rooms, subjects, and teacher assignments in the setup wizard.
           </p>
-          <div className="pt-2">
-            <button
-              onClick={() => { setAdminTab('wizard'); setWizardStep(1); }}
-              className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 inline-flex items-center gap-1"
-            >
-              <span>Open 10-Step Wizard</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
+          <Button variant="ghost" onClick={() => { setAdminTab('wizard'); setWizardStep(1); }} className="justify-start gap-1 px-0 text-brand-700">
+            <span>Open setup wizard</span><ArrowRight className="h-4 w-4" />
+          </Button>
+        </Card>
 
-        {/* Layer B */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3 shadow-2xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs print:text-[11px] font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
-              Layer B • Automated Engine
-            </span>
-            <Cpu className="w-5 h-5 text-indigo-500" />
+        <Card className="min-w-0 space-y-3 rounded-2xl p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-2">
+            <Badge className="border-brand-100 bg-brand-50 text-brand-700">Scheduling</Badge>
+            <Cpu className="h-5 w-5 text-brand-700" aria-hidden="true" />
           </div>
-          <h3 className="font-bold text-slate-900 text-base">System Places the Lessons</h3>
-          <p className="text-xs text-slate-600 leading-relaxed">
-            Google OR-Tools CP-SAT constraint solver finds a globally optimal schedule satisfying zero clashes (H1–H7),
-            room capacity bounds, teacher daily/weekly caps, pinned lessons, and blocked slots.
+          <h2 className="text-base font-bold text-slate-900">Build the timetable</h2>
+          <p className="text-sm leading-relaxed text-slate-600">
+            Generate a schedule, review class and teacher views, and resolve conflicts in the Timetable Studio.
           </p>
-          <div className="pt-2">
-            <button
-              onClick={() => setAdminTab('studio')}
-              className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 inline-flex items-center gap-1"
-            >
-              <span>Open Timetable Studio</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
+          <Button variant="ghost" onClick={() => setAdminTab('studio')} className="justify-start gap-1 px-0 text-brand-700">
+            <span>Open Timetable Studio</span><ArrowRight className="h-4 w-4" />
+          </Button>
+        </Card>
 
-        {/* Layer C */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3 shadow-2xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs print:text-[11px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
-              Layer C • Human Governance
-            </span>
-            <ShieldCheck className="w-5 h-5 text-amber-500" />
+        <Card className="min-w-0 space-y-3 rounded-2xl p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-2">
+            <Badge className="border-slate-200 bg-slate-50 text-slate-700">Governance</Badge>
+            <ShieldCheck className="h-5 w-5 text-slate-700" aria-hidden="true" />
           </div>
-          <h3 className="font-bold text-slate-900 text-base">Admin Reviews & Publishes</h3>
-          <p className="text-xs text-slate-600 leading-relaxed">
-            Click any cell to manually override, pin/lock lessons, inspect faculty workload fairness, approve draft versions,
-            publish with an effective date, or rollback if needed.
+          <h2 className="text-base font-bold text-slate-900">Review and publish</h2>
+          <p className="text-sm leading-relaxed text-slate-600">
+            Approve versions, review the audit trail, and publish schedules to teacher and student portals.
           </p>
-          <div className="pt-2">
-            <button
-              onClick={() => setAdminTab('versions')}
-              className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 inline-flex items-center gap-1"
-            >
-              <span>Manage Versions &amp; Audit</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* School Setup Statistics */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 shadow-2xs">
-        <div className="flex items-center justify-between">
-          <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider">
-            {activeSchool.name} — Setup Status
-          </h3>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
-            <span className="text-xs print:text-[10px] uppercase tracking-wider text-slate-400 font-bold block">Classes</span>
-            <span className="text-xl font-bold text-slate-900">{totalClasses}</span>
-            <span className="text-xs print:text-[10px] text-slate-500 block mt-0.5">Primary &amp; Senior</span>
-          </div>
-
-          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
-            <span className="text-xs print:text-[10px] uppercase tracking-wider text-slate-400 font-bold block">Faculty</span>
-            <span className="text-xl font-bold text-slate-900">{totalTeachers}</span>
-            <span className="text-xs print:text-[10px] text-slate-500 block mt-0.5">Teaching Staff</span>
-          </div>
-
-          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
-            <span className="text-xs print:text-[10px] uppercase tracking-wider text-slate-400 font-bold block">Subjects</span>
-            <span className="text-xl font-bold text-slate-900">{totalSubjects}</span>
-            <span className="text-xs print:text-[10px] text-slate-500 block mt-0.5">Subjects &amp; Labs</span>
-          </div>
-
-          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
-            <span className="text-xs print:text-[10px] uppercase tracking-wider text-slate-400 font-bold block">Assignments</span>
-            <span className="text-xl font-bold text-indigo-600">{totalAssignments}</span>
-            <span className="text-xs print:text-[10px] text-slate-500 block mt-0.5">Teacher Bindings</span>
-          </div>
-
-          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
-            <span className="text-xs print:text-[10px] uppercase tracking-wider text-slate-400 font-bold block">Scheduled Slots</span>
-            <span className="text-xl font-bold text-emerald-600">{totalEntries}</span>
-            <span className="text-xs print:text-[10px] text-slate-500 block mt-0.5">Conflict-free</span>
-          </div>
-        </div>
-      </div>
+          <Button variant="ghost" onClick={() => setAdminTab('versions')} className="justify-start gap-1 px-0 text-brand-700">
+            <span>Manage versions</span><ArrowRight className="h-4 w-4" />
+          </Button>
+        </Card>
+      </section>
     </div>
   );
 }

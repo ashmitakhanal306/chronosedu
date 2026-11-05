@@ -4,7 +4,7 @@ import type { ToastState } from '../../domain/types';
 export function Toast({ toast }: { toast: ToastState | null }) {
   if (!toast) return null;
   return (
-        <div className={`fixed bottom-5 right-5 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg border text-sm font-medium transition-all ${
+        <div role={toast.type === 'warning' ? 'alert' : 'status'} aria-live={toast.type === 'warning' ? 'assertive' : 'polite'} className={`toast-container fixed bottom-4 left-4 right-4 sm:left-auto sm:right-5 sm:bottom-5 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg border text-sm font-medium transition-all ${
           toast.type === 'warning'
             ? 'bg-amber-900 text-amber-50 border-amber-700'
             : toast.type === 'info'

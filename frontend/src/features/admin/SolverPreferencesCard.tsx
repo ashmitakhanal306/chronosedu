@@ -2,6 +2,7 @@ import React from 'react';
 import { Cpu, Calendar, Scale, Coffee, Sun, RefreshCw, CheckCircle2, RotateCcw, Sparkles, FlaskConical } from 'lucide-react';
 import type { SolverPreferences } from '../../domain/types';
 import { DEFAULT_SOLVER_PREFERENCES } from '../../domain/types';
+import { Badge, Button, Card } from '../../components/ui/primitives';
 
 interface Props {
   preferences: SolverPreferences;
@@ -34,8 +35,8 @@ const PREFERENCE_OPTIONS: PreferenceOption[] = [
     weightLabel: 'Weight: -10 penalty / clustering event',
     icon: Calendar,
     tag: 'Student Retention',
-    colorClass: 'text-indigo-600',
-    badgeBg: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+    colorClass: 'text-brand-600',
+    badgeBg: 'bg-brand-50 text-brand-700 border-brand-200',
   },
   {
     key: 'smoothTeacherWorkload',
@@ -45,8 +46,8 @@ const PREFERENCE_OPTIONS: PreferenceOption[] = [
     weightLabel: 'Weight: -4 penalty / period over 4',
     icon: Scale,
     tag: 'Teacher Wellness',
-    colorClass: 'text-emerald-600',
-    badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    colorClass: 'text-positive-600',
+    badgeBg: 'bg-positive-50 text-positive-700 border-positive-200',
   },
   {
     key: 'minimizeTeacherGaps',
@@ -56,8 +57,8 @@ const PREFERENCE_OPTIONS: PreferenceOption[] = [
     weightLabel: 'Weight: -15 penalty / idle gap',
     icon: Coffee,
     tag: 'Schedule Compactness',
-    colorClass: 'text-amber-600',
-    badgeBg: 'bg-amber-50 text-amber-700 border-amber-200',
+    colorClass: 'text-warning-600',
+    badgeBg: 'bg-warning-50 text-warning-700 border-warning-200',
   },
   {
     key: 'morningCorePriority',
@@ -67,8 +68,8 @@ const PREFERENCE_OPTIONS: PreferenceOption[] = [
     weightLabel: 'Weight: -5 penalty / post-lunch core period',
     icon: Sun,
     tag: 'Peak Focus Hours',
-    colorClass: 'text-sky-600',
-    badgeBg: 'bg-sky-50 text-sky-700 border-sky-200',
+    colorClass: 'text-info-600',
+    badgeBg: 'bg-info-50 text-info-700 border-info-200',
   },
   {
     key: 'consecutiveDoublePeriods',
@@ -78,8 +79,8 @@ const PREFERENCE_OPTIONS: PreferenceOption[] = [
     weightLabel: 'Weight: -40 penalty / missing double block',
     icon: FlaskConical,
     tag: 'Hands-on Practicals',
-    colorClass: 'text-purple-600',
-    badgeBg: 'bg-purple-50 text-purple-700 border-purple-200',
+    colorClass: 'text-rule-600',
+    badgeBg: 'bg-rule-50 text-rule-700 border-rule-200',
   },
 ];
 
@@ -95,12 +96,12 @@ export function SolverPreferencesCard({
   const activeCount = Object.values(preferences).filter(Boolean).length;
 
   return (
-    <div className={`bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden transition-all ${className}`}>
+    <Card className={`bg-surface rounded-card border border-neutral-200 shadow-sm overflow-hidden transition-all ${className}`}>
       {/* Header bar */}
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-4 sm:p-5">
+      <div className="bg-gradient-to-r from-neutral-900 via-brand-950 to-neutral-900 text-white p-4 sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-indigo-500/20 border border-indigo-400/30 text-indigo-300">
+            <div className="p-2.5 rounded-soft bg-brand-500/20 border border-brand-400/30 text-brand-300">
               <Cpu className="w-5 h-5" />
             </div>
             <div>
@@ -108,31 +109,31 @@ export function SolverPreferencesCard({
                 <h3 className="font-bold text-sm sm:text-base text-white">
                   Constraint Engine Soft Optimization Preferences
                 </h3>
-                <span className="text-xs print:text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/30 text-indigo-200 border border-indigo-400/30 flex items-center gap-1">
+                <Badge className="text-xs font-bold px-2 py-0.5 rounded-full bg-brand-500/30 text-brand-200 border border-brand-400/30 flex items-center gap-1">
                   <Sparkles className="w-3 h-3" />
                   Google OR-Tools CP-SAT
-                </span>
+                </Badge>
               </div>
-              <p className="text-xs text-slate-300 mt-0.5">
+              <p className="text-xs text-neutral-300 mt-0.5">
                 Tune heuristic objective weights. Hard constraints remain 100% strictly enforced.
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-white/10 text-slate-200 border border-white/15">
+            <Badge className="text-xs font-semibold px-2.5 py-1 rounded-control bg-surface/10 text-neutral-200 border border-white/15">
               {activeCount} of {PREFERENCE_OPTIONS.length} Objectives Active
-            </span>
+            </Badge>
             {onResetDefaults && (
-              <button
+              <Button
                 type="button"
                 onClick={onResetDefaults}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-control text-xs font-medium text-neutral-300 hover:text-white hover:bg-surface/10 transition cursor-pointer"
                 title="Reset to recommended default preferences"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>Reset</span>
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -148,19 +149,19 @@ export function SolverPreferencesCard({
             <div
               key={opt.key}
               onClick={() => onToggle(opt.key)}
-              className={`group relative p-4 rounded-xl border transition-all cursor-pointer select-none ${
+              className={`group relative p-4 rounded-soft border transition-all cursor-pointer select-none ${
                 isEnabled
-                  ? 'bg-indigo-50/40 border-indigo-300 shadow-2xs hover:border-indigo-400'
-                  : 'bg-slate-50/60 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                  ? 'bg-brand-50/40 border-brand-300 shadow-2xs hover:border-brand-400'
+                  : 'bg-neutral-50/60 border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50'
               }`}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3 min-w-0">
                   <div
-                    className={`p-2 rounded-xl border shrink-0 transition-colors ${
+                    className={`p-2 rounded-soft border shrink-0 transition-colors ${
                       isEnabled
-                        ? 'bg-white border-indigo-200 text-indigo-600 shadow-2xs'
-                        : 'bg-white border-slate-200 text-slate-400'
+                        ? 'bg-surface border-brand-200 text-brand-600 shadow-2xs'
+                        : 'bg-surface border-neutral-200 text-neutral-600'
                     }`}
                   >
                     <Icon className="w-4 h-4" />
@@ -168,20 +169,20 @@ export function SolverPreferencesCard({
 
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                      <h4 className="text-xs sm:text-sm font-bold text-neutral-900 group-hover:text-brand-600 transition-colors">
                         {opt.name}
                       </h4>
-                      <span className={`text-xs print:text-[10px] font-semibold px-2 py-0.2 rounded-full border ${opt.badgeBg}`}>
+                      <Badge className={`text-xs font-semibold px-2 py-0.2 rounded-full border ${opt.badgeBg}`}>
                         {opt.tag}
-                      </span>
+                      </Badge>
                     </div>
 
-                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                    <p className="text-xs text-neutral-600 mt-1 leading-relaxed">
                       {opt.detail}
                     </p>
 
                     <div className="flex items-center gap-2 mt-2">
-                      <span className="text-xs print:text-[11px] font-mono text-slate-500">
+                      <span className="text-xs font-mono text-neutral-500">
                         {opt.weightLabel}
                       </span>
                     </div>
@@ -193,14 +194,14 @@ export function SolverPreferencesCard({
                   role="switch"
                   aria-checked={isEnabled}
                   tabIndex={0}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 ${
-                    isEnabled ? 'bg-indigo-600' : 'bg-slate-300'
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-600 focus:ring-offset-2 ${
+                    isEnabled ? 'bg-brand-600' : 'bg-neutral-300'
                   }`}
                 >
                   <span
                     aria-hidden="true"
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                      isEnabled ? 'translate-x-5' : 'translate-x-0'
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-surface shadow ring-0 transition duration-200 ease-in-out ${
+                      isEnabled ? 'tranneutral-x-5' : 'tranneutral-x-0'
                     }`}
                   />
                 </div>
@@ -211,24 +212,24 @@ export function SolverPreferencesCard({
       </div>
 
       {/* Footer action bar */}
-      <div className="bg-slate-50 border-t border-slate-200 p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-xs text-slate-600">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+      <div className="bg-neutral-50 border-t border-neutral-200 p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2 text-xs text-neutral-600">
+          <CheckCircle2 className="w-4 h-4 text-positive-600 shrink-0" />
           <span>
             Preferences are passed directly to CP-SAT objective penalty terms during generation.
           </span>
         </div>
 
-        <button
+        <Button
           type="button"
           onClick={onRunSolver}
           disabled={isSyncing}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-xs sm:text-sm font-bold shadow-sm transition cursor-pointer"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-soft bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white text-xs sm:text-sm font-bold shadow-sm transition cursor-pointer"
         >
           <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
           <span>{isSyncing ? 'Solving with CP-SAT…' : 'Re-Solve Timetable with Preferences'}</span>
-        </button>
+        </Button>
       </div>
-    </div>
+    </Card>
   );
 }

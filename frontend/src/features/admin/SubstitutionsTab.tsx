@@ -1,6 +1,7 @@
 import { CheckCircle2, UserCheck, Trash2 } from 'lucide-react';
 import type { TimetableApp } from '../../hooks/useTimetableApp';
 import { AbsenceForm } from './AbsenceForm';
+import { Badge, Card } from '../../components/ui/primitives';
 
 export function SubstitutionsTab({ app }: { app: TimetableApp }) {
   const {
@@ -8,15 +9,16 @@ export function SubstitutionsTab({ app }: { app: TimetableApp }) {
     addAbsence, removeAbsence, autoAssign, getCandidates, assignSubstitute, showToast,
   } = app;
   return (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="w-full min-w-0 space-y-5">
+      <div className="grid min-w-0 grid-cols-1 items-start gap-4 lg:grid-cols-3 lg:gap-5">
                 {/* Left Column: Mark Teacher Absent */}
-                <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 h-fit">
+        <Card className="min-w-0 rounded-2xl p-4 sm:p-5 space-y-4 h-fit">
                   <div>
                     <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
                       <UserCheck className="w-5 h-5 text-indigo-600" />
                       <span>Log Teacher Absence</span>
                     </h3>
-                    <p className="text-xs text-slate-500 mt-1">
+                    <p className="text-sm text-slate-600 mt-1 leading-relaxed">
                       When a teacher is marked absent, the engine finds all currently free teachers for each affected period and ranks them by <strong>most free periods on that day</strong>.
                     </p>
                   </div>
@@ -27,27 +29,28 @@ export function SubstitutionsTab({ app }: { app: TimetableApp }) {
                   />
 
                   <div className="border-t border-slate-100 pt-4 space-y-2">
-                    <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400">Active Absences</h4>
+                    <h4 className="text-sm font-semibold uppercase tracking-wider text-slate-700">Active Absences</h4>
                     {activeSchool.absences.length === 0 ? (
-                      <p className="text-xs text-slate-400 italic">No teachers currently marked absent.</p>
+                      <p role="status" className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">No teachers currently marked absent.</p>
                     ) : (
                       activeSchool.absences.map(abs => {
                         const t = teacherMap[abs.teacherId];
                         return (
-                          <div key={abs.id} className="flex items-center justify-between p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs">
+                          <div key={abs.id} className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs">
                             <div>
                               <div className="font-bold text-rose-950">{t?.name}</div>
                               <div className="text-rose-700">{abs.day} • {abs.reason}</div>
                             </div>
-                            <div className="flex items-center gap-1.5">
+                            <div className="flex flex-wrap items-center gap-1.5">
                               <button
                                 onClick={() => autoAssign(abs)}
-                                className="px-2.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold cursor-pointer"
+                                className="min-h-10 px-3 py-2 rounded-lg bg-rose-700 hover:bg-rose-800 text-white font-semibold cursor-pointer"
                               >
                                 Auto-Fill Top Subs
                               </button>
                               <button
                                 onClick={() => removeAbsence(abs.id)}
+                                aria-label={`Remove absence for ${t?.name || abs.teacherId}`}
                                 className="p-1.5 text-rose-600 hover:bg-rose-100 rounded-lg"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -58,10 +61,10 @@ export function SubstitutionsTab({ app }: { app: TimetableApp }) {
                       })
                     )}
                   </div>
-                </div>
+        </Card>
 
                 {/* Right 2 Columns: Ranked Substitute Recommendations per Affected Slot */}
-                <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-5 space-y-4">
+        <Card className="min-w-0 lg:col-span-2 rounded-2xl p-4 sm:p-5 space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="font-bold text-base text-slate-900">Substitute Ranking Queue (Most Free Periods First)</h3>
@@ -72,8 +75,9 @@ export function SubstitutionsTab({ app }: { app: TimetableApp }) {
                   </div>
 
                   {activeSchool.absences.length === 0 ? (
-                    <div className="text-center py-12 border-2 border-dashed border-slate-200 rounded-2xl text-slate-400 text-sm">
-                      Mark a teacher absent on the left to inspect affected classes and ranked substitute teachers.
+                    <div className="text-center py-10 border border-dashed border-slate-200 rounded-2xl bg-slate-50/70 text-slate-700 text-sm">
+                      <Badge className="mb-2 border-slate-200 bg-white text-slate-700">No active absences</Badge>
+                      <p>Mark a teacher absent to see affected classes and ranked substitute recommendations.</p>
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -84,14 +88,14 @@ export function SubstitutionsTab({ app }: { app: TimetableApp }) {
                           .sort((a, b) => a.period - b.period);
 
                         return (
-                          <div key={abs.id} className="border border-slate-200 rounded-2xl overflow-hidden">
-                            <div className="bg-slate-900 text-white px-4 py-3 flex items-center justify-between text-xs">
+                          <div key={abs.id} className="border border-slate-200 rounded-xl overflow-hidden">
+                            <div className="bg-slate-50 text-slate-800 px-3 sm:px-4 py-3 flex flex-wrap items-center justify-between gap-2 text-xs">
                               <div>
-                                <span className="font-bold text-sm">{absentTeacher?.name}</span> — Absent on <span className="text-amber-300 font-semibold">{abs.day}</span> ({affectedSlots.length} affected classes)
+                                <span className="font-bold text-sm">{absentTeacher?.name}</span> — Absent on <span className="text-amber-800 font-semibold">{abs.day}</span> ({affectedSlots.length} affected classes)
                               </div>
                               <button
                                 onClick={() => autoAssign(abs)}
-                                className="px-3 py-1 rounded-lg bg-indigo-500 hover:bg-indigo-400 text-white font-semibold cursor-pointer"
+                                className="min-h-10 px-3 py-2 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-semibold cursor-pointer"
                               >
                                 1-Click Assign All Top Ranked
                               </button>
@@ -127,6 +131,9 @@ export function SubstitutionsTab({ app }: { app: TimetableApp }) {
                                     </div>
 
                                     <div className="flex flex-wrap items-center gap-2">
+                                      {candidates.length === 0 && (
+                                        <span className="rounded-lg bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">No eligible substitutes for this period.</span>
+                                      )}
                                       {candidates.slice(0, 4).map((cand, idx) => {
                                         const isSelected = assignedSubId === cand.id;
                                         return (
@@ -138,7 +145,7 @@ export function SubstitutionsTab({ app }: { app: TimetableApp }) {
                                             }}
                                             className={`px-3 py-2 rounded-xl border text-left text-xs transition cursor-pointer ${
                                               isSelected
-                                                ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                                                ? 'bg-emerald-700 text-white border-emerald-700 shadow-sm'
                                                 : idx === 0
                                                 ? 'bg-indigo-50/80 border-indigo-300 text-indigo-950 hover:bg-indigo-100'
                                                 : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
@@ -146,17 +153,17 @@ export function SubstitutionsTab({ app }: { app: TimetableApp }) {
                                           >
                                             <div className="flex items-center gap-1.5 font-bold">
                                               {idx === 0 && !isSelected && (
-                                                <span className="px-1.5 py-0.2 bg-indigo-600 text-white rounded text-xs print:text-[10px]">#1 Best</span>
+                                                <span className="px-1.5 py-0.2 bg-indigo-600 text-white rounded text-xs">#1 Best</span>
                                               )}
                                               <span>{cand.name}</span>
                                             </div>
-                                            <div className={`text-xs print:text-[11px] mt-0.5 ${isSelected ? 'text-emerald-100' : 'text-slate-500'}`}>
+                                            <div className={`text-xs mt-0.5 ${isSelected ? 'text-emerald-100' : 'text-slate-500'}`}>
                                               <strong>{cand.freePeriodsToday} free periods</strong> today ({cand.assignedToday}/5 used)
                                             </div>
                                           </button>
                                         );
                                       })}
-                                    </div>
+                                      </div>
                                   </div>
                                 );
                               })}
@@ -166,7 +173,8 @@ export function SubstitutionsTab({ app }: { app: TimetableApp }) {
                       })}
                     </div>
                   )}
-                </div>
+        </Card>
               </div>
+    </div>
   );
 }

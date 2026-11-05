@@ -216,12 +216,12 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
   }, [displayedClasses, classTierFilter, classSearch]);
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-5 shadow-xs">
+    <div className="w-full min-w-0 max-w-full bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 space-y-5 shadow-xs">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
         <div>
-          <div className="flex items-center gap-1.5 text-xs font-bold text-amber-600 mb-1">
-            <span>⭐ STEP 8 — MOST IMPORTANT ARCHITECTURAL LAYER</span>
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 mb-1">
+            <span>STEP 8 · TEACHER ASSIGNMENTS</span>
           </div>
           <h3 className="font-extrabold text-base sm:text-lg text-slate-900 flex items-center gap-2">
             <span>Teacher Assignment Matrix (Class + Subject → ONE Teacher)</span>
@@ -231,7 +231,7 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2">
           {/* Completion Badge */}
           <span
             className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${
@@ -259,7 +259,8 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
               type="button"
               onClick={handleAutoSuggest}
               disabled={isSuggesting}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white text-xs font-bold shadow-xs cursor-pointer transition disabled:opacity-50"
+              aria-busy={isSuggesting}
+              className="inline-flex min-h-10 items-center gap-1.5 px-3.5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs cursor-pointer transition disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-brand-600"
               title="Automatically match qualified teachers by lowest weekly load"
             >
               <Sparkles className="w-3.5 h-3.5" />
@@ -278,7 +279,7 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
               <UserCheck className="w-4 h-4 text-indigo-600" />
               <span>Teacher Workload Balancer</span>
             </span>
-            <span className="text-xs print:text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-800 border border-indigo-200">
               {teacherMetrics.total} Faculty
             </span>
           </div>
@@ -288,7 +289,7 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
             <button
               type="button"
               onClick={() => setTeacherFilter('all')}
-              className={`px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer text-xs print:text-[11px] ${
+              className={`min-h-10 px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer text-xs ${
                 teacherFilter === 'all'
                   ? 'bg-slate-900 text-white shadow-2xs'
                   : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
@@ -299,9 +300,9 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
             <button
               type="button"
               onClick={() => setTeacherFilter('near-cap')}
-              className={`px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer text-xs print:text-[11px] ${
+              className={`min-h-10 px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer text-xs ${
                 teacherFilter === 'near-cap'
-                  ? 'bg-amber-600 text-white shadow-2xs'
+                  ? 'bg-amber-700 text-white shadow-2xs'
                   : 'bg-amber-50 border border-amber-200 text-amber-800 hover:bg-amber-100'
               }`}
             >
@@ -311,7 +312,7 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
               <button
                 type="button"
                 onClick={() => setTeacherFilter('overloaded')}
-                className={`px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer text-xs print:text-[11px] ${
+                className={`min-h-10 px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer text-xs ${
                   teacherFilter === 'overloaded'
                     ? 'bg-rose-600 text-white shadow-2xs'
                     : 'bg-rose-50 border border-rose-200 text-rose-800 hover:bg-rose-100'
@@ -323,9 +324,9 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
             <button
               type="button"
               onClick={() => setTeacherFilter('available')}
-              className={`px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer text-xs print:text-[11px] ${
+              className={`min-h-10 px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer text-xs ${
                 teacherFilter === 'available'
-                  ? 'bg-emerald-600 text-white shadow-2xs'
+                  ? 'bg-emerald-700 text-white shadow-2xs'
                   : 'bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100'
               }`}
             >
@@ -336,19 +337,19 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
           {/* Search & Expand Toggle */}
           <div className="flex items-center gap-2">
             <div className="relative">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Search className="w-3.5 h-3.5 text-slate-600 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
                 placeholder="Search faculty..."
                 value={teacherSearch}
                 onChange={e => setTeacherSearch(e.target.value)}
-                className="pl-8 pr-2.5 py-1 rounded-lg border border-slate-300 text-xs bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 w-36 sm:w-44"
+                className="min-h-10 pl-8 pr-2.5 py-1 rounded-lg border border-slate-300 text-xs bg-white text-slate-800 placeholder-slate-500 focus-visible:outline-2 focus-visible:outline-brand-600 w-36 sm:w-44"
               />
             </div>
             <button
               type="button"
               onClick={() => setIsBalancerExpanded(prev => !prev)}
-              className="text-xs print:text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 bg-white border border-slate-200 px-2.5 py-1 rounded-lg transition flex items-center gap-1 cursor-pointer shadow-2xs"
+              className="min-h-10 text-xs font-semibold text-brand-700 hover:text-brand-800 bg-white border border-slate-200 px-2.5 py-1 rounded-lg transition flex items-center gap-1 cursor-pointer"
             >
               {isBalancerExpanded ? (
                 <>
@@ -387,19 +388,19 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
                 }`}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <span className="font-bold text-slate-800 truncate text-xs print:text-[11px]" title={t.name}>
+                  <span className="font-bold text-slate-800 truncate text-xs" title={t.name}>
                     {t.name}
                   </span>
                   {wl.overloaded && (
-                    <span className="text-xs print:text-[9px] font-bold text-rose-600 bg-rose-100 px-1 rounded-sm">
+                    <span className="text-xs font-bold text-rose-800 bg-rose-100 px-1 rounded-sm">
                       OVER
                     </span>
                   )}
                 </div>
 
-                <div className="flex items-center justify-between text-xs print:text-[10px] text-slate-500 mb-1.5">
+                <div className="flex items-center justify-between text-xs text-slate-700 mb-1.5">
                   <span>{wl.assigned} / {wl.max} p/wk</span>
-                  <span className={`font-bold ${wl.overloaded ? 'text-rose-600' : wl.pct > 75 ? 'text-amber-600' : 'text-slate-600'}`}>
+                  <span className={`font-bold ${wl.overloaded ? 'text-rose-600' : wl.pct > 75 ? 'text-amber-800' : 'text-slate-600'}`}>
                     {wl.pct}%
                   </span>
                 </div>
@@ -421,7 +422,7 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
             );
           })}
           {filteredTeachers.length === 0 && (
-            <div className="col-span-full py-6 text-center text-xs text-slate-400 bg-white rounded-xl border border-dashed border-slate-200">
+            <div className="col-span-full py-6 text-center text-xs text-slate-600 bg-white rounded-xl border border-dashed border-slate-200">
               No faculty found matching the filter &quot;{teacherSearch || teacherFilter}&quot;
             </div>
           )}
@@ -435,7 +436,7 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
           <select
             value={filterClassId}
             onChange={e => setFilterClassId(e.target.value)}
-            className="px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 shadow-2xs"
+              className="min-h-10 px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 bg-white focus-visible:outline-2 focus-visible:outline-brand-600"
           >
             <option value="all">All Classes ({school.classes.length})</option>
             {sortedClasses.map(c => (
@@ -450,7 +451,7 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
             <button
               type="button"
               onClick={() => setClassTierFilter('all')}
-              className={`px-2 py-0.5 rounded-md font-semibold text-xs print:text-[11px] transition cursor-pointer ${
+              className={`min-h-10 px-2 py-1 rounded-md font-semibold text-xs transition cursor-pointer ${
                 classTierFilter === 'all' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
@@ -459,7 +460,7 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
             <button
               type="button"
               onClick={() => setClassTierFilter('Primary')}
-              className={`px-2 py-0.5 rounded-md font-semibold text-xs print:text-[11px] transition cursor-pointer ${
+              className={`min-h-10 px-2 py-1 rounded-md font-semibold text-xs transition cursor-pointer ${
                 classTierFilter === 'Primary' ? 'bg-white text-emerald-800 shadow-2xs' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
@@ -468,7 +469,7 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
             <button
               type="button"
               onClick={() => setClassTierFilter('Senior')}
-              className={`px-2 py-0.5 rounded-md font-semibold text-xs print:text-[11px] transition cursor-pointer ${
+              className={`min-h-10 px-2 py-1 rounded-md font-semibold text-xs transition cursor-pointer ${
                 classTierFilter === 'Senior' ? 'bg-white text-sky-800 shadow-2xs' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
@@ -477,36 +478,46 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
           </div>
 
           <div className="relative">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Search className="w-3.5 h-3.5 text-slate-600 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               placeholder="Quick search class..."
               value={classSearch}
               onChange={e => setClassSearch(e.target.value)}
-              className="pl-8 pr-2.5 py-1.5 rounded-lg border border-slate-200 text-xs bg-white text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 w-36 sm:w-44 shadow-2xs"
+              className="pl-8 pr-2.5 py-1.5 rounded-lg border border-slate-200 text-xs bg-white text-slate-700 placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-indigo-500 w-36 sm:w-44 shadow-2xs"
             />
           </div>
         </div>
 
-        <span className="text-xs print:text-[11px] text-slate-400 hidden lg:inline">
+        <span className="text-xs text-slate-600 hidden lg:inline">
           Showing {filteredMatrixClasses.length} of {school.classes.length} classes • Scroll table horizontally &amp; vertically
         </span>
       </div>
 
       {/* Assignment Matrix Grid with Sticky Headers */}
-      <div className="border border-slate-200 rounded-2xl overflow-auto max-h-[560px] shadow-2xs relative">
-        <table className="w-full border-collapse text-left text-xs">
-          <thead className="sticky top-0 z-20 bg-slate-100 border-b border-slate-200 shadow-xs">
+      {(!school.classes.length || !school.subjects.length || !school.teachers.length) && (
+        <div role="status" className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700">
+          {!school.classes.length
+            ? 'No classes yet. Add class sections in Step 3 to build the assignment matrix.'
+            : !school.subjects.length
+            ? 'No subjects yet. Add subjects in Step 5 to build the assignment matrix.'
+            : 'No teachers registered yet. Add teaching staff in Step 7 before assigning classes.'}
+        </div>
+      )}
+
+      <div className="relative w-full min-w-0 max-w-full max-h-[560px] overflow-auto overscroll-contain rounded-xl border border-slate-200 bg-white focus-within:ring-2 focus-within:ring-brand-500">
+        <table className="w-max min-w-full border-collapse text-left text-xs">
+          <thead className="sticky top-0 z-20 border-b border-slate-200 bg-slate-50">
             <tr>
-              <th className="py-2.5 px-3 font-bold text-slate-800 sticky left-0 top-0 bg-slate-100 z-30 min-w-36 border-r border-slate-200 shadow-xs">
+              <th scope="col" className="sticky left-0 top-0 z-30 min-w-36 border-r border-slate-200 bg-slate-50 px-3 py-3 font-semibold text-slate-800">
                 Class / Section
               </th>
               {school.subjects.map(sub => (
-                <th key={sub.id} className="py-2.5 px-3 font-bold text-slate-700 min-w-44 bg-slate-100">
+                <th key={sub.id} scope="col" className="min-w-44 bg-slate-50 px-3 py-3 font-semibold text-slate-700">
                   <div className="flex items-center gap-1.5">
                     <span className={`w-2 h-2 rounded-full ${sub.color ? sub.color.split(' ')[0] : 'bg-indigo-500'}`} />
                     <span className="truncate" title={sub.name}>{sub.name}</span>
-                    <span className="text-xs print:text-[10px] text-slate-400 font-normal">({sub.code})</span>
+                    <span className="text-xs text-slate-600 font-normal">({sub.code})</span>
                   </div>
                 </th>
               ))}
@@ -516,11 +527,11 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
             {filteredMatrixClasses.map(cls => (
               <tr key={cls.id} className="hover:bg-slate-50/50 transition">
                 {/* Class Column */}
-                <td className="py-2.5 px-3 font-bold text-slate-900 sticky left-0 bg-white z-10 border-r border-slate-200 shadow-2xs">
+                <td className="sticky left-0 z-10 border-r border-slate-200 bg-white px-3 py-2.5 font-bold text-slate-900">
                   <div className="flex items-center gap-2">
                     <span>{cls.name}</span>
                     <span
-                      className={`text-xs print:text-[10px] font-semibold px-1.5 py-0.2 rounded-md ${
+                      className={`text-xs font-semibold px-1.5 py-0.5 rounded-md ${
                         cls.tier === 'Primary'
                           ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                           : 'bg-sky-50 text-sky-700 border border-sky-200'
@@ -543,20 +554,23 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
 
                   if (!isRequired) {
                     return (
-                      <td key={sub.id} className="py-2 px-2.5 text-center text-slate-300 bg-slate-50/30">
-                        <span className="text-xs print:text-[11px]">—</span>
+                      <td key={sub.id} className="min-w-44 px-2.5 py-2 text-center text-slate-500 bg-slate-50/40">
+                        <span className="text-xs">Not required</span>
                       </td>
                     );
                   }
 
                   return (
-                    <td key={sub.id} className="py-2 px-2.5">
+                    <td key={sub.id} className="min-w-44 px-2.5 py-2">
                       <div className="space-y-1">
                         <div className="relative">
                           <select
                             value={currentAsgn?.teacherId || 'unassigned'}
                             onChange={e => handleSelectTeacher(cls.id, sub.id, e.target.value)}
-                            className={`w-full appearance-none pl-2 pr-6 py-1.5 rounded-lg border text-xs font-semibold transition cursor-pointer ${
+                            aria-label={`${cls.name}, ${sub.name} teacher assignment`}
+                            aria-invalid={!currentAsgn}
+                            aria-describedby={`assignment-status-${cls.id}-${sub.id}`}
+                            className={`min-h-10 w-full appearance-none pl-2 pr-6 py-1.5 rounded-lg border text-xs font-semibold transition cursor-pointer focus-visible:outline-2 focus-visible:outline-brand-600 ${
                               !currentAsgn
                                 ? 'bg-amber-50/70 border-amber-300 text-amber-800'
                                 : isOverloaded
@@ -574,22 +588,22 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
                               );
                             })}
                           </select>
-                          <ChevronDown className="w-3 h-3 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          <ChevronDown className="w-3 h-3 text-slate-600 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
                         </div>
 
                         {/* Status caption under cell */}
-                        <div className="flex items-center justify-between text-xs print:text-[10px] px-0.5">
-                          <span className="text-slate-400">{freq} p/wk</span>
+                        <div id={`assignment-status-${cls.id}-${sub.id}`} className="flex items-center justify-between gap-1 text-xs px-0.5">
+                          <span className="text-slate-600">{freq} periods/week</span>
                           {!currentAsgn ? (
-                            <span className="text-amber-600 font-bold flex items-center gap-0.5">
-                              🔴 Required
+                            <span className="text-rose-800 font-semibold flex items-center gap-0.5">
+                              Required
                             </span>
                           ) : isOverloaded ? (
                             <span className="text-rose-600 font-bold flex items-center gap-0.5">
                               🟡 Overloaded
                             </span>
                           ) : (
-                            <span className="text-emerald-600 font-semibold flex items-center gap-0.5">
+                            <span className="text-emerald-700 font-semibold flex items-center gap-0.5">
                               <Check className="w-2.5 h-2.5 stroke-[3]" /> Assigned
                             </span>
                           )}
@@ -602,7 +616,7 @@ export function TeacherAssignmentsCard({ school, app }: Props) {
             ))}
             {filteredMatrixClasses.length === 0 && (
               <tr>
-                <td colSpan={school.subjects.length + 1} className="py-8 text-center text-xs text-slate-400">
+                <td colSpan={school.subjects.length + 1} className="py-8 text-center text-xs text-slate-600">
                   No classes match your filter criteria.
                 </td>
               </tr>
